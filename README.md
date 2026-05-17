@@ -1,2 +1,0 @@
-# abhyaas
-Team project
