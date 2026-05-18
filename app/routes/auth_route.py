@@ -2,10 +2,12 @@
 
 from flask import Blueprint
 from app.controllers.auth_controller import AuthController
+from app.controllers.rolecontroller import RoleController
 class AuthRoutes:
     def __init__(self):
         self.bp = Blueprint("auth", __name__)
         self.controller = AuthController()
+        self.rolecontroller = RoleController()
 
     def register(self):
         self.bp.route("/", methods=["GET", "POST"])(
@@ -19,5 +21,14 @@ class AuthRoutes:
         )
         self.bp.route("/forgot", methods=["GET", "POST"])(
             self.controller.forgot
+        )
+        self.bp.route("/admin", methods=["GET", "POST"])(
+            self.rolecontroller.admin
+        )
+        self.bp.route("/teacher", methods=["GET", "POST"])(
+            self.rolecontroller.teacher
+        )
+        self.bp.route("/student", methods=["GET", "POST"])(
+            self.rolecontroller.student
         )
         return self.bp
