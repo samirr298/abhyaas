@@ -21,7 +21,7 @@ Done so far:
 - ✅ The auth login/register/forgot frontend pages have already been started.
 
 Current branch base:
-- Use `loginbackend` as the latest auth base for the user story branches.
+- Use `Main` as the latest auth base for the user story branches.
 
 1) us1-1-register
 - What to do: Register account by creating a profile.
