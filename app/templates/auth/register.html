@@ -1,0 +1,30 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block left_brand %}
+<div class="brand">
+	<h1>Join Abhyas</h1>
+	<p class="brand-sub">Create an account to begin your learning journey.</p>
+	<div class="brand-card"><span class="icon">✨</span></div>
+</div>
+{% endblock %}
+
+{% block right_content %}
+<div class="auth-box">
+	<h2>Create account</h2>
+	<p class="muted">Register with your institutional email.</p>
+	<form action="/register" method="POST" class="auth-form" id="register-form">
+		<label class="field"><span>Full name</span><input name="name" id="reg-name" required></label>
+		<label class="field"><span>Email</span><input type="email" name="email" id="reg-email" required></label>
+		<label class="field pw-field"><span>Password</span>
+			<div class="pw-row">
+				<input type="password" name="password" id="reg-password" required>
+				<button type="button" class="pw-toggle">👁️</button>
+			</div>
+		</label>
+		<button class="btn-primary" type="submit">Create account</button>
+	</form>
+	<p class="small muted">Already have an account? <a href="/login">Sign in</a></p>
+</div>
+{% endblock %}

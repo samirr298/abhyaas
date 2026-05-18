@@ -1,24 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base_auth.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+{% block title %}Sign In{% endblock %}
 
-<body>
-    <form action="/login" method="POST">
-        <input type="text" name="name" id="">
-        <input type="text" name="password" id="">
-        <input type="submit" value="Click me" id="">
-    </form>
-    {% if submitted %}
-    <p>Submitted name: {{ name }}</p>
-    {% endif %}
-</body>
+{% block left_brand %}
+<div class="brand">
+    <img src="/static/img/logo.png" alt="Abhyas" class="brand-logo" onerror="this.style.display='none'">
+    <h1>Abhyas</h1>
+    <p class="brand-sub">Empowering your learning journey through personalized academic excellence and organized growth.</p>
+    <div class="brand-card"><span class="icon">🎓</span></div>
+</div>
+{% endblock %}
 
-</html>
+{% block right_content %}
+<div class="form-card single-card">
+    <div class="form-inner">
+        <div class="left">
+            <h2>Welcome Back</h2>
+            <p class="muted">Please enter your credentials to access your dashboard.</p>
+            <form action="/login" method="POST" class="auth-form" id="login-form">
+                <label class="field">
+                    <span>Email Address</span>
+                    <input type="email" name="email" id="login-email" placeholder="name@institution.edu" required>
+                </label>
+                <label class="field pw-field">
+                    <span>Password</span>
+                    <div class="pw-row">
+                        <input type="password" name="password" id="login-password" placeholder="••••••••" required>
+                        <button type="button" class="pw-toggle" aria-label="Toggle password">👁️</button>
+                    </div>
+                </label>
+                <label class="checkbox"><input type="checkbox" name="remember" id="remember"> Keep me signed in for 30 days</label>
+                <button class="btn-primary" type="submit">Sign In →</button>
+                <p class="small"><a href="/forgot">Forgot password?</a></p>
+            </form>
+        </div>
+        <div class="right register-side">
+            <img src="/static/img/logo.png" alt="logo" class="brand-logo" onerror="this.style.display='none'">
+            <h3>New to Abhyas?</h3>
+            <p class="muted">Create an account to organize your courses and track progress.</p>
+            <a href="/register" class="btn-secondary full-width">Create account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 
 

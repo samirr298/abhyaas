@@ -1,0 +1,30 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Reset password{% endblock %}
+
+{% block left_brand %}
+<div class="brand">
+  <h1>Reset Password</h1>
+  <p class="brand-sub">Enter your registered email to receive reset instructions.</p>
+</div>
+{% endblock %}
+
+{% block right_content %}
+<div class="form-card single-card">
+  <div class="form-inner">
+    <div class="left">
+      <h2>Forgot password</h2>
+      <p class="muted">We'll send a reset link if the email is registered.</p>
+      <form action="/forgot" method="POST" id="forgot-form" class="auth-form">
+        <label class="field"><span>Email</span><input type="email" name="email" id="forgot-email" required></label>
+        <button class="btn-primary" type="submit">Send reset link</button>
+      </form>
+    </div>
+    <div class="right register-side">
+      <h3>Need an account?</h3>
+      <p class="muted">Create one to start tracking your progress.</p>
+      <a href="/register" class="btn-secondary full-width">Create account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
