@@ -17,12 +17,13 @@
         <div class="left">
             <h2>Welcome Back</h2>
             <p class="muted">Please enter your credentials to access your dashboard.</p>
-            <div class="flash_message" style="color: red; font-size:medium;font-weight:600">
-                {%for message in get_flashed_messages()%}
-                {{ message }}
-                {% endfor %}
-            </div>
+            
             <form action="/login" method="POST" class="auth-form" id="login-form">
+                {% for message in get_flashed_messages()%}
+                {{message}}
+                {% endfor %}
+
+
                 <label class="field">
                     <span>Email Address</span>
                     <input type="email" name="email" id="login-email" placeholder="name@institution.edu" required>
