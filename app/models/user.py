@@ -1,31 +1,51 @@
-from app.database import db
+from app.models.base_model import BaseModel
 
-class Users:
+class Users(BaseModel):
     
-    def get_by_email(email):
+    @staticmethod
+    def get_my_email(email):
         connection = None
         try:
-            # 1. Grab the connection (Make sure app/database.py returns it!)
-            connection = db() 
-            
-            # If your db() returned None, raise an error immediately before trying to use it
+            connection = BaseModel.get_connection()
+
             if connection is None:
                 print("🚨 Error: db() returned None. Check app/database.py for a missing return statement!")
                 return None
 
-            # 2. FIXED: Added .cursor() here
             with connection.cursor() as cursor:
                 sql = "SELECT id, name, email, password_hash, role FROM users WHERE email = %s"
-                
-                # Using a list [email] here is cleaner than the (email,) tuple syntax!
                 cursor.execute(sql, [email])
                 return cursor.fetchone()
-                
+
         except Exception as e:
             print(f"🚨 Database error occurred: {e}")
             return None
-            
+
         finally:
-            # 3. FIXED: Only close if the connection was actually established
+            if connection is not None:
+                connection.close()
+
+    @staticmethod
+    def change_password(email, password_hash):
+        connection = None
+        try:
+            connection = BaseModel.get_connection()
+
+            if connection is None:
+                print("🚨 Error: db() returned None. Check app/database.py for a missing return statement!")
+                return False
+
+            with connection.cursor() as cursor:
+                sql = "UPDATE users SET password_hash = %s WHERE email = %s"
+                cursor.execute(sql, [password_hash, email])
+
+            connection.commit()
+            return True
+
+        except Exception as e:
+            print(f"🚨 Database error occurred while changing password: {e}")
+            return False
+
+        finally:
             if connection is not None:
                 connection.close()

@@ -22,6 +22,13 @@ class AuthRoutes:
         self.bp.route("/forgot", methods=["GET", "POST"])(
             self.controller.forgot
         )
+        self.bp.route("/verifyotp", methods=["GET", "POST"])(
+            self.controller.verifyotp
+        )
+        
+        self.bp.route("/logout", methods=["GET", "POST"])(
+            self.controller.logout
+        )
         self.bp.route("/admin", methods=["GET", "POST"])(
             self.rolecontroller.admin
         )
@@ -31,4 +38,5 @@ class AuthRoutes:
         self.bp.route("/student", methods=["GET", "POST"])(
             self.rolecontroller.student
         )
+        
         return self.bp

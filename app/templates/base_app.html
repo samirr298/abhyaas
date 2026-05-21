@@ -1,46 +1,50 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>{% block title %}Abhyas - Dashboard{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  </head>
-  <body class="app-root">
-    <div class="app-shell">
-      <aside class="app-sidebar">
-        <div class="sidebar-brand">
-          <img src="/static/img/logo.png" alt="logo" onerror="this.style.display='none'">
-          <span>Abhyas</span>
-        </div>
-        <nav class="sidebar-nav">
-          <a class="active" href="#">Dashboard</a>
-          <a href="#">Tasks</a>
-          <a href="#">Attendance</a>
-          <a href="#">Announcements</a>
-          <a href="#">Profile</a>
-        </nav>
-      </aside>
 
-      <div class="app-main">
-        <header class="app-topbar">
-          <div class="topbar-left">
-            <input class="search" placeholder="Search tasks, materials, or people...">
-          </div>
-          <div class="topbar-right">
-            <div class="notif">🔔</div>
-            <div class="avatar">S</div>
-          </div>
-        </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Abhyas - Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
 
-        <main class="app-content">
-          <div class="container-lg">
-            {% block content %}
-            <h1>Welcome</h1>
-            {% endblock %}
-          </div>
-        </main>
+<body class="app-root">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <img src="/static/img/logo.png" alt="logo" onerror="this.style.display='none'">
+        <span>Abhyas</span>
       </div>
+      <nav class="sidebar-nav">
+        <a class="active" href="#">Dashboard</a>
+        <a href="#">Tasks</a>
+        <a href="#">Attendance</a>
+        <a href="#">Announcements</a>
+        <a href="#">Profile</a>
+        <a href="{{ url_for('auth.logout') }}">logout</a>
+      </nav>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <input class="search" placeholder="Search tasks, materials, or people...">
+        </div>
+        <div class="topbar-right">
+          <div class="notif">🔔</div>
+          <div class="avatar">S</div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <div class="container-lg">
+          {% block content %}
+          <h1>Welcome</h1>
+          {% endblock %}
+        </div>
+      </main>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

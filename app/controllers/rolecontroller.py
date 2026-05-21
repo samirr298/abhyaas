@@ -3,7 +3,7 @@ from app.auth import login_required,role_required
 
 
 class RoleController:
-    @login_required
+    @login_required ##completed
     @role_required("admin")
     
     def admin(self):
