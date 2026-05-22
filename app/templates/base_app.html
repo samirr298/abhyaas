@@ -10,7 +10,7 @@
     <div class="app-shell">
       <aside class="app-sidebar">
         <div class="sidebar-brand">
-          <img src="/static/img/logo.png" alt="logo" onerror="this.style.display='none'">
+          <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="logo" onerror="this.style.display='none'">
           <span>Abhyas</span>
         </div>
         <nav class="sidebar-nav">
