@@ -26,7 +26,7 @@ class Users(BaseModel):
                 connection.close()
 
     @staticmethod
-    def change_password(email, password_hash):
+    def reset_password(email, password_hash):
         connection = None
         try:
             connection = BaseModel.get_connection()
@@ -34,7 +34,7 @@ class Users(BaseModel):
             if connection is None:
                 print("🚨 Error: db() returned None. Check app/database.py for a missing return statement!")
                 return False
-
+            
             with connection.cursor() as cursor:
                 sql = "UPDATE users SET password_hash = %s WHERE email = %s"
                 cursor.execute(sql, [password_hash, email])
