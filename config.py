@@ -1,5 +1,7 @@
-SECRET_KEY = "random-secret-key"
-MTSQL_HOST = "localhost"
+SECRET_KEY = "change-this-to-a-random-secret-key"
+
+# MySQL Database Settings
+MYSQL_HOST = "localhost"
 MYSQL_USER = "root"
-MYSQL_PASSWORD = "root"
-MYSQL_DATABASE = "class_db"
+MYSQL_PASSWORD = "asdfghjkl"
+MYSQL_DATABASE = "abhyaas"

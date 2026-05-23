@@ -1,6 +1,6 @@
-from flask import render_template, request, redirect, url_for, flash
-
-
+from flask import render_template, request, redirect, url_for, flash,session
+from app.models.user import Users
+from werkzeug.security import generate_password_hash, check_password_hash
 class AuthController:
     def login(self):
         # simple placeholder: on POST you would validate credentials
@@ -28,7 +28,7 @@ class AuthController:
             current_password = request.form.get('currentPassword', '').strip()
             new_password = request.form.get('newPassword', '').strip()
             confirm_password = request.form.get('confirmPassword', '').strip()
-
+            
             if not current_password or not new_password or not confirm_password:
                 flash('Please fill in all password fields.')
                 return redirect(url_for('auth.change_my_password'))
@@ -44,8 +44,16 @@ class AuthController:
             if current_password == new_password:
                 flash('Your new password must be different from your current password.')
                 return redirect(url_for('auth.change_my_password'))
-
-            flash('Password change request received. The actual password update is not implemented yet.')
-            return redirect(url_for('auth.change_my_password'))
+            email = session['email']
+            user_details = Users.change_my_password(email)
+            if check_password_hash(user_details['password_hash'],current_password):
+                msg = Users.finally_change_my_password(generate_password_hash(new_password),email)
+                flash(msg)
+                session.clear()
+                return redirect(url_for('auth.login'))
+            else:
+                flash('Incorrect current password.')
+                
+            
 
         return render_template('auth/changemypassword.html')
