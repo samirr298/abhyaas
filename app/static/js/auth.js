@@ -35,8 +35,41 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function attachPasswordFormValidation() {
+    var form = document.querySelector('#passwordForm');
+    if (!form) return;
+
+    var newPassword = document.getElementById('newPassword');
+    var confirmPassword = document.getElementById('confirmPassword');
+    var errorText = document.getElementById('errorText');
+
+    if (!newPassword || !confirmPassword || !errorText) return;
+
+    function validatePasswords() {
+      if (newPassword.value !== confirmPassword.value) {
+        errorText.style.display = 'block';
+        confirmPassword.style.borderColor = 'var(--error-color)';
+        return false;
+      }
+
+      errorText.style.display = 'none';
+      confirmPassword.style.borderColor = 'var(--border-color)';
+      return true;
+    }
+
+    confirmPassword.addEventListener('input', validatePasswords);
+    newPassword.addEventListener('input', validatePasswords);
+
+    form.addEventListener('submit', function (event) {
+      if (!validatePasswords()) {
+        event.preventDefault();
+      }
+    });
+  }
+
   attachFormValidation('#login-form');
   attachFormValidation('#register-form');
   attachFormValidation('#forgot-form');
+  attachPasswordFormValidation();
 
 });

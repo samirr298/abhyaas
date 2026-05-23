@@ -1,4 +1,4 @@
-from flask import request
+from flask import render_template, request, redirect, url_for, flash
 from app.controllers.base_controller import BaseController
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import Users
@@ -7,7 +7,8 @@ from flask_mail import Message
 import random
 import time
 
-class AuthController(BaseController):
+
+class AuthController:
     def login(self):
         if request.method == 'POST':
             print('login form data received:', request.form)
@@ -116,5 +117,38 @@ class AuthController(BaseController):
         return self.redirect_to("auth.login")
         pass
 
-        
-      
+
+    def change_my_password(self):
+        if request.method == 'POST':
+            current_password = request.form.get('currentPassword', '').strip()
+            new_password = request.form.get('newPassword', '').strip()
+            confirm_password = request.form.get('confirmPassword', '').strip()
+            
+            if not current_password or not new_password or not confirm_password:
+                flash('Please fill in all password fields.')
+                return redirect(url_for('auth.change_my_password'))
+
+            if new_password != confirm_password:
+                flash('New password and confirm password do not match.')
+                return redirect(url_for('auth.change_my_password'))
+
+            if len(new_password) < 8:
+                flash('New password must be at least 8 characters long.')
+                return redirect(url_for('auth.change_my_password'))
+
+            if current_password == new_password:
+                flash('Your new password must be different from your current password.')
+                return redirect(url_for('auth.change_my_password'))
+            email = session['email']
+            user_details = Users.change_my_password(email)
+            if check_password_hash(user_details['password_hash'],current_password):
+                msg = Users.finally_change_my_password(generate_password_hash(new_password),email)
+                flash(msg)
+                session.clear()
+                return redirect(url_for('auth.login'))
+            else:
+                flash('Incorrect current password.')
+                
+            
+
+        return render_template('auth/changemypassword.html')

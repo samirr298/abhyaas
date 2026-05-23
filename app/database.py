@@ -12,23 +12,3 @@ def db():
         )
         return connection
 print("🚀 Connection successful!")
-def create_tables():
-        connection = db()
-
-        try:
-            with connection.cursor() as cursor:
-            # Create Users Table
-             cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    email VARCHAR(50) NOT NULL UNIQUE,
-                    password_hash VARCHAR(255) NOT NULL,
-                    role VARCHAR(20) NOT NULL DEFAULT 'student',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    name varchar(30) not null
-                    )
-                """)
-            connection.commit()
-            print("🎉 Tables initialized successfully!")
-        finally:
-            connection.close()

@@ -25,9 +25,11 @@ class AuthRoutes:
         self.bp.route("/verifyotp", methods=["GET", "POST"])(
             self.controller.verifyotp
         )
-        
         self.bp.route("/logout", methods=["GET", "POST"])(
             self.controller.logout
+        )
+        self.bp.route("/change-my-password", methods=["GET", "POST"])(
+            self.controller.change_my_password
         )
         self.bp.route("/admin", methods=["GET", "POST"])(
             self.rolecontroller.admin
