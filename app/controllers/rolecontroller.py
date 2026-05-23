@@ -10,8 +10,8 @@ class RoleController:
         # simple placeholder response for admin
         return render_template("users/admin_dashboard.html")
 
-    @role_required("teacher")
-    @login_required
+    # @role_required("teacher")
+    # @login_required
     def teacher(self):
         # simple placeholder response for teacher
            return render_template("users/teacher_dashboard.html")

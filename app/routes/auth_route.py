@@ -22,6 +22,9 @@ class AuthRoutes:
         self.bp.route("/forgot", methods=["GET", "POST"])(
             self.controller.forgot
         )
+        self.bp.route("/change-my-password", methods=["GET", "POST"])(
+            self.controller.change_my_password
+        )
         self.bp.route("/admin", methods=["GET", "POST"])(
             self.rolecontroller.admin
         )
