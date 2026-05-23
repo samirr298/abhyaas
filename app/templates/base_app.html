@@ -20,6 +20,9 @@
           <a href="#">Announcements</a>
           <a href="#">Profile</a>
         </nav>
+        <div class="sidebar-change">
+          <a class="sidebar-link" href="#settings">Change My Password</a>
+        </div>
       </aside>
 
       <div class="app-main">
@@ -35,8 +38,31 @@
 
         <main class="app-content">
           <div class="container-lg">
+            <div class="dashboard-header">
+              <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+            </div>
+
+            <section class="card settings-card" id="settings">
+              <h2>Change Password</h2>
+              <form action="#" method="POST" class="auth-form" onsubmit="return false;">
+                <label class="field">
+                  <span>Old Password</span>
+                  <input type="password" name="old_password" placeholder="Enter old password">
+                </label>
+                <label class="field">
+                  <span>New Password</span>
+                  <input type="password" name="new_password" placeholder="Enter new password">
+                </label>
+                <label class="field">
+                  <span>Confirm New Password</span>
+                  <input type="password" name="confirm_password" placeholder="Confirm new password">
+                </label>
+                <button class="btn-primary" type="submit">Save Password</button>
+              </form>
+            </section>
+
             {% block content %}
-            <h1>Welcome</h1>
+            <p>Welcome to your dashboard.</p>
             {% endblock %}
           </div>
         </main>
