@@ -10,11 +10,11 @@ class RoleController:
         # simple placeholder response for admin
         return render_template("users/admin_dashboard.html")
 
-    @role_required("teacher")
-    @login_required
+    # @role_required("teacher")
+    # @login_required
     def teacher(self):
         # simple placeholder response for teacher
-           return render_template("users/teacher_dashboard.html")
+        return render_template("base_app.html")
 
     @role_required("student")
     @login_required

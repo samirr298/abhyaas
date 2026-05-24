@@ -11,7 +11,7 @@ class AuthController(BaseController):
     def login(self):
         # simple placeholder: on POST you would validate credentials
         if request.method == 'POST':
-            # TODO: validate credentials here
+            print('login form', request.form)
             return redirect(url_for('auth.login'))
         return render_template('auth/login.html')
 
@@ -33,7 +33,6 @@ class AuthController(BaseController):
             if not self._validate_email(email):
                 self._flash_errors('Please enter a valid email address')
                 return render_template('auth/register.html')
-            
 
             if role not in ['student', 'teacher']:
                 self._flash_errors('Please select a valid role')
@@ -63,6 +62,7 @@ class AuthController(BaseController):
 
     def forgot(self):
         if request.method == 'POST':
+            print('forgot form', request.form)
             # TODO: lookup email and send reset link
             flash('If that email exists we sent reset instructions (demo)')
             return redirect(url_for('auth.login'))
