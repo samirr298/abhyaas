@@ -3,7 +3,7 @@ from datetime import timedelta
 # Added missing imports: request, abort, render_template
 from flask import Flask, session, request, abort, render_template
 import config
-from .database import db,create_tables
+from .database import db
 from flask_mail import Mail
 
 mail = Mail()
@@ -13,7 +13,7 @@ def create_app():
     
     # Initialize your database connection
     db()
-    create_tables()
+    # create_tables()
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY

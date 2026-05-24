@@ -3,12 +3,14 @@ from app.controllers.base_controller import BaseController
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import Users
 from app import mail
+from app.auth import login_required
 from flask_mail import Message
 import random
 import time
 
 
-class AuthController:
+class AuthController(BaseController):
+
     def login(self):
         if request.method == 'POST':
             print('login form data received:', request.form)
@@ -82,8 +84,8 @@ class AuthController:
                 # Flash a message instead of returning raw text to keep presentation in the View layer
                 self.flash(f"Failed to send email: {str(e)}", "error")
                 return self.redirect_to('auth.forgot')
-                
-            return self.render('auth/forgot.html')
+
+        return self.render('auth/forgot.html')
 
     def verifyotp(self):
         if request.method == "POST":
@@ -112,12 +114,13 @@ class AuthController:
                 return self.redirect_to("auth.login")
                 
         return self.render('auth/verify_otp.html')
+    @login_required        
     def logout(self):
         self.session.clear()
         return self.redirect_to("auth.login")
         pass
 
-
+    @login_required    
     def change_my_password(self):
         if request.method == 'POST':
             current_password = request.form.get('currentPassword', '').strip()
@@ -139,16 +142,16 @@ class AuthController:
             if current_password == new_password:
                 flash('Your new password must be different from your current password.')
                 return redirect(url_for('auth.change_my_password'))
-            email = session['email']
+            email = self.session['email']
             user_details = Users.change_my_password(email)
             if check_password_hash(user_details['password_hash'],current_password):
                 msg = Users.finally_change_my_password(generate_password_hash(new_password),email)
                 flash(msg)
-                session.clear()
+                self.session.clear()
                 return redirect(url_for('auth.login'))
             else:
                 flash('Incorrect current password.')
                 
             
 
-        return render_template('auth/changemypassword.html')
+        return self.render('auth/changemypassword.html')
