@@ -3,21 +3,21 @@ from app.auth import login_required,role_required
 
 
 class RoleController:
+    @login_required ##completed
     @role_required("admin")
-    @login_required
     
     def admin(self):
-        # simple placeholder response for admin
+        
         return render_template("users/admin_dashboard.html")
-
-    @role_required("teacher")
     @login_required
+    @role_required("teacher")
+    
     def teacher(self):
         # simple placeholder response for teacher
            return render_template("users/teacher_dashboard.html")
-
-    @role_required("student")
     @login_required
+    @role_required("student")
+    
     def student(self):
         # simple placeholder response for student
         return render_template("users/student_dashboard.html")

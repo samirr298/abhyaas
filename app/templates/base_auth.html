@@ -12,7 +12,11 @@
         <aside class="auth-left">
           {% block left_brand %}
           <div class="brand">
-            <img src="/static/img/logo.png" alt="Abhyas" class="brand-logo" onerror="this.style.display='none'">
+<<<<<<< HEAD
+            <img src="\static\img\logo.png" alt="Abhyas" class="brand-logo" onerror="this.style.display='none'">
+=======
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Abhyas" class="brand-logo" onerror="this.style.display='none'">
+>>>>>>> origin/us1-1-register
             <h1>Abhyas</h1>
             <p class="brand-sub">Empowering your learning journey.</p>
           </div>
@@ -22,7 +26,15 @@
         <section class="auth-right">
             
           <div class="auth-card-wrap">
-            
+            <div id="flash-container">
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  {% for msg in messages %}
+                    <div class="flash">{{ msg }}</div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+            </div>
             {% block right_content %}{% endblock %}
           </div>
         </section>

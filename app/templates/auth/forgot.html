@@ -4,6 +4,7 @@
 
 {% block left_brand %}
 <div class="brand">
+  <img src="\static\img\logo.png" alt="Abhyas" class="brand-logo" onerror="this.style.display='none'">
   <h1>Reset Password</h1>
   <p class="brand-sub">Enter your registered email to receive reset instructions.</p>
 </div>
@@ -15,7 +16,14 @@
     <div class="left">
       <h2>Forgot password</h2>
       <p class="muted">We'll send a reset link if the email is registered.</p>
+      <div class="flash-stack">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
       <form action="/forgot" method="POST" id="forgot-form" class="auth-form">
+        
+        
         <label class="field"><span>Email</span><input type="email" name="email" id="forgot-email" required></label>
         <button class="btn-primary" type="submit">Send reset link</button>
       </form>

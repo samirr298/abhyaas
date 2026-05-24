@@ -33,7 +33,12 @@ body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 .topbar a{color:#fff;text-decoration:none;font-weight:600}
 .form-error{color:#b91c1c;font-size:13px;margin-top:8px}
 #flash-container{margin-bottom:12px}
-.flash{padding:10px 12px;border-radius:8px;background:#f0f9ff;color:#0369a1;border:1px solid #bee3f8}
+.flash-stack{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}
+.flash{padding:12px 14px;border-radius:12px;border:1px solid transparent;font-size:14px;line-height:1.4;font-weight:500;box-shadow:0 10px 24px rgba(2,6,23,0.08)}
+.flash.info{background:linear-gradient(180deg,#eff6ff 0%,#dbeafe 100%);color:#1d4ed8;border-color:#bfdbfe}
+.flash.success{background:linear-gradient(180deg,#ecfdf5 0%,#d1fae5 100%);color:#047857;border-color:#a7f3d0}
+.flash.error{background:linear-gradient(180deg,#fff1f2 0%,#ffe4e6 100%);color:#be123c;border-color:#fecdd3}
+.flash.warning{background:linear-gradient(180deg,#fffbeb 0%,#fef3c7 100%);color:#b45309;border-color:#fde68a}
 
 .pw-row{position:relative;display:block}
 .pw-row input{width:100%;padding-right:44px}
@@ -125,5 +130,129 @@ body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 	.auth-left{padding:40px;height:240px}
 	.auth-right{padding:30px}
 	.auth-card-wrap{width:100%}
+}
+
+/* Change password page */
+:root {
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --text-color: #1f2937;
+  --border-color: #d1d5db;
+  --error-color: #dc2626;
+  --success-color: #16a34a;
+}
+
+body.password-page {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  color: var(--text-color);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.password-page .card {
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--card-bg);
+}
+
+.password-page h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.password-page .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.password-page label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.password-page input {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.password-page input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.password-page .hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.password-page .error-message {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.password-page button {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.password-page button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Settings / Change Password card (in-dashboard) */
+.settings-card{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  border:1px solid #e6e9ef;
+  box-shadow:0 8px 30px rgba(2,6,23,0.04);
+  margin-bottom:20px;
+}
+.settings-card h2{margin:0 0 12px;font-size:18px;color:#0b2540}
+.auth-form{display:flex;flex-direction:column;gap:12px}
+.auth-form .field{margin-bottom:8px}
+.auth-form .field span{font-size:13px;color:#6b7280;margin-bottom:6px;display:block}
+.auth-form .field input{width:100%;padding:10px 12px;border:1px solid #e6e9ef;border-radius:8px;background:#fff}
+.auth-form .field input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 6px 18px rgba(79,70,229,0.06)}
+.auth-form .error{color:var(--error-color);font-size:13px;margin-top:6px;display:none}
+.settings-card .btn-primary{width:auto;padding:10px 16px;border-radius:8px}
+
+/* Sidebar single-link styling */
+.sidebar-change{margin-top:auto;padding-top:12px}
+.sidebar-change .sidebar-link{color:rgba(255,255,255,0.95);text-decoration:none;padding:8px 10px;display:inline-block;border-radius:8px;background:transparent}
+.sidebar-change .sidebar-link:hover{background:rgba(255,255,255,0.04)}
+
+@media (max-width:900px){
+  .settings-card{padding:16px}
 }
 
