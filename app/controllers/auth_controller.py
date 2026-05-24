@@ -7,7 +7,7 @@ from app.auth import login_required
 from flask_mail import Message
 import random
 import time
-
+from app.models.base_model import BaseModel
 
 class AuthController(BaseController):
 
@@ -52,9 +52,46 @@ class AuthController(BaseController):
 
     def register(self):
         if request.method == 'POST':
-            print('register form', request.form)
-            return self.redirect_to('auth.login')
-        return self.render('auth/register.html')
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            role = request.form.get('role', 'student').strip().lower()
+
+            if not name or not email or not password:
+                flash('Please fill in all required fields')
+                return render_template('auth/register.html')
+
+            if not self._validate_name(name):
+                flash('Name must be at least 2 characters long')
+                return render_template('auth/register.html')
+
+            if not self._validate_email(email):
+                flash('Please enter a valid email address')
+                return render_template('auth/register.html')
+
+            if role not in ['student', 'teacher']:
+                flash('Please select a valid role')
+                return render_template('auth/register.html')
+
+            if self.user_repo.user_exists(email):
+                flash('Email already registered. Please login or use a different email.')
+                return render('auth/register.html')
+
+            password_valid, message = self._validate_password(password)
+            if not password_valid:
+                flash(message)
+                return render('auth/register.html')
+                sql = "insert into users(name,email,password_hash,role) (%s,%s,%s,%s)"
+            user_id = BaseModel.execute_write(sql,(name,email,generate_password_hash(password),role))
+
+            if user_id:
+                flash('Registration successful! Please login to continue.', 'success')
+                return redirect(url_for('auth.login'))
+
+            flash('Registration failed. Please try again later.')
+            return render('auth/register.html')
+
+        return render('auth/register.html')
 
     def forgot(self):
         if request.method == 'POST':
