@@ -58,19 +58,19 @@ class AuthController(BaseController):
             role = request.form.get('role', 'student').strip().lower()
 
             if not name or not email or not password:
-                flash('Please fill in all required fields')
+                flash('Please fill in all required fields', 'error')
                 return self.render('auth/register.html')
 
             if not self._validate_name(name):
-                flash('Name must be at least 2 characters long')
+                flash('Name must be at least 2 characters long', 'error')
                 return self.render('auth/register.html')
 
             if not self._validate_email(email):
-                flash('Please enter a valid email address')
+                flash('Please enter a valid email address', 'error')
                 return self.render('auth/register.html')
 
             if role not in ['student', 'teacher']:
-                flash('Please select a valid role')
+                flash('Please select a valid role', 'error')
                 return self.render('auth/register.html')
             sql = "select id from users where email = %s"
 
@@ -81,8 +81,8 @@ class AuthController(BaseController):
 
             password_valid, message = self._validate_password(password)
             if not password_valid:
-                flash(message)
-                return render('auth/register.html')
+                flash(message, 'error')
+                return self.render('auth/register.html')
             sql = "insert into users(name,email,password_hash,role) values(%s,%s,%s,%s)"
             user_id = BaseModel.execute_write(sql,[name,email,generate_password_hash(password),role])
 
@@ -90,7 +90,7 @@ class AuthController(BaseController):
                 flash('Registration successful! Please login to continue.', 'success')
                 return redirect(url_for('auth.login'))
 
-            flash('Registration failed. Please try again later.')
+            flash('Registration failed. Please try again later.', 'error')
             return self.render('auth/register.html')
 
         return self.render('auth/register.html')
@@ -113,10 +113,11 @@ class AuthController(BaseController):
                 if Users.get_my_email(email):
                     mail.send(msg)
 
-                self.session['reset_email'] = email
-                self.session['reset_otp'] = otp
+                self.session['otp_purpose'] = 'reset_password'
+                self.session['otp_email'] = email
+                self.session['otp_code'] = otp
                 self.session['otp_time'] = time.time()
-                print(self.session.get('reset_otp'))
+                print(self.session.get('otp_code'))
                 return self.redirect_to('auth.verifyotp')
                 
             except Exception as e:
@@ -128,31 +129,49 @@ class AuthController(BaseController):
 
     def verifyotp(self):
         if request.method == "POST":
+            purpose = self.session.get('otp_purpose')
             newpass = request.form.get('new_password')
             user_entered = request.form.get('otp')
             
             # ⏳ 1. Check if OTP is incorrect or expired
-            if user_entered != self.session.get('reset_otp') or (time.time() - self.session.get('otp_time', 0)) > 120:
-                self.session.pop('reset_otp', None)
-                self.session.pop('reset_email', None)
+            if user_entered != self.session.get('otp_code') or (time.time() - self.session.get('otp_time', 0)) > 120:
+                self.session.pop('otp_purpose', None)
+                self.session.pop('otp_email', None)
+                self.session.pop('otp_code', None)
                 self.session.pop('otp_time', None)
                 self.flash("Time expired or OTP wrong", 'error')
                 return self.redirect_to('auth.forgot')
                 
             # 🎉 2. Success Path
-            if Users.get_my_email(self.session['reset_email']) is not None:              
-                hashed_password = generate_password_hash(newpass)
-                Users.reset_password(self.session['reset_email'], hashed_password)
+            if purpose == 'reset_password':
+                if not newpass:
+                    self.flash("Please enter a new password.", "error")
+                    return self.redirect_to('auth.verifyotp')
 
-                # 🧹 Complete Cleanup
-                self.session.pop('reset_otp', None)
-                self.session.pop('reset_email', None)
-                self.session.pop('otp_time', None)
+                if Users.get_my_email(self.session['otp_email']) is not None:
+                    hashed_password = generate_password_hash(newpass)
+                    Users.reset_password(self.session['otp_email'], hashed_password)
 
-                self.flash("Password changed successfully. Please sign in again.", "success")
-                return self.redirect_to("auth.login")
+                    # 🧹 Complete Cleanup
+                    self.session.pop('otp_purpose', None)
+                    self.session.pop('otp_email', None)
+                    self.session.pop('otp_code', None)
+                    self.session.pop('otp_time', None)
+
+                    self.flash("Password changed successfully. Please sign in again.", "success")
+                    return self.redirect_to("auth.login")
                 
-        return self.render('auth/verify_otp.html')
+        return self.render('auth/verify_otp.html', otp_purpose=self.session.get('otp_purpose'))
+
+    @login_required
+    def profile(self):
+        return self.render(
+            'users/profile.html',
+            username=self.session.get('username'),
+            email=self.session.get('email'),
+            role=self.session.get('role')
+        )
+
     @login_required        
     def logout(self):
         self.session.clear()
@@ -167,29 +186,29 @@ class AuthController(BaseController):
             confirm_password = request.form.get('confirmPassword', '').strip()
             
             if not current_password or not new_password or not confirm_password:
-                flash('Please fill in all password fields.')
+                flash('Please fill in all password fields.', 'error')
                 return redirect(url_for('auth.change_my_password'))
 
             if new_password != confirm_password:
-                flash('New password and confirm password do not match.')
+                flash('New password and confirm password do not match.', 'error')
                 return redirect(url_for('auth.change_my_password'))
 
             if len(new_password) < 8:
-                flash('New password must be at least 8 characters long.')
+                flash('New password must be at least 8 characters long.', 'error')
                 return redirect(url_for('auth.change_my_password'))
 
             if current_password == new_password:
-                flash('Your new password must be different from your current password.')
+                flash('Your new password must be different from your current password.', 'error')
                 return redirect(url_for('auth.change_my_password'))
             email = self.session['email']
             user_details = Users.change_my_password(email)
             if check_password_hash(user_details['password_hash'],current_password):
                 msg = Users.finally_change_my_password(generate_password_hash(new_password),email)
-                flash(msg)
+                flash(msg, 'success')
                 self.session.clear()
                 return redirect(url_for('auth.login'))
             else:
-                flash('Incorrect current password.')
+                flash('Incorrect current password.', 'error')
                 
             
 

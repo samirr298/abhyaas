@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+
+{% block title %}Profile{% endblock %}
+{% block page_heading %}Profile{% endblock %}
+
+{% block content %}
+<div class="cards profile-grid">
+  <div class="card profile-card">
+    <h2>{{ username or 'User' }}</h2>
+    <p class="muted">{{ email }}</p>
+    <p class="muted">Role: {{ role }}</p>
+  </div>
+
+  <div class="card profile-card">
+    <h3>Account Actions</h3>
+    <div class="profile-actions">
+      <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Password</a>
+      <a class="btn-secondary full-width" href="{{ url_for('auth.logout') }}">Logout</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

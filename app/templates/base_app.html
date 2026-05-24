@@ -20,8 +20,8 @@
         <a href="#">Tasks</a>
         <a href="#">Attendance</a>
         <a href="#">Announcements</a>
-        <a href="#">Profile</a>
-        <a href="{{ url_for('auth.logout') }}">logout</a>
+        <a href="{{ url_for('auth.profile') }}">Profile</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
       </nav>
     </aside>
 
@@ -38,6 +38,18 @@
 
       <main class="app-content">
         <div class="container-lg">
+          <div class="page-header">
+            <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+          </div>
+          <div class="flash-stack">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+          </div>
           {% block content %}
           <h1>Welcome</h1>
           {% endblock %}
