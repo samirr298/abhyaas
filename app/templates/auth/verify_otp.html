@@ -5,7 +5,13 @@
 {% block right_content %}
 <div class="auth-box">
     <h2>Verify OTP</h2>
-    <p class="muted">Enter the OTP sent to your email and your new password.</p>
+    <p class="muted">
+        {% if otp_purpose == 'register' %}
+        Enter the OTP sent to your email to finish creating your account.
+        {% else %}
+        Enter the OTP sent to your email and your new password.
+        {% endif %}
+    </p>
     <div class="flash-stack">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         <div class="flash {{ category }}">{{ message }}</div>
@@ -13,9 +19,16 @@
     </div>
     <form method="POST" action="{{ url_for('auth.verifyotp') }}" class="auth-form" id="verify-otp-form">
         <label class="field"><span>OTP Code</span><input name="otp" id="otp" required></label>
+        {% if otp_purpose == 'reset_password' %}
         <label class="field"><span>New Password</span><input type="password" name="new_password" id="new-password" required></label>
         <button class="btn-primary" type="submit">Change Password</button>
+        {% else %}
+        <button class="btn-primary" type="submit">Verify and Create Account</button>
+        {% endif %}
     </form>
-    <p class="small muted">Didn't receive a code? <a href="/forgot">Resend</a></p>
+    <p class="small muted">
+        Didn't receive a code?
+        <a href="{{ url_for('auth.forgot') if otp_purpose == 'reset_password' else url_for('auth.register') }}">Resend</a>
+    </p>
 </div>
 {% endblock %}
