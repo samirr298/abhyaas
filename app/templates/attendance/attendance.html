@@ -1,0 +1,133 @@
+{% extends "base_app.html" %}
+
+{% block title %}Attendance{% endblock %}
+{% block page_heading %}Attendance{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="attendance-page">
+	<section class="attendance-hero card">
+		<div class="attendance-hero-copy">
+			<p class="attendance-eyebrow">Hi, {{ username }} This is your Attendance status</p>
+			<h2 class="attendance-title">Today</h2>
+			<p class="attendance-copy">
+				Check today’s status, mark attendance, and review your recent history from one screen.
+			</p>
+
+			<div class="attendance-status-row">
+				<span class="attendance-status-pill not-marked">
+					<span class="attendance-status-dot"></span>
+					{{ attendance_status }}
+				</span>
+				<span class="attendance-status-meta">Date shown: {{ date }}</span>
+			</div>
+		</div>
+
+		<div class="attendance-hero-actions">
+			<form action="/attendance" method="POST" class="attendance-hero-actions">
+                 <input type="hidden" name="status" value="present">
+                 <button type="submit">Mark Present</button>
+            </form>
+			
+		</div>
+	</section>
+
+	<section class="attendance-summary-grid">
+		<article class="summary-card present-card">
+			<span class="summary-label">Present days</span>
+			<strong class="summary-value">{{ present_count }}</strong>
+			<span class="summary-note">Recorded present entries</span>
+		</article>
+
+		<article class="summary-card absent-card">
+			<span class="summary-label">Absent days</span>
+			<strong class="summary-value">{{ absent_count }}</strong>
+			<span class="summary-note">Recorded absent entries</span>
+		</article>
+
+		<article class="summary-card total-card">
+			<span class="summary-label">Total tracked days</span>
+			<strong class="summary-value">{{ total_days }}</strong>
+			<span class="summary-note">Month-to-date attendance history</span>
+		</article>
+	</section>
+
+	<section class="attendance-history card">
+		<div class="history-header">
+			<div>
+				<p class="attendance-eyebrow">History</p>
+				<h3 class="history-title">Attendance history</h3>
+				<p class="attendance-copy">Newest records appear first. The current month is selected by default.</p>
+			</div>
+
+			<label class="month-filter">
+				<span>Month</span>
+				<select aria-label="Filter attendance by month">
+					<option selected>Current Month</option>
+					<option>May 2026</option>
+					<option>April 2026</option>
+					<option>March 2026</option>
+				</select>
+			</label>
+		</div>
+
+		<div class="history-scroll">
+			<table class="attendance-table">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Day</th>
+						<th>Status</th>
+						<th>Marked at</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td data-label="Date">
+							<div class="date-cell">
+								<strong>25 May 2026</strong>
+								<span class="date-badge">Latest</span>
+							</div>
+						</td>
+						<td data-label="Day">Today</td>
+						<td data-label="Status"><span class="status-chip not-marked">Not Marked</span></td>
+						<td data-label="Marked at">--</td>
+					</tr>
+					<tr>
+						<td data-label="Date"><strong>24 May 2026</strong></td>
+						<td data-label="Day">Sunday</td>
+						<td data-label="Status"><span class="status-chip present">Present</span></td>
+						<td data-label="Marked at">09:02 AM</td>
+					</tr>
+					<tr>
+						<td data-label="Date"><strong>23 May 2026</strong></td>
+						<td data-label="Day">Saturday</td>
+						<td data-label="Status"><span class="status-chip absent">Absent</span></td>
+						<td data-label="Marked at">--</td>
+					</tr>
+					<tr>
+						<td data-label="Date"><strong>22 May 2026</strong></td>
+						<td data-label="Day">Friday</td>
+						<td data-label="Status"><span class="status-chip present">Present</span></td>
+						<td data-label="Marked at">08:56 AM</td>
+					</tr>
+					<tr>
+						<td data-label="Date"><strong>21 May 2026</strong></td>
+						<td data-label="Day">Thursday</td>
+						<td data-label="Status"><span class="status-chip present">Present</span></td>
+						<td data-label="Marked at">09:04 AM</td>
+					</tr>
+					<tr>
+						<td data-label="Date"><strong>20 May 2026</strong></td>
+						<td data-label="Day">Wednesday</td>
+						<td data-label="Status"><span class="status-chip absent">Absent</span></td>
+						<td data-label="Marked at">--</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</div>
+{% endblock %}

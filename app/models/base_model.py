@@ -1,6 +1,6 @@
 from abc import ABC,abstractmethod
 
-from app.database import db
+from app.database import Database
 
 
 class BaseModel(ABC):
@@ -8,7 +8,7 @@ class BaseModel(ABC):
 	@staticmethod
     
 	def get_connection():
-		return db()
+		return Database.db()
 
 	@classmethod
 	def fetch_one(cls, sql, params=None):
