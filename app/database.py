@@ -13,6 +13,8 @@ class Database:
                 
                 return connection
 
+      
+
 
         def create_users_table():
                 connection =   Database.db()
@@ -47,10 +49,11 @@ class Database:
                                         attendance_date DATE NOT NULL,          
                                         marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                         status ENUM('present', 'absent', 'not_marked') NOT NULL DEFAULT 'not_marked',
-                                        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+                                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                                         );
                                 """
                         )
+                        
                         connection.commit()
                 finally:
                         print('table created')

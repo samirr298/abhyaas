@@ -8,126 +8,145 @@
 
 {% block content %}
 <div class="attendance-page">
-	<section class="attendance-hero card">
-		<div class="attendance-hero-copy">
-			<p class="attendance-eyebrow">Hi, {{ username }} This is your Attendance status</p>
-			<h2 class="attendance-title">Today</h2>
-			<p class="attendance-copy">
-				Check today’s status, mark attendance, and review your recent history from one screen.
-			</p>
+    <section class="attendance-hero card">
+        <div class="attendance-hero-copy">
+            <p class="attendance-eyebrow">Hi {{ username }} ,This is your Attendance status</p>
+            <h2 class="attendance-title">Today</h2>
+            <p class="attendance-copy">
+                Check today’s status, mark attendance, and review your recent history from one screen.
+            </p>
 
-			<div class="attendance-status-row">
-				<span class="attendance-status-pill not-marked">
-					<span class="attendance-status-dot"></span>
-					{{ attendance_status }}
-				</span>
-				<span class="attendance-status-meta">Date shown: {{ date }}</span>
-			</div>
-		</div>
+            <div class="attendance-status-row">
+                <span class="attendance-status-pill {% if attendance_status == 'Present' %}present{% else %}not-marked{% endif %}">
+                    <span class="attendance-status-dot"></span>
+                    {{ attendance_status }}
+                </span>
+                <span class="attendance-status-meta">Date shown: {{ date }}</span>
+            </div>
+        </div>
 
-		<div class="attendance-hero-actions">
-			<form action="/attendance" method="POST" class="attendance-hero-actions">
+        <div class="attendance-hero-actions">
+            {% if attendance_status != 'Present' %}
+            <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-hero-actions">
                  <input type="hidden" name="status" value="present">
                  <button type="submit">Mark Present</button>
             </form>
-			
-		</div>
-	</section>
+            {% else %}
+            <button class="btn-disabled" disabled style="cursor: not-allowed; opacity: 0.6;">Already Present</button>
+            {% endif %}
+        </div>
+    </section>
 
-	<section class="attendance-summary-grid">
-		<article class="summary-card present-card">
-			<span class="summary-label">Present days</span>
-			<strong class="summary-value">{{ present_count }}</strong>
-			<span class="summary-note">Recorded present entries</span>
-		</article>
+    <section class="attendance-summary-grid">
+        <article class="summary-card present-card">
+            <span class="summary-label">Present days</span>
+            <strong class="summary-value">{{ present_count }}</strong>
+            <span class="summary-note">Recorded present entries</span>
+        </article>
 
-		<article class="summary-card absent-card">
-			<span class="summary-label">Absent days</span>
-			<strong class="summary-value">{{ absent_count }}</strong>
-			<span class="summary-note">Recorded absent entries</span>
-		</article>
+        <article class="summary-card absent-card">
+            <span class="summary-label">Absent days</span>
+            <strong class="summary-value">{{ absent_count }}</strong>
+            <span class="summary-note">Recorded absent entries</span>
+        </article>
 
-		<article class="summary-card total-card">
-			<span class="summary-label">Total tracked days</span>
-			<strong class="summary-value">{{ total_days }}</strong>
-			<span class="summary-note">Month-to-date attendance history</span>
-		</article>
-	</section>
+        <article class="summary-card total-card">
+            <span class="summary-label">Total tracked days</span>
+            <strong class="summary-value">{{ total_days }}</strong>
+            <span class="summary-note">Month-to-date attendance history</span>
+        </article>
+    </section>
 
-	<section class="attendance-history card">
-		<div class="history-header">
-			<div>
-				<p class="attendance-eyebrow">History</p>
-				<h3 class="history-title">Attendance history</h3>
-				<p class="attendance-copy">Newest records appear first. The current month is selected by default.</p>
-			</div>
+    <section class="attendance-history card">
+        <div class="history-header">
+            <div>
+                <p class="attendance-eyebrow">History</p>
+                <h3 class="history-title">Attendance history</h3>
+                <p class="attendance-copy">Newest records appear first.</p>
+            </div>
 
-			<label class="month-filter">
-				<span>Month</span>
-				<select aria-label="Filter attendance by month">
-					<option selected>Current Month</option>
-					<option>May 2026</option>
-					<option>April 2026</option>
-					<option>March 2026</option>
-				</select>
-			</label>
-		</div>
+           
+        </div>
 
-		<div class="history-scroll">
-			<table class="attendance-table">
-				<thead>
-					<tr>
-						<th>Date</th>
-						<th>Day</th>
-						<th>Status</th>
-						<th>Marked at</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td data-label="Date">
-							<div class="date-cell">
-								<strong>25 May 2026</strong>
-								<span class="date-badge">Latest</span>
-							</div>
-						</td>
-						<td data-label="Day">Today</td>
-						<td data-label="Status"><span class="status-chip not-marked">Not Marked</span></td>
-						<td data-label="Marked at">--</td>
-					</tr>
-					<tr>
-						<td data-label="Date"><strong>24 May 2026</strong></td>
-						<td data-label="Day">Sunday</td>
-						<td data-label="Status"><span class="status-chip present">Present</span></td>
-						<td data-label="Marked at">09:02 AM</td>
-					</tr>
-					<tr>
-						<td data-label="Date"><strong>23 May 2026</strong></td>
-						<td data-label="Day">Saturday</td>
-						<td data-label="Status"><span class="status-chip absent">Absent</span></td>
-						<td data-label="Marked at">--</td>
-					</tr>
-					<tr>
-						<td data-label="Date"><strong>22 May 2026</strong></td>
-						<td data-label="Day">Friday</td>
-						<td data-label="Status"><span class="status-chip present">Present</span></td>
-						<td data-label="Marked at">08:56 AM</td>
-					</tr>
-					<tr>
-						<td data-label="Date"><strong>21 May 2026</strong></td>
-						<td data-label="Day">Thursday</td>
-						<td data-label="Status"><span class="status-chip present">Present</span></td>
-						<td data-label="Marked at">09:04 AM</td>
-					</tr>
-					<tr>
-						<td data-label="Date"><strong>20 May 2026</strong></td>
-						<td data-label="Day">Wednesday</td>
-						<td data-label="Status"><span class="status-chip absent">Absent</span></td>
-						<td data-label="Marked at">--</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</section>
+        <div class="history-scroll">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>Status</th>
+                        <th>Marked at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in history %}
+                    <tr>
+                        <td data-label="Date">
+                            <div class="date-cell">
+                                <strong>{{ row['attendance_date'] }}</strong>
+                                {% if loop.first and current_page == 1 %}
+                                    <span class="date-badge">Latest</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td data-label="Day">
+                            {{ row['attendance_date'].strftime('%A') }}
+                        </td>
+                        <td data-label="Status">
+                            {% if row['status'] == 'present' %}
+                                <span class="status-chip present">Present</span>
+                            {% else %}
+                                <span class="status-chip absent">Absent</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Marked at">
+                            {% if row['status'] == 'present' and row['marked_at'] %}
+                                {{ row['marked_at'].strftime('%I:%M %p') }}
+                            {% else %}
+                                --
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #9ca3af; padding: 24px;">
+                            No historical attendance records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+            <div>
+                {% if current_page > 1 %}
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1) }}" class="btn-pagination" style="text-decoration: none;">
+                       &larr; Previous
+                    </a>
+                {% else %}
+                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                        &larr; Previous
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="page-indicator" style="font-size: 0.875rem; color: #4b5563;">
+                Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong>
+            </div>
+
+            <div>
+                {% if current_page < total_pages %}
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1) }}" class="btn-pagination" style="text-decoration: none;">
+                       Next &rarr;
+                    </a>
+                {% else %}
+                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                        Next &rarr;
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
 </div>
 {% endblock %}
