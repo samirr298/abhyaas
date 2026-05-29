@@ -20,10 +20,20 @@ class Attendance(BaseModel):
         return cls.execute_write(sql, [user_id, today_date])
 
     @classmethod
-    def get_status_count(cls, user_id, status):
-        """Counts total days for a specific status ('present' or 'absent')."""
+    def get_status_count(cls, user_id, status, start_date=None, end_date=None):
+        """Counts total days for a specific status ('present' or 'absent') within an optional date range."""
         sql = "SELECT COUNT(*) AS count FROM attendance WHERE user_id = %s AND status = %s"
-        result = cls.fetch_one(sql, [user_id, status])
+        params = [user_id, status]
+
+        if start_date:
+            sql += " AND attendance_date >= %s"
+            params.append(start_date)
+
+        if end_date:
+            sql += " AND attendance_date < %s"
+            params.append(end_date)
+
+        result = cls.fetch_one(sql, params)
         return result['count'] if result else 0
 
     @classmethod
@@ -45,20 +55,41 @@ class Attendance(BaseModel):
         return cls.execute_write(sql, [today_date, today_date])
     
     @classmethod
-    def get_paginated_history(cls, user_id, limit, offset):
-        """Fetches a sliced page of attendance records for the history table."""
+    def get_paginated_history(cls, user_id, page, per_page, start_date=None, end_date=None):
+        """Fetches a paginated, month-filtered attendance history using SQL pagination."""
+        offset = (page - 1) * per_page
         sql = """
-            SELECT * 
-            FROM attendance 
-            WHERE user_id = %s 
-            ORDER BY attendance_date DESC 
-            LIMIT %s OFFSET %s
+            SELECT *
+            FROM attendance
+            WHERE user_id = %s
         """
-        return cls.fetch_all(sql, [user_id, limit, offset])
+        params = [user_id]
+
+        if start_date:
+            sql += " AND attendance_date >= %s"
+            params.append(start_date)
+
+        if end_date:
+            sql += " AND attendance_date < %s"
+            params.append(end_date)
+
+        sql += " ORDER BY attendance_date DESC LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        return cls.fetch_all(sql, params)
 
     @classmethod
-    def get_total_history_count(cls, user_id):
-        """Gets the total number of records to calculate total pages for layout pagination."""
+    def get_total_history_count(cls, user_id, start_date=None, end_date=None):
+        """Counts the total number of records in the selected history window."""
         sql = "SELECT COUNT(*) as count FROM attendance WHERE user_id = %s"
-        result = cls.fetch_one(sql, [user_id])
+        params = [user_id]
+
+        if start_date:
+            sql += " AND attendance_date >= %s"
+            params.append(start_date)
+
+        if end_date:
+            sql += " AND attendance_date < %s"
+            params.append(end_date)
+
+        result = cls.fetch_one(sql, params)
         return result['count'] if result else 0

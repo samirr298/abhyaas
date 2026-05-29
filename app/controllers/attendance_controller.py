@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect
 from app.controllers.base_controller import BaseController
 from app.models.attendance import Attendance  # Imported your model class
 from datetime import date,timedelta
+import calendar
 import math
 class AttendanceController(BaseController):
     
@@ -36,24 +37,62 @@ class AttendanceController(BaseController):
 
         
         # --- 2. HANDLE GET (Page Load Data Fetching) ---
-        # Fetch counts safely via model helper methods
-        present_count = Attendance.get_status_count(userid, 'present')
-        absent_count = Attendance.get_status_count(userid, 'absent')
-        total_days = present_count + absent_count
-        
         # Determine status text for your blue layout badge
         today_record = Attendance.get_today_record(userid, today)
         status_text = "Present" if today_record else "Not Marked"
 
-        #attendance_history and pagination
-        # Grabs ?page=X from the URL bar; defaults to page 1
-        page = request.args.get('page', default=1, type=int)
+        page = max(request.args.get('page', default=1, type=int), 1)
+        selected_month = request.args.get('month', default=today.month, type=int)
+        selected_year = request.args.get('year', default=today.year, type=int)
+
+        if selected_month < 1 or selected_month > 12:
+            selected_month = today.month
+
+        if selected_year < 2000:
+            selected_year = today.year
+
+        selected_month_start = date(selected_year, selected_month, 1)
+        if selected_month == 12:
+            next_month_start = date(selected_year + 1, 1, 1)
+        else:
+            next_month_start = date(selected_year, selected_month + 1, 1)
+
         per_page = 10
-        offset = (page - 1) * per_page
-        history_records = Attendance.get_paginated_history(userid, per_page, offset)
-        total_rows = Attendance.get_total_history_count(userid)
+        history_records = Attendance.get_paginated_history(
+            userid,
+            page,
+            per_page,
+            selected_month_start,
+            next_month_start
+        )
+        total_rows = Attendance.get_total_history_count(
+            userid,
+            selected_month_start,
+            next_month_start
+        )
         total_pages = math.ceil(total_rows / per_page) if total_rows > 0 else 1
-        print(total_pages) 
+
+        present_count = Attendance.get_status_count(userid, 'present', selected_month_start, next_month_start)
+        absent_count = Attendance.get_status_count(userid, 'absent', selected_month_start, next_month_start)
+        total_days = present_count + absent_count
+
+        month_options = [
+            {
+                'value': month,
+                'label': calendar.month_name[month],
+                'selected': month == selected_month
+            }
+            for month in range(1, 13)
+        ]
+        current_year = today.year
+        year_options = [
+            {
+                'value': year,
+                'label': year,
+                'selected': year == selected_year
+            }
+            for year in range(current_year - 5, current_year + 1)
+        ]
 
         # --- 3. RENDER HTML TEMPLATE ---
         return self.render('attendance/attendance.html',
@@ -65,7 +104,13 @@ class AttendanceController(BaseController):
             present_count=present_count,
             absent_count=absent_count,
             total_days=total_days,
-            history=history_records,      # <--- Passed to HTML table loop
-            current_page=page,            # <--- Passed for active page color
-            total_pages=total_pages
+            history=history_records,
+            current_page=page,
+            total_pages=total_pages,
+            selected_month=selected_month,
+            selected_year=selected_year,
+            selected_month_name=calendar.month_name[selected_month],
+            month_options=month_options,
+            year_options=year_options,
+            selected_month_label=f"{calendar.month_name[selected_month]} {selected_year}"
         )

@@ -53,7 +53,7 @@
         <article class="summary-card total-card">
             <span class="summary-label">Total tracked days</span>
             <strong class="summary-value">{{ total_days }}</strong>
-            <span class="summary-note">Month-to-date attendance history</span>
+            <span class="summary-note">Attendance summary for {{ selected_month_name }} {{ selected_year }}</span>
         </article>
     </section>
 
@@ -62,10 +62,25 @@
             <div>
                 <p class="attendance-eyebrow">History</p>
                 <h3 class="history-title">Attendance history</h3>
-                <p class="attendance-copy">Newest records appear first.</p>
+                <p class="attendance-copy">Showing {{ selected_month_name }} {{ selected_year }}. Newest records appear first.</p>
             </div>
 
-           
+            <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="month-filter">
+                <label for="month-select">Filter month</label>
+                <div class="month-filter-controls">
+                    <select id="month-select" name="month">
+                        {% for month_option in month_options %}
+                            <option value="{{ month_option['value'] }}" {% if month_option['selected'] %}selected{% endif %}>{{ month_option['label'] }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="year-select" name="year">
+                        {% for year_option in year_options %}
+                            <option value="{{ year_option['value'] }}" {% if year_option['selected'] %}selected{% endif %}>{{ year_option['label'] }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="history-filter-btn">Apply</button>
+                </div>
+            </form>
         </div>
 
         <div class="history-scroll">
@@ -121,7 +136,7 @@
         <div class="pagination-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
             <div>
                 {% if current_page > 1 %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1) }}" class="btn-pagination" style="text-decoration: none;">
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
                        &larr; Previous
                     </a>
                 {% else %}
@@ -137,7 +152,7 @@
 
             <div>
                 {% if current_page < total_pages %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1) }}" class="btn-pagination" style="text-decoration: none;">
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
                        Next &rarr;
                     </a>
                 {% else %}

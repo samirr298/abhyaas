@@ -27,8 +27,10 @@
 .attendance-history{padding:20px;border:1px solid #e6e9ef;background:#fff;box-shadow:0 10px 30px rgba(2,6,23,0.04)}
 .history-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}
 .history-title{font-size:20px;margin:0 0 6px;color:#0b2540}
-.month-filter{display:flex;flex-direction:column;gap:8px;font-size:13px;color:#6b7280;min-width:180px}
-.month-filter select{border:1px solid #e6e9ef;border-radius:10px;padding:10px 12px;background:#fff;color:#0b2540}
+.month-filter{display:flex;flex-direction:column;gap:8px;font-size:13px;color:#6b7280;min-width:280px}
+.month-filter-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.month-filter select{border:1px solid #e6e9ef;border-radius:10px;padding:10px 12px;background:#fff;color:#0b2540;min-width:100px}
+.history-filter-btn{border:none;border-radius:10px;padding:10px 12px;background:#0b2540;color:#fff;font-weight:700;cursor:pointer}
 .history-scroll{max-height:420px;overflow:auto;border:1px solid #edf0f4;border-radius:14px}
 .attendance-table{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
 .attendance-table thead th{position:sticky;top:0;background:#f8fafc;color:#475569;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:14px 16px;border-bottom:1px solid #e6e9ef}
