@@ -32,6 +32,10 @@
           <input class="search" placeholder="Search tasks, materials, or people...">
         </div>
         <div class="topbar-right">
+          <div class="profile-summary" aria-label="Current profile information">
+            <strong>{{ session.get('username') or 'User' }}</strong>
+            <span>{{ session.get('email') or '' }}</span>
+          </div>
           <div class="notif">🔔</div>
           <a class="avatar avatar-link" href="{{ url_for('auth.profile') }}" aria-label="Profile">
             {% if session.get('profile_pic') %}
@@ -60,10 +64,3 @@
           {% block content %}
           <h1>Welcome</h1>
           {% endblock %}
-        </div>
-      </main>
-    </div>
-  </div>
-</body>
-
-</html>

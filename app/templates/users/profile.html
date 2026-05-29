@@ -5,30 +5,74 @@
 
 {% block content %}
 <div class="cards profile-grid">
-  <div class="card profile-card">
-    <div class="profile-header">
-      <div class="profile-copy">
-        <h2>{{ username or 'User' }}</h2>
-        <p class="muted">{{ email }}</p>
-        <p class="muted">Role : {{ role }}</p>
-      </div>
-
+  <div class="card profile-top-card">
+    <div class="profile-top">
       <div class="profile-picture">
         {% if profile_url %}
         <img src="{{ profile_url }}" alt="Profile picture" />
+      
         {% else %}
-        <img id="profilePreview" src="/static/images/profile_pics/{{ filename }}" alt="Profile picture" />
+        <img src="/static/images/profile_pics/{{ filename or 'default.png' }}" alt="Profile picture" />
+        <span class="camera-icon">📷</span>
         {% endif %}
       </div>
+
+      <div class="profile-top-copy">
+        <div class="profile-eyebrow">Account profile</div>
+        <h2 class="profile-top-name">{{ username or 'User' }}</h2>
+        <p class="profile-subtitle">{{ role or '' }}</p>
+        <p class="muted profile-top-sub">{{ email }}</p>
+        <div class="profile-badges">
+          <span class="badge badge-success">Active Student</span>
+          <span class="badge badge-ghost">Verified Profile</span>
+        </div>
+      </div>
+
+      <div class="profile-top-actions">
+        <form action="{{ url_for('auth.profile') }}" method="POST" enctype="multipart/form-data" class="profile-upload-inline">
+          <label class="file-label small" for="profilePicInput">Choose file</label>
+          <input type="file" name="profile_image" id="profilePicInput" accept="image/*" class="profile-file-input">
+          <button class="upload-btn small" type="submit" name="upload_only" value="1">Upload</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card settings-card personal-info-card">
+    <div class="card-header">
+      <h3>Personal Information</h3>
+      <a class="edit-link" href="#">
+        <span class="edit-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="#143a66"/>
+            <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#143a66"/>
+          </svg>
+        </span>
+        Edit Info
+      </a>
     </div>
 
-    <form action="{{ url_for('auth.profile') }}" method="POST" enctype="multipart/form-data" class="profile-upload-form">
-      <div class="profile-upload-row">
-        <label class="file-label" for="profilePicInput">
-          Choose file
-        </label>
-        <input type="file" name="profile_image" id="profilePicInput" accept="image/*" class="profile-file-input">
-        <button class="btn-primary upload-btn" type="submit">Upload file</button>
+    <form action="{{ url_for('auth.profile') }}" method="POST" enctype="multipart/form-data" autocomplete="on">
+      <div class="profile-details-form">
+        <div class="profile-form-grid">
+          <div class="field">
+            <span>Full Name</span>
+            <input type="text" name="username" value="{{ username or '' }}" placeholder="Enter your name" required>
+          </div>
+
+          <div class="field">
+            <span>Email Address</span>
+            <input type="email" name="email" value="{{ email or '' }}" placeholder="Enter your email" required>
+          </div>
+        </div>
+
+        <div class="profile-help-row">
+          <span class="profile-help">Changes are saved when you click Save changes.</span>
+        </div>
+
+        <div class="profile-actions-row">
+          <button class="btn-primary" type="submit">Save changes</button>
+        </div>
       </div>
     </form>
   </div>
@@ -36,9 +80,8 @@
   <div class="card profile-card">
     <h3>Account Actions</h3>
     <div class="profile-actions" style="color: black;">
-      <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Passwzord</a>
+      <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Password</a>
       <a class="btn-secondary full-width" href="{{ url_for('auth.logout') }}">Logout</a>
-
     </div>
   </div>
 </div>

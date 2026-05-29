@@ -18,35 +18,25 @@ class AuthController(BaseController):
             email = request.form.get('email')
             password = request.form.get('password')
             
-            # 1. Fetch user data from database
             user_details = Users.get_my_email(email)
             print("What Python sees from DB:", user_details)
             
-            # ==========================================================
-            # 🛡️ THE CRITICAL SAFETY GUARD:
-            # ==========================================================
             if user_details is not None:
-                # This block ONLY runs if a user row was actually found!
                 if check_password_hash(user_details['password_hash'], password):
                     self.session['user_id'] = user_details['id']
                     self.session['role'] = user_details['role']
                     self.session['username'] = user_details['name']
                     self.session['email'] = email
                     self.session['profile_pic'] = user_details.get('profile_pic')
+                    
                     if user_details['role'] == 'teacher':
                         return self.redirect_to('auth.teacher')
-                    elif user_details['role'] == 'student':
-                        return self.redirect_to('auth.student')
                     else:
                         return self.redirect_to('auth.student')
                 else:
                     self.flash("Incorrect password.", "error")
-                    print("🛑 Password did not match!")
             else:
-                # This runs safely instead of crashing if the email doesn't exist
                 self.flash("No account found with that email.", "error")
-                print("🛑 Email not found in database!")
-            # ==========================================================
                 
             return self.redirect_to('auth.login')
             
@@ -74,9 +64,8 @@ class AuthController(BaseController):
             if role not in ['student', 'teacher']:
                 flash('Please select a valid role', 'error')
                 return self.render('auth/register.html')
+
             sql = "select id from users where email = %s"
-
-
             if BaseModel.fetch_one(sql, [email]):
                 self.flash('Email already registered. Please login or use a different email.', 'error')
                 return self.render('auth/register.html')
@@ -85,6 +74,7 @@ class AuthController(BaseController):
             if not password_valid:
                 flash(message, 'error')
                 return self.render('auth/register.html')
+
             sql = "insert into users(name,email,password_hash,role) values(%s,%s,%s,%s)"
             user_id = BaseModel.execute_write(sql,[name,email,generate_password_hash(password),role])
 
@@ -99,7 +89,6 @@ class AuthController(BaseController):
 
     def forgot(self):
         if request.method == 'POST':
-            print('forgot form', request.form)
             email = request.form.get('email')
             otp = str(random.randint(100000, 999999))
             
@@ -119,11 +108,9 @@ class AuthController(BaseController):
                 self.session['otp_email'] = email
                 self.session['otp_code'] = otp
                 self.session['otp_time'] = time.time()
-                print(self.session.get('otp_code'))
                 return self.redirect_to('auth.verifyotp')
                 
             except Exception as e:
-                # Flash a message instead of returning raw text to keep presentation in the View layer
                 self.flash(f"Failed to send email: {str(e)}", "error")
                 return self.redirect_to('auth.forgot')
 
@@ -135,16 +122,14 @@ class AuthController(BaseController):
             newpass = request.form.get('new_password')
             user_entered = request.form.get('otp')
             
-            # ⏳ 1. Check if OTP is incorrect or expired
             if user_entered != self.session.get('otp_code') or (time.time() - self.session.get('otp_time', 0)) > 120:
                 self.session.pop('otp_purpose', None)
                 self.session.pop('otp_email', None)
                 self.session.pop('otp_code', None)
                 self.session.pop('otp_time', None)
-                self.flash("Time expired or OTP wrong", 'error')
+                self.session.flash("Time expired or OTP wrong", 'error')
                 return self.redirect_to('auth.forgot')
                 
-            # 🎉 2. Success Path
             if purpose == 'reset_password':
                 if not newpass:
                     self.flash("Please enter a new password.", "error")
@@ -154,7 +139,6 @@ class AuthController(BaseController):
                     hashed_password = generate_password_hash(newpass)
                     Users.reset_password(self.session['otp_email'], hashed_password)
 
-                    # 🧹 Complete Cleanup
                     self.session.pop('otp_purpose', None)
                     self.session.pop('otp_email', None)
                     self.session.pop('otp_code', None)
@@ -171,45 +155,78 @@ class AuthController(BaseController):
             valid = ['.jpg', '.jpeg', '.png']
             filee = request.files.get('profile_image')
             user_id = self.session.get('user_id')
-            if not filee or filee.filename == '':
-                flash("No file selected!", "error")
-                return redirect(url_for('auth.profile'))
-            upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
-            if not os.path.exists(upload_folder):
-                os.makedirs(upload_folder)
-            file_extension = os.path.splitext(filee.filename)[1].lower()
-            if file_extension not in valid:
-                flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
-                return redirect(url_for('auth.profile'))
-            filename = f"user_{user_id}_profile{file_extension}"
-           
-            destination_path = os.path.join(upload_folder, filename)
-            filee.save(destination_path)
-            db_updated = Users.update_profile_pic(user_id, filename)
-            if db_updated:
-        # 6. CRUCIAL: Update the current active session state immediately!
-                self.session['profile_pic'] = filename
-                flash("Profile picture updated successfully!", "success")
-            else:
-                 flash("Database update failed.", "error")
+            username = request.form.get('username', '').strip()
+            email = request.form.get('email', '').strip()
+            profile_updated = False
+
+            # --- Handle Username & Email Changes ---
+            if username or email:
+                if not username or not email:
+                    flash("Please fill in both name and email to save your profile details.", "error")
+                    return redirect(url_for('auth.profile'))
+
+                if not self._validate_name(username):
+                    flash("Name must be at least 2 characters long.", "error")
+                    return redirect(url_for('auth.profile'))
+
+                if not self._validate_email(email):
+                    flash("Please enter a valid email address.", "error")
+                    return redirect(url_for('auth.profile'))
+
+                db_updated = Users.update_profile_details(user_id, username, email)
+                if db_updated:
+                    self.session['username'] = username
+                    self.session['email'] = email
+                    profile_updated = True
+                else:
+                    flash("Profile details could not be saved.", "error")
+                    return redirect(url_for('auth.profile'))
+
+            # --- Handle Image Uploads ---
+            if filee and filee.filename != '':
+                upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                    
+                file_extension = os.path.splitext(filee.filename)[1].lower()
+                if file_extension not in valid:
+                    flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
+                    return redirect(url_for('auth.profile'))
+                    
+                filename = f"user_{user_id}_profile{file_extension}"
+                destination_path = os.path.join(upload_folder, filename)
+                filee.save(destination_path)
+                
+                db_updated = Users.update_profile_pic(user_id, filename)
+                if db_updated:
+                    self.session['profile_pic'] = filename
+                    profile_updated = True
+                else:
+                    flash("Profile picture database update failed.", "error")
+                    return redirect(url_for('auth.profile'))
+
+            if profile_updated:
+                flash("Profile updated successfully!", "success")
+            elif not username and not email and (not filee or filee.filename == ''):
+                flash("No changes were submitted.", "info")
 
             return redirect(url_for('auth.profile'))
-        return self.render("users/profile.html",
-        email = self.session.get('email'),
-        role=self.session.get('role'),
-        username = self.session.get('username'),
-        profile_url = url_for(
-            'static',
-            filename=f"images/profile_pics/{self.session['profile_pic']}"
-        ) if self.session.get('profile_pic') else None,
-        filename = self.session.get('profile_pic') )
-    
+
+        # --- GET Request Render Execution ---
+        profile_pic_name = self.session.get('profile_pic')
+        return self.render(
+            "users/profile.html",
+            email=self.session.get('email'),
+            role=self.session.get('role'),
+            username=self.session.get('username'),
+            profile_url=url_for('static', filename=f"images/profile_pics/{profile_pic_name}") if profile_pic_name else None,
+            filename=profile_pic_name
+        )
 
     @login_required        
     def logout(self):
         self.session.clear()
         return self.redirect_to("auth.login")
-        pass
 
     @login_required    
     def change_my_password(self):
@@ -233,16 +250,15 @@ class AuthController(BaseController):
             if current_password == new_password:
                 flash('Your new password must be different from your current password.', 'error')
                 return redirect(url_for('auth.change_my_password'))
+                
             email = self.session['email']
             user_details = Users.change_my_password(email)
-            if check_password_hash(user_details['password_hash'],current_password):
-                msg = Users.finally_change_my_password(generate_password_hash(new_password),email)
+            if check_password_hash(user_details['password_hash'], current_password):
+                msg = Users.finally_change_my_password(generate_password_hash(new_password), email)
                 flash(msg, 'success')
                 self.session.clear()
                 return redirect(url_for('auth.login'))
             else:
                 flash('Incorrect current password.', 'error')
                 
-            
-
         return self.render('auth/changemypassword.html')

@@ -21,6 +21,16 @@ class Users(BaseModel):
         if Users.execute_write(sql, (hashedpassword, email)):
             return "Successfully Changed the password ! "
         return None
+
+    @classmethod
+    def update_profile_details(cls, user_id, name, email):
+        sql = """
+        UPDATE users
+        SET name = %s, email = %s
+        WHERE id = %s
+        """
+        return Users.execute_write(sql, [name, email, user_id])
+
     @classmethod
     def update_profile_pic(cls, user_id, filename):
         sql = """
