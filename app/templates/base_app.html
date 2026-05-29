@@ -20,7 +20,7 @@
         <a class="active" href="#">Dashboard</a>
         <a href="#">Tasks</a>
         <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
-        <a href="#">Announcements</a>
+        <a href="{{ url_for('announce.announcement') }}">Announcements</a>
         <a href="{{ url_for('auth.profile') }}">Profile</a>
         
       </nav>
@@ -33,12 +33,18 @@
         </div>
         <div class="topbar-right">
           <div class="notif">🔔</div>
-          <div class="avatar">S</div>
+          <a class="avatar avatar-link" href="{{ url_for('auth.profile') }}" aria-label="Profile">
+            {% if session.get('profile_pic') %}
+              <img src="{{ url_for('static', filename='images/profile_pics/' ~ session.get('profile_pic')) }}" alt="Profile picture">
+            {% else %}
+              <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Profile picture">
+            {% endif %}
+          </a>
         </div>
       </header>
 
       <main class="app-content">
-        <div class="container-lg">
+        <div class="container-lg"> 
           <div class="page-header">
             <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
           </div>

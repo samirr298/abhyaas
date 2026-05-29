@@ -50,6 +50,7 @@ class AttendanceController(BaseController):
         page = request.args.get('page', default=1, type=int)
         per_page = 10
         offset = (page - 1) * per_page
+
         history_records = Attendance.get_paginated_history(userid, per_page, offset)
         total_rows = Attendance.get_total_history_count(userid)
         total_pages = math.ceil(total_rows / per_page) if total_rows > 0 else 1
@@ -67,5 +68,6 @@ class AttendanceController(BaseController):
             total_days=total_days,
             history=history_records,      # <--- Passed to HTML table loop
             current_page=page,            # <--- Passed for active page color
-            total_pages=total_pages
+            total_pages=total_pages,
+            show = "all"
         )

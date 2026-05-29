@@ -28,6 +28,7 @@ class Database:
                                     email VARCHAR(255) NOT NULL UNIQUE,
                                     password_hash VARCHAR(255) NOT NULL,
                                     role VARCHAR(50) NOT NULL,
+                                    profile_pic varchar(255) unique,
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                 )
                                 """
@@ -58,6 +59,31 @@ class Database:
                 finally:
                         print('table created')
                         connection.close()
+        def create_announcement_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               ''' CREATE TABLE if not exists announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    summary VARCHAR(255) NOT NULL, -- [NEW] Holds the short one-line description Teaser
+    category VARCHAR(50) NOT NULL,  -- Holds 'Academic', 'Events', 'Exams'
+    author_id INT NOT NULL,         -- Links back to the user who wrote it
+    body TEXT NOT NULL,             -- Holds the full message content
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- This sets up the secure relationship link:
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+);
+                                        ''')
 
+                        
+                        
+                        connection.commit()
+                finally:
+                        print('table created')
+                        connection.close()
 
 print("🚀 Connection successful!")

@@ -1,0 +1,181 @@
+{% extends "base_app.html" %}
+
+{% block title %}
+{% if single_view %}
+{{ single_view['title'] }} | Abhyas
+{% else %}
+Announcements | Abhyas
+{% endif %}
+{% endblock %}
+
+{% block page_heading %}Announcements{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<section class="announcement-page">
+
+    {% if single_view %}
+    <article class="announcement-card single-main-view"
+        style="padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+        <div style="display:flex; gap:18px; align-items:flex-start;">
+            <div class="announcement-image one"></div>
+            <div style="flex:1;">
+                <div class="meta" style="margin-bottom: 12px;">
+                    <span class="tag">{{ single_view['category'] }}</span>
+                    <span class="timestamp" style="margin-left: 10px; color: #6b7280;">Posted on {{
+                        single_view['created_at'] }}</span>
+                </div>
+
+                <h1 style="color: #111827; margin: 0 0 12px 0; font-size: 2rem;">{{ single_view['title'] }}</h1>
+
+                <p class="summary-lead"
+                    style="font-style: italic; color: #4b5563; font-size: 1.1rem; margin-bottom: 20px; padding-left: 10px; border-left: 3px solid #e5e7eb;">
+                    {{ single_view['summary'] }}
+                </p>
+
+                <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 20px 0;">
+
+                <div class="full-body-text"
+                    style="color: #374151; font-size: 1.05rem; line-height: 1.7; white-space: pre-line;">
+                    {{ single_view['body'] }}
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <a href="javascript:history.back()" class="btn btn-outline">&larr; Back to Board</a>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    {% else %}
+
+    <!-- <article class="announcement-hero">
+        <span class="hero-kicker">Featured Announcement</span>
+        <h1 class="hero-title">Annual Convocation 2024: Registration Now Open</h1>
+        <p class="hero-copy">
+            We are delighted to announce that the registration for the Class of 2024 convocation is now live.
+            Secure your spot to celebrate your academic milestone with your peers and faculty.
+        </p>
+        <div class="hero-actions">
+            <button type="button" class="btn btn-primary">Register Now</button>
+            <button type="button" class="btn btn-secondary">View Details</button>
+
+        </div>
+    </article> -->
+
+    <section class="ann-toolbar">
+        <div>
+            <h2>Latest Announcements</h2>
+            <p>Stay updated with the latest news from the institution.</p>
+        </div>
+        <div class="toolbar-actions">
+            <div class="chip-group" aria-label="Announcement filters">
+                 <a href="/announcement" type="button" class="chip active">ALL</a>
+                {% for category in unique_categories  %}
+                   <a href="/announcement/annoucementcategory/{{ category }}" type="button" class="chip active">{{ category }}</a>
+                {% endfor %}
+            </div>
+            
+
+            {% if role == 'teacher' %}
+            <form action="{{ url_for('announce.announcement_create') }}" method="get">
+                <button type="submit" class="btn btn-primary">Create Announcement</button>
+            </form>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+    {% if send == 'renderthepage' %}
+    <section class="settings-card announcement-create-card">
+        <h2>Create Announcement</h2>
+        <p class="muted">Fill in the details below to publish an update to the system board.</p>
+        <form class="auth-form" method="POST" action="{{ url_for('announce.announcement_create') }}">
+            <div class="field">
+                <span>Announcement Title</span>
+                <input type="text" name="title" placeholder="Enter announcement title" required>
+            </div>
+
+            <div class="field">
+                <span>Category</span>
+                <input type="text" name="category" placeholder="Academic, Events, Exams..." required>
+            </div>
+
+            <div class="field">
+                <span>Short Description</span>
+                <input type="text" name="summary" placeholder="One-line summary" required>
+            </div>
+
+            <div class="field">
+                <span>Announcement Details</span>
+                <textarea name="description" rows="5" placeholder="Write the full announcement here..."
+                    style="width:100%;padding:12px 14px;border:1px solid #e6e9ef;border-radius:8px;resize:vertical;"
+                    required></textarea>
+            </div>
+
+            <div class="hero-actions" style="margin-top:16px;">
+                <button type="submit" class="btn btn-primary">Save Announcement</button>
+                <button type="reset" class="btn btn-outline">Clear</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+{% block announcement_layout %}
+    <section class="announcement-list" aria-label="Announcement list">
+        {% for records in annoucementshistory %}
+        {% if show == 'all' %} 
+        <article class="announcement-card" style="margin-bottom: 16px;">
+            <div class="announcement-image one"></div>
+            <div class="announcement-content">
+                <div class="meta-row">
+                    <span class="tag">{{ records['category'] }}</span>
+                    <span>{{ records['created_at'].strftime('%A : %I:%M %p') }}</span>
+                </div>
+                <h3>{{ records['title'] }}</h3>
+                <p>{{ records['summary'] }}</p>
+                <div class="card-footer">
+                    <span class="small-meta">Author: {{ records['author_name'] }}</span>
+                    <a href="/announcement/view/{{ records['id'] }}" class="read-more" style="text-decoration: none;">
+                        Read more &rarr;
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endif %}
+        {% endfor %}
+    </section>
+{% endblock %}
+<section>
+    <div class="pagination-footer"
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+        <div>
+            {% if current_page is defined and current_page > 1 %}
+            <a href="{{ url_for('announce.announcement', page=current_page - 1) }}" class="btn-pagination"
+                style="text-decoration: none;">
+                &larr; Previous
+            </a>
+            {% else %}
+            <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                &larr; Previous
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="page-indicator" style="font-size: 0.875rem; color: #4b5563;">
+            Page <strong>{{ current_page if current_page is defined else 1 }}</strong> of <strong>{{ total_pages if total_pages is defined else 1 }}</strong>
+        </div>
+
+        <div>
+            {% if current_page is defined and total_pages is defined and current_page < total_pages %} <a href="{{ url_for('announce.announcement', page=current_page + 1) }}"
+                class="btn-pagination" style="text-decoration: none;">
+                Next &rarr;
+                </a>
+                {% else %}
+                <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                    Next &rarr;
+                </span>
+                {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

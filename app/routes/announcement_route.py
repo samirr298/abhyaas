@@ -1,0 +1,25 @@
+from flask import Blueprint
+from app.controllers.announcement_controller import AnnouncementController
+from app.controllers.rolecontroller import RoleController
+class AttendanceRoutes:
+    def __init__(self):
+        self.bp = Blueprint("announce", __name__)
+        self.controller = AnnouncementController()
+        self.rolecontroller = RoleController()
+    
+    def register(self):
+        self.bp.route("/announcement", methods=["GET", "POST"])(
+            self.controller.announcement
+        )
+        self.bp.route("/announcement/create", methods=["GET", "POST"])(
+            self.controller.announcement_create
+        )
+        self.bp.route("/announcement/view/<int:announcement_id>", methods=["GET", "POST"])(
+            self.controller.announcement_view
+
+        )
+        self.bp.route("/announcement/annoucementcategory/<string:category>", methods=["GET", "POST"])(
+            self.controller.annoucement_category
+
+        )
+        return self.bp
