@@ -10,7 +10,7 @@
       <div class="profile-copy">
         <h2>{{ username or 'User' }}</h2>
         <p class="muted">{{ email }}</p>
-        <p class="muted">Role: {{ role }}</p>
+        <p class="muted">Role : {{ role }}</p>
       </div>
 
       <div class="profile-picture">
@@ -36,7 +36,7 @@
   <div class="card profile-card">
     <h3>Account Actions</h3>
     <div class="profile-actions" style="color: black;">
-      <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Password</a>
+      <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Passwzord</a>
       <a class="btn-secondary full-width" href="{{ url_for('auth.logout') }}">Logout</a>
 
     </div>
