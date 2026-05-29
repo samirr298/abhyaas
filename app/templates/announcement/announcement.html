@@ -16,32 +16,49 @@ Announcements | Abhyas
 <section class="announcement-page">
 
     {% if single_view %}
-    <article class="announcement-card single-main-view"
-        style="padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-        <div style="display:flex; gap:18px; align-items:flex-start;">
-            <div class="announcement-image one"></div>
-            <div style="flex:1;">
-                <div class="meta" style="margin-bottom: 12px;">
-                    <span class="tag">{{ single_view['category'] }}</span>
-                    <span class="timestamp" style="margin-left: 10px; color: #6b7280;">Posted on {{
-                        single_view['created_at'] }}</span>
+    <article class="announcement-detail-shell">
+        <div class="announcement-detail-hero">
+            <div class="announcement-detail-visual">
+                <div class="announcement-image one"></div>
+                <div class="detail-visual-stack">
+                    <span class="detail-floating-badge">{{ single_view['category'] }}</span>
+                    <span class="detail-floating-meta">Published {{ single_view['created_at'] }}</span>
                 </div>
+            </div>
+            <div class="announcement-detail-copy">
+                <span class="hero-kicker">Announcement Spotlight</span>
+                <h1>{{ single_view['title'] }}</h1>
+                <p class="summary-lead">{{ single_view['summary'] }}</p>
+                <div class="meta-row detail-meta-row">
+                    <span class="tag">{{ single_view['category'] }}</span>
+                    <span class="timestamp">Posted on {{ single_view['created_at'] }}</span>
+                </div>
+            </div>
+        </div>
 
-                <h1 style="color: #111827; margin: 0 0 12px 0; font-size: 2rem;">{{ single_view['title'] }}</h1>
+        <div class="announcement-detail-body">
+            <aside class="detail-sidebar">
+                <div class="detail-stat">
+                    <span>Category</span>
+                    <strong>{{ single_view['category'] }}</strong>
+                </div>
+                <div class="detail-stat">
+                    <span>Published</span>
+                    <strong>{{ single_view['created_at'] }}</strong>
+                </div>
+                <div class="detail-stat">
+                    <span>Read focus</span>
+                    <strong>Board update</strong>
+                </div>
+            </aside>
 
-                <p class="summary-lead"
-                    style="font-style: italic; color: #4b5563; font-size: 1.1rem; margin-bottom: 20px; padding-left: 10px; border-left: 3px solid #e5e7eb;">
-                    {{ single_view['summary'] }}
-                </p>
-
-                <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 20px 0;">
-
-                <div class="full-body-text"
-                    style="color: #374151; font-size: 1.05rem; line-height: 1.7; white-space: pre-line;">
+            <div class="detail-article">
+                <h2>Details</h2>
+                <div class="full-body-text">
                     {{ single_view['body'] }}
                 </div>
 
-                <div style="margin-top: 24px;">
+                <div class="detail-actions">
                     <a href="javascript:history.back()" class="btn btn-outline">&larr; Back to Board</a>
                 </div>
             </div>
@@ -49,20 +66,42 @@ Announcements | Abhyas
     </article>
 
     {% else %}
-
-    <!-- <article class="announcement-hero">
-        <span class="hero-kicker">Featured Announcement</span>
-        <h1 class="hero-title">Annual Convocation 2024: Registration Now Open</h1>
-        <p class="hero-copy">
-            We are delighted to announce that the registration for the Class of 2024 convocation is now live.
-            Secure your spot to celebrate your academic milestone with your peers and faculty.
-        </p>
-        <div class="hero-actions">
-            <button type="button" class="btn btn-primary">Register Now</button>
-            <button type="button" class="btn btn-secondary">View Details</button>
-
+    <section class="announcement-hero">
+        <div class="announcement-hero-copy">
+            <span class="hero-kicker">Campus Bulletin</span>
+            <h1 class="hero-title">Latest announcements, notices, and updates in one place</h1>
+            <p class="hero-copy">
+                Follow every institutional update with a more visual board that keeps important items easy to scan.
+            </p>
+            <div class="hero-actions">
+                <a href="/announcement" class="btn btn-primary">Browse all</a>
+                {% if role == 'teacher' %}
+                <form action="{{ url_for('announce.announcement_create') }}" method="get">
+                    <button type="submit" class="btn btn-outline">Create Announcement</button>
+                </form>
+                {% endif %}
+            </div>
         </div>
-    </article> -->
+
+        <div class="announcement-hero-visual" aria-hidden="true">
+            <div class="announcement-hero-art art-one"></div>
+            <div class="announcement-hero-art art-two"></div>
+            <div class="announcement-hero-metrics">
+                <div class="metric-card">
+                    <strong>{{ annoucementshistory|default([])|length }}</strong>
+                    <span>Posts</span>
+                </div>
+                <div class="metric-card">
+                    <strong>{{ unique_categories|default([])|length }}</strong>
+                    <span>Categories</span>
+                </div>
+                <div class="metric-card">
+                    <strong>{{ current_page if current_page is defined else 1 }}</strong>
+                    <span>Page</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section class="ann-toolbar">
         <div>
@@ -88,8 +127,14 @@ Announcements | Abhyas
     {% endif %}
     {% if send == 'renderthepage' %}
     <section class="settings-card announcement-create-card">
-        <h2>Create Announcement</h2>
-        <p class="muted">Fill in the details below to publish an update to the system board.</p>
+        <div class="create-card-header">
+            <div>
+                <span class="hero-kicker">Publish update</span>
+                <h2>Create Announcement</h2>
+                <p class="muted">Fill in the details below to publish an update to the system board.</p>
+            </div>
+            <div class="create-card-chip">Visible to all users</div>
+        </div>
         <form class="auth-form" method="POST" action="{{ url_for('announce.announcement_create') }}">
             <div class="field">
                 <span>Announcement Title</span>
@@ -125,11 +170,12 @@ Announcements | Abhyas
         {% for records in annoucementshistory %}
         {% if show == 'all' %} 
         <article class="announcement-card" style="margin-bottom: 16px;">
-            <div class="announcement-image one"></div>
+            {% set image_variant = 'one' if loop.index0 % 3 == 0 else 'two' if loop.index0 % 3 == 1 else 'three' %}
+            <div class="announcement-image {{ image_variant }}"></div>
             <div class="announcement-content">
                 <div class="meta-row">
                     <span class="tag">{{ records['category'] }}</span>
-                    <span>{{ records['created_at'].strftime('%A : %I:%M %p') }}</span>
+                    <span>{{ records['created_at'].strftime('%A, %d %b %I:%M %p') }}</span>
                 </div>
                 <h3>{{ records['title'] }}</h3>
                 <p>{{ records['summary'] }}</p>
@@ -145,37 +191,33 @@ Announcements | Abhyas
         {% endfor %}
     </section>
 {% endblock %}
-<section>
-    <div class="pagination-footer"
-        style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-        <div>
-            {% if current_page is defined and current_page > 1 %}
-            <a href="{{ url_for('announce.announcement', page=current_page - 1) }}" class="btn-pagination"
-                style="text-decoration: none;">
-                &larr; Previous
-            </a>
-            {% else %}
-            <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
-                &larr; Previous
-            </span>
-            {% endif %}
-        </div>
+<section class="pagination-footer">
+    <div>
+        {% if current_page is defined and current_page > 1 %}
+        <a href="{{ url_for('announce.announcement', page=current_page - 1) }}" class="btn-pagination">
+            &larr; Previous
+        </a>
+        {% else %}
+        <span class="btn-pagination disabled">
+            &larr; Previous
+        </span>
+        {% endif %}
+    </div>
 
-        <div class="page-indicator" style="font-size: 0.875rem; color: #4b5563;">
-            Page <strong>{{ current_page if current_page is defined else 1 }}</strong> of <strong>{{ total_pages if total_pages is defined else 1 }}</strong>
-        </div>
+    <div class="page-indicator">
+        Page <strong>{{ current_page if current_page is defined else 1 }}</strong> of <strong>{{ total_pages if total_pages is defined else 1 }}</strong>
+    </div>
 
-        <div>
-            {% if current_page is defined and total_pages is defined and current_page < total_pages %} <a href="{{ url_for('announce.announcement', page=current_page + 1) }}"
-                class="btn-pagination" style="text-decoration: none;">
-                Next &rarr;
-                </a>
-                {% else %}
-                <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
-                    Next &rarr;
-                </span>
-                {% endif %}
-        </div>
+    <div>
+        {% if current_page is defined and total_pages is defined and current_page < total_pages %}
+        <a href="{{ url_for('announce.announcement', page=current_page + 1) }}" class="btn-pagination">
+            Next &rarr;
+        </a>
+        {% else %}
+        <span class="btn-pagination disabled">
+            Next &rarr;
+        </span>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
