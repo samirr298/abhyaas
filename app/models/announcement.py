@@ -11,7 +11,7 @@ class Announcement(BaseModel):
         """Counts total days for a specific status ('present' or 'absent')."""
         sql = "SELECT a.*, u.name AS author_name FROM announcements a JOIN users u ON a.author_id = u.id ORDER BY a.created_at DESC  LIMIT %s OFFSET %s"
         result = cls.fetch_all(sql, [perpage,offset])
-        return result if result else 0
+        return result if result else []
     
     @classmethod
     def get_total_annoucement_count(cls):
