@@ -4,7 +4,7 @@ class Users(BaseModel):
     
     @staticmethod
     def get_my_email(email):
-        sql = "SELECT id, name, email, password_hash, role, profile_pic FROM users WHERE email = %s"
+        sql = "SELECT id, name, username, email, password_hash, role FROM users WHERE email = %s"
         return Users.fetch_one(sql, [email])
 
     @staticmethod

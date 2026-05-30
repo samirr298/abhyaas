@@ -17,6 +17,11 @@
 	<p class="muted">Register with your institutional email.</p>
 	<form action="/register" method="POST" class="auth-form" id="register-form">
 		<label class="field"><span>Full name</span><input name="name" id="reg-name" required></label>
+		<label class="field"><span>Username</span>
+			<input name="username" id="reg-username" required minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$">
+			<small class="muted">3–30 chars; letters, numbers, and underscores only.</small>
+			<div class="field-note" id="username-availability" aria-live="polite"></div>
+		</label>
 		<label class="field"><span>Email</span><input type="email" name="email" id="reg-email" required></label>
 		<label class="field pw-field"><span>Password</span>
 			<div class="pw-row">
