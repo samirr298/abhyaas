@@ -1,8 +1,7 @@
-
-
 from flask import Blueprint
 from app.controllers.auth_controller import AuthController
 from app.controllers.rolecontroller import RoleController
+
 class AuthRoutes:
     def __init__(self):
         self.bp = Blueprint("auth", __name__)
@@ -25,9 +24,12 @@ class AuthRoutes:
         self.bp.route("/verifyotp", methods=["GET", "POST"])(
             self.controller.verifyotp
         )
+        
+        # 👑 This is now the single, undisputed ruler of the /profile endpoint
         self.bp.route("/profile", methods=["GET", "POST"])(
             self.controller.profile
         )
+        
         self.bp.route("/logout", methods=["GET", "POST"])(
             self.controller.logout
         )
@@ -46,5 +48,5 @@ class AuthRoutes:
         self.bp.route("/student", methods=["GET", "POST"])(
             self.rolecontroller.student
         )
-        
+
         return self.bp
