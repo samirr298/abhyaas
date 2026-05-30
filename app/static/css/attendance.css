@@ -54,9 +54,20 @@
 @media (max-width:700px){
   .attendance-title{font-size:24px}
   .attendance-history{padding:16px}
+  .attendance-hero{padding:16px}
+  .attendance-hero-copy,.attendance-hero-actions,.month-filter{width:100%;min-width:0}
+  .month-filter-controls{width:100%}
+  .month-filter select,.history-filter-btn{flex:1 1 140px}
   .attendance-table thead{display:none}
   .attendance-table,.attendance-table tbody,.attendance-table tr,.attendance-table td{display:block;width:100%}
   .attendance-table tr{padding:10px 0;border-bottom:1px solid #edf0f4}
   .attendance-table tbody td{border:none;padding:8px 16px}
   .attendance-table tbody td::before{content:attr(data-label);display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin-bottom:4px}
+}
+
+@media (max-width:480px){
+  .attendance-title{font-size:22px}
+  .attendance-status-row{flex-direction:column;align-items:flex-start}
+  .attendance-mark-btn{width:100%}
+  .summary-value{font-size:26px}
 }

@@ -27,6 +27,7 @@ class AuthController(BaseController):
                     self.session['role'] = user_details['role']
                     # prefer username if set otherwise use name
                     self.session['username'] = user_details.get('username') or user_details.get('name')
+                    self.session['name'] = user_details.get('name')
                     self.session['email'] = email
                     self.session['profile_pic'] = user_details.get('profile_pic')
                     
@@ -183,49 +184,44 @@ class AuthController(BaseController):
 
             full_name = request.form.get('full_name', '').strip()
             email = request.form.get('email', '').strip()
+            new_username = request.form.get('username', '').strip()
 
-            # Full name / email update
-            if full_name or email:
-                if not full_name or not email:
-                    flash('Please fill in both full name and email to save your profile details.', 'error')
-                    return redirect(url_for('auth.profile'))
+            if not full_name or not email or not new_username:
+                flash('Please fill in full name, email, and username.', 'error')
+                return redirect(url_for('auth.profile'))
 
-                if not self._validate_name(full_name):
-                    flash('Name must be at least 2 characters long.', 'error')
-                    return redirect(url_for('auth.profile'))
+            if not self._validate_name(full_name):
+                flash('Name must be at least 2 characters long.', 'error')
+                return redirect(url_for('auth.profile'))
 
-                if not self._validate_email(email):
-                    flash('Please enter a valid email address.', 'error')
-                    return redirect(url_for('auth.profile'))
+            if not self._validate_email(email):
+                flash('Please enter a valid email address.', 'error')
+                return redirect(url_for('auth.profile'))
 
-                db_updated = Users.update_profile_details(user_id, full_name, email)
-                if db_updated:
-                    self.session['email'] = email
-                    profile_updated = True
-                else:
-                    flash('Profile details could not be saved.', 'error')
-                    return redirect(url_for('auth.profile'))
+            import re
+            if not re.match(r'^[A-Za-z0-9_]{3,30}$', new_username):
+                flash('Username must be 3-30 chars and contain only letters, numbers, and underscores.', 'error')
+                return redirect(url_for('auth.profile'))
 
-            # Username update
-            if 'username' in request.form:
-                new_username = request.form.get('username', '').strip()
-                import re
-                if not new_username or not re.match(r'^[A-Za-z0-9_]{3,30}$', new_username):
-                    flash('Username must be 3-30 chars and contain only letters, numbers, and underscores.', 'error')
-                    return redirect(url_for('auth.profile'))
+            existing = Users.get_by_username(new_username)
+            if existing and existing['id'] != user_id:
+                flash('Username already taken. Please choose another one.', 'error')
+                return redirect(url_for('auth.profile'))
 
-                existing = Users.get_by_username(new_username)
-                if existing and existing['id'] != user_id:
-                    flash('Username already taken. Please choose another one.', 'error')
-                    return redirect(url_for('auth.profile'))
+            db_updated = Users.update_profile_details(user_id, full_name, email)
+            if db_updated:
+                self.session['email'] = email
+                self.session['name'] = full_name
+                profile_updated = True
+            else:
+                flash('Profile details could not be saved.', 'error')
+                return redirect(url_for('auth.profile'))
 
-                if Users.set_username(user_id, new_username):
-                    self.session['username'] = new_username
-                    flash('Username updated successfully.', 'success')
-                    profile_updated = True
-                else:
-                    flash('Failed to update username. Try again later.', 'error')
-
+            if Users.set_username(user_id, new_username):
+                self.session['username'] = new_username
+                profile_updated = True
+            else:
+                flash('Failed to update username. Try again later.', 'error')
                 return redirect(url_for('auth.profile'))
 
             # Profile image upload
@@ -254,7 +250,7 @@ class AuthController(BaseController):
 
             if profile_updated:
                 flash("Profile updated successfully!", "success")
-            elif not full_name and not email and 'username' not in request.form and (not filee or filee.filename == ''):
+            elif not full_name and not email and not new_username and (not filee or filee.filename == ''):
                 flash("No changes were submitted.", "info")
 
             return redirect(url_for('auth.profile'))
@@ -266,6 +262,7 @@ class AuthController(BaseController):
             email=self.session.get('email'),
             role=self.session.get('role'),
             username=self.session.get('username'),
+            full_name=self.session.get('name') or self.session.get('username'),
             profile_url=url_for('static', filename=f"images/profile_pics/{profile_pic_name}") if profile_pic_name else None,
             filename=profile_pic_name
         )

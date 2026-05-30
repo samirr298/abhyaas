@@ -462,3 +462,36 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 640px) {
+  .task-hero-card,
+  .task-list-card,
+  .feedback-card,
+  .task-form-card,
+  .current-task-card,
+  .feedback-board-card,
+  .submissions-card {
+    padding: 16px;
+  }
+
+  .section-header,
+  .task-topline,
+  .teacher-task-topline,
+  .feedback-item-header,
+  .submission-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-row,
+  .hero-pills {
+    width: 100%;
+  }
+
+  .filter-chip,
+  .secondary-btn,
+  .primary-btn,
+  .mini-search {
+    width: 100%;
+  }
+}

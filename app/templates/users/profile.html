@@ -10,7 +10,6 @@
       <div class="profile-picture">
         {% if profile_url %}
         <img src="{{ profile_url }}" alt="Profile picture" />
-      
         {% else %}
         <img src="/static/images/profile_pics/{{ filename or 'default.png' }}" alt="Profile picture" />
         <span class="camera-icon">📷</span>
@@ -19,7 +18,7 @@
 
       <div class="profile-top-copy">
         <div class="profile-eyebrow">Account profile</div>
-        <h2 class="profile-top-name">{{ username or 'User' }}</h2>
+        <h2 class="profile-top-name" id="display-username">{{ username or 'User' }}</h2>
         <p class="profile-subtitle">{{ role or '' }}</p>
         <p class="muted profile-top-sub">{{ email }}</p>
         <div class="profile-badges">
@@ -57,60 +56,33 @@
         <div class="profile-form-grid">
           <div class="field">
             <span>Full Name</span>
-            <input type="text" name="full_name" value="{{ username or '' }}" placeholder="Enter your name" required>
+            <input type="text" name="full_name" value="{{ full_name or '' }}" placeholder="Enter your name" required>
           </div>
 
           <div class="field">
             <span>Email Address</span>
             <input type="email" name="email" value="{{ email or '' }}" placeholder="Enter your email" required>
           </div>
+
+          <div class="field">
+            <span>Username</span>
+            <input type="text" name="username" id="profile-username" value="{{ username or '' }}" minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$" required>
+            <div class="field-note" id="profile-username-availability" aria-live="polite"></div>
+          </div>
         </div>
 
         <div class="profile-help-row">
           <span class="profile-help">Changes are saved when you click Save changes.</span>
         </div>
-      <h3>Username</h3>
-      <div id="personal-info">
-        <form id="username-form" action="{{ url_for('auth.profile') }}" method="POST">
-          <label class="field"><span>Username</span>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input name="username" id="profile-username" value="{{ username or '' }}" minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$" style="cursor:text">
-              <button type="button" class="btn-secondary" id="edit-username">Edit</button>
-              <button type="submit" class="btn-primary" id="save-username" style="display:none">Save</button>
-              <button type="button" class="btn-secondary" id="cancel-username" style="display:none">Cancel</button>
-            </div>
-            <div class="field-note" id="profile-username-availability" aria-live="polite"></div>
-          </label>
-        </form>
-      </div>
 
-      <hr>
-
-      <h3>Account Actions</h3>
-      <div class="profile-actions" style="color: black;">
-        <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Password</a>
-        <a class="btn-secondary full-width" href="{{ url_for('auth.logout') }}">Logout</a>
+        <div class="profile-actions-row">
+          <button class="btn-primary" type="submit">Save changes</button>
+        </div>
       </div>
     </form>
-
   </div>
-  {% endblock %}
-  <div class="card profile-card">
-    <h3>Personal Information</h3>
-    <div id="personal-info">
-      <form id="username-form" action="{{ url_for('auth.profile') }}" method="POST">
-        <label class="field"><span>Username</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input name="username" id="profile-username" value="{{ username or '' }}" minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$" style="cursor:text">
-            <button type="button" class="btn-secondary" id="edit-username">Edit</button>
-            <button type="submit" class="btn-primary" id="save-username" style="display:none">Save</button>
-            <button type="button" class="btn-secondary" id="cancel-username" style="display:none">Cancel</button>
-          </div>
-          <div class="field-note" id="profile-username-availability" aria-live="polite"></div>
-        </label>
-      </form>
-    </div>
 
+  <div class="card profile-card">
     <hr>
 
     <h3>Account Actions</h3>

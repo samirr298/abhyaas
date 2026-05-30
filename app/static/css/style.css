@@ -15,8 +15,8 @@ body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 .brand-card{margin-top:36px;background:rgba(255,255,255,0.06);padding:28px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.25);display:inline-block}
 .brand-card .icon{font-size:28px;opacity:0.9}
 
-.right-inner{width:760px}
-.form-card{background:#fff;padding:0;border-radius:12px;box-shadow:0 12px 40px rgba(2,6,23,0.08);width:720px;overflow:hidden}
+.right-inner{width:min(100%,760px)}
+.form-card{background:#fff;padding:0;border-radius:12px;box-shadow:0 12px 40px rgba(2,6,23,0.08);width:min(100%,720px);overflow:hidden}
 .single-card .form-inner{display:flex}
 .single-card .form-inner .left{flex:2;padding:28px}
 .single-card .form-inner .right{flex:1;padding:22px;background:linear-gradient(180deg,#f7fbff,#f3f8ff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
@@ -73,9 +73,10 @@ body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 .sidebar-nav a{color:rgba(255,255,255,0.9);padding:8px 10px;border-radius:8px;text-decoration:none}
 .sidebar-nav a.active{background:rgba(255,255,255,0.06)}
 .app-main{flex:1;display:flex;flex-direction:column}
-.app-topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:transparent}
-.search{width:420px;padding:10px 12px;border-radius:10px;border:1px solid #e6e9ef}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.app-topbar{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;background:transparent;flex-wrap:wrap}
+.topbar-left{flex:1 1 320px;min-width:0}
+.search{width:min(100%,420px);padding:10px 12px;border-radius:10px;border:1px solid #e6e9ef}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
 .profile-summary{display:flex;flex-direction:column;align-items:flex-end;max-width:220px;min-width:0}
 .profile-summary strong{font-size:.92rem;color:#183153;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .profile-summary span{font-size:.78rem;color:#6f7b8c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -258,6 +259,42 @@ body.password-page {
 .profile-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .profile-help-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px}
 .profile-help{font-size:.9rem;color:#6f7b8c}
+
+@media (max-width:1200px){
+  .app-content{padding:22px}
+  .container-lg{max-width:100%}
+  .cards{grid-template-columns:repeat(2,1fr)}
+}
+
+@media (max-width:900px){
+  .app-shell{flex-direction:column}
+  .app-sidebar{width:100%;padding:14px 16px;gap:10px}
+  .sidebar-nav{flex-direction:row;flex-wrap:wrap}
+  .sidebar-nav a{padding:8px 12px}
+  .app-topbar{padding:14px 16px}
+  .topbar-left{flex-basis:100%}
+  .search{width:100%}
+  .topbar-right{width:100%;justify-content:space-between}
+  .profile-summary{align-items:flex-start;max-width:none}
+  .cards,.profile-grid{grid-template-columns:1fr}
+  .profile-header{flex-direction:column;align-items:flex-start}
+  .profile-visual-stack{align-items:flex-start}
+  .profile-form-grid{grid-template-columns:1fr}
+  .profile-help-row,.profile-actions-row{align-items:stretch}
+}
+
+@media (max-width:640px){
+  body{font-size:15px}
+  .app-content{padding:16px}
+  .topbar-right{gap:8px}
+  .profile-summary strong,.profile-summary span{max-width:180px}
+  .card{border-radius:14px}
+  .settings-card{padding:16px}
+  .profile-picture{width:72px;height:72px}
+  .profile-picture img{border-radius:50%}
+  .form-card h2{font-size:18px}
+  .flash{font-size:13px}
+}
 .profile-actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .profile-upload-form{display:flex;flex-direction:column;gap:10px}
 .profile-upload-floating{width:100%;align-items:flex-end;padding:12px 14px;border-radius:16px;background:#f8fbff;border:1px solid rgba(20,58,102,.12);box-shadow:0 10px 26px rgba(16,39,72,.06)}
