@@ -1,0 +1,48 @@
+/* Styles for single announcement view */
+.announcement-hero {
+  padding: 28px;
+  border-radius: 16px;
+  background: linear-gradient(90deg,#14355c,#0f2742);
+  color: #fff;
+}
+.announcement-page{width:100%;margin:0;padding:24px 48px}
+.announcement-hero, .announcement-card{width:100%;max-width:none;margin:0}
+.hero-kicker {
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(245,159,58,0.18);
+  font-weight:700;
+  text-transform:uppercase;
+  font-size:12px;
+}
+.hero-title { margin:18px 0 8px; font-size:2rem; }
+.hero-copy { color: rgba(255,255,255,0.9); max-width:760px; }
+.hero-actions { margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; }
+.btn-outline { background:#fff; color:#143a66; padding:10px 14px; border-radius:8px; text-decoration:none; display:inline-block; }
+.btn-primary { background:#f59f3a; color:#102233; padding:10px 14px; border-radius:8px; text-decoration:none; display:inline-block; }
+
+.announcement-card { margin-top:20px; padding:28px; border-radius:12px; background:#fff; box-shadow:0 12px 30px rgba(2,6,23,0.06); }
+
+/* layout for card inner content */
+.announcement-card .card-inner{display:flex;gap:22px;align-items:flex-start}
+.announcement-card .thumb{flex:0 0 20px;height:140px;border-radius:999px;background:linear-gradient(135deg,#1d4d83,#476f96)}
+.announcement-card .card-body{flex:1;min-width:0}
+.announcement-card .card-body h3{margin-top:6px;margin-bottom:10px}
+.announcement-card .card-body p{color:#485563;max-width:none}
+.announcement-card .card-row{margin-top:12px;display:flex;align-items:center}
+.announcement-card .thumb { width:18px; height:140px; border-radius:999px; background: linear-gradient(135deg,#1d4d83,#476f96); }
+.announcement-card .meta { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.announcement-card h3 { margin:8px 0 10px; color:#143a66; }
+.announcement-card p { color:#485563; line-height:1.6; }
+.announcement-card .read-more { color:#143a66; font-weight:700; text-decoration:none; }
+
+/* make the content column take full available width */
+.announcement-card > div > div[style] { min-width:0 }
+.announcement-card .attachment{color:#183153;font-weight:600}
+
+@media (max-width:860px){
+  .announcement-card{padding:16px}
+  .announcement-card .card-inner{display:block}
+  .announcement-card .thumb{width:100%;height:160px;margin-bottom:12px;border-radius:10px}
+}

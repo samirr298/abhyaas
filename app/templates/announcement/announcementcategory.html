@@ -1,0 +1,29 @@
+{% extends "announcement/announcement.html" %}
+{% block announcement_layout %}
+    <section class="announcement-list" aria-label="Announcement list">
+        {% for records in annoucementshistory %}
+        {% if records['category'] == categories %}
+       
+        <article class="announcement-card" style="margin-bottom: 16px;">
+            <div class="announcement-image one"></div>
+            <div class="announcement-content">
+                <div class="meta-row">
+                    <span class="tag">{{ records['category'] }}</span>
+                    <span>{{ records['created_at'].strftime('%A : %I:%M %p') }}</span>
+                </div>
+                <h3>{{ records['title'] }}</h3>
+                <p>{{ records['summary'] }}</p>
+                <div class="card-footer">
+                    <span class="small-meta">Author: {{ records['author_name'] }}</span>
+                    <a href="/announcement/view/{{ records['id'] }}" class="read-more" style="text-decoration: none;">
+                        Read more &rarr;
+                    </a>
+                </div>
+            </div>
+        </article>
+        
+        {% endif %}
+        {% endfor %}
+    </section>
+
+{% endblock %}

@@ -4,7 +4,7 @@ class Users(BaseModel):
     
     @staticmethod
     def get_my_email(email):
-        sql = "SELECT id, name, email, password_hash, role FROM users WHERE email = %s"
+        sql = "SELECT id, name, email, password_hash, role, profile_pic FROM users WHERE email = %s"
         return Users.fetch_one(sql, [email])
 
     @staticmethod
@@ -21,4 +21,12 @@ class Users(BaseModel):
         if Users.execute_write(sql, (hashedpassword, email)):
             return "Successfully Changed the password ! "
         return None
-
+    @classmethod
+    def update_profile_pic(cls, user_id, filename):
+        sql = """
+        UPDATE users 
+        SET profile_pic = %s 
+        WHERE id = %s
+        """
+    # Execute the query using your base framework data handler
+        return Users.execute_write(sql, [filename, user_id])

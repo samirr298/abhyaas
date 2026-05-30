@@ -8,9 +8,10 @@ from flask_mail import Message
 import random
 import time
 from app.models.base_model import BaseModel
+import os
 
 class AuthController(BaseController):
-
+    
     def login(self):
         if request.method == 'POST':
             print('login form data received:', request.form)
@@ -31,6 +32,7 @@ class AuthController(BaseController):
                     self.session['role'] = user_details['role']
                     self.session['username'] = user_details['name']
                     self.session['email'] = email
+                    self.session['profile_pic'] = user_details.get('profile_pic')
                     if user_details['role'] == 'teacher':
                         return self.redirect_to('auth.teacher')
                     elif user_details['role'] == 'student':
@@ -165,12 +167,43 @@ class AuthController(BaseController):
 
     @login_required
     def profile(self):
-        return self.render(
-            'users/profile.html',
-            username=self.session.get('username'),
-            email=self.session.get('email'),
-            role=self.session.get('role')
-        )
+        if request.method == 'POST':
+            valid = ['.jpg', '.jpeg', '.png']
+            filee = request.files.get('profile_image')
+            user_id = self.session.get('user_id')
+            if not filee or filee.filename == '':
+                flash("No file selected!", "error")
+                return redirect(url_for('auth.profile'))
+            upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+            file_extension = os.path.splitext(filee.filename)[1].lower()
+            if file_extension not in valid:
+                flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
+                return redirect(url_for('auth.profile'))
+            filename = f"user_{user_id}_profile{file_extension}"
+           
+            destination_path = os.path.join(upload_folder, filename)
+            filee.save(destination_path)
+            db_updated = Users.update_profile_pic(user_id, filename)
+            if db_updated:
+        # 6. CRUCIAL: Update the current active session state immediately!
+                self.session['profile_pic'] = filename
+                flash("Profile picture updated successfully!", "success")
+            else:
+                 flash("Database update failed.", "error")
+
+            return redirect(url_for('auth.profile'))
+        return self.render("users/profile.html",
+        email = self.session.get('email'),
+        role=self.session.get('role'),
+        username = self.session.get('username'),
+        profile_url = url_for(
+            'static',
+            filename=f"images/profile_pics/{self.session['profile_pic']}"
+        ) if self.session.get('profile_pic') else None,
+        filename = self.session.get('profile_pic') )
+    
 
     @login_required        
     def logout(self):

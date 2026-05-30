@@ -1,0 +1,37 @@
+{% extends "base_app.html" %}
+
+{% block title %}Announcement | Abhyas{% endblock %}
+{% block page_heading %}Announcement{% endblock %}
+
+{% block extra_head %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}">
+{% endblock %}
+
+{% block content %}
+{% if annoucementshistory is mapping %}
+    {% set ann = annoucementshistory %}
+{% elif annoucementshistory is sequence %}
+    {% set ann = annoucementshistory[0] %}
+{% else %}
+    {% set ann = annoucementshistory %}
+{% endif %}
+
+    <article class="announcement-card" style="margin-bottom: 16px;">
+        <div class="announcement-image one"></div>
+        <div class="announcement-content">
+            <div class="meta-row">
+                <span class="tag">{{ ann.category }}</span>
+                <span>{{ ann.created_at.strftime('%I:%M %p') if ann.created_at is defined else '' }}</span>
+            </div>
+            <h3>{{ ann.title }}</h3>
+            <h4>{{ ann.summary }}</h4>
+            <p>{{ ann.body }}</p>
+            <div class="card-footer">
+                <span class="small-meta">Author: {{ ann['author_name'] }}</span>
+            </div>
+        </div>
+    </article>
+        
+
+</section>
+{% endblock %}
