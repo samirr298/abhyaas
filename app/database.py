@@ -65,20 +65,20 @@ class Database:
                         with connection.cursor() as cursor:
                                 cursor.execute(
                                ''' CREATE TABLE if not exists announcements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    summary VARCHAR(255) NOT NULL, -- [NEW] Holds the short one-line description Teaser
-    category VARCHAR(50) NOT NULL,  -- Holds 'Academic', 'Events', 'Exams'
-    author_id INT NOT NULL,         -- Links back to the user who wrote it
-    body TEXT NOT NULL,             -- Holds the full message content
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    -- This sets up the secure relationship link:
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
-);
-                                        ''')
-
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        title VARCHAR(255) NOT NULL,
+                                         summary VARCHAR(255) NOT NULL, -- [NEW] Holds the short one-line description Teaser
+                                        category VARCHAR(50) NOT NULL,  -- Holds 'Academic', 'Events', 'Exams'
+                                        author_id INT NOT NULL,         -- Links back to the user who wrote it
+                                         body TEXT NOT NULL,             -- Holds the full message content
+                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                        FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+                                         );''')
+                                connection.commit()
+                finally:
+                        print('table created')
+                        connection.close()
         def create_task_tables():
                 connection = Database.db()
                 try:
