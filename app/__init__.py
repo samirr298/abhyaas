@@ -16,6 +16,7 @@ def create_app():
     Database.create_users_table()
     Database.create_attendance_table()
     Database.create_announcement_table()
+    Database.create_task_tables()
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY

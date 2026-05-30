@@ -1,5 +1,7 @@
 from flask import render_template
-from app.auth import login_required,role_required
+
+from app.auth import login_required, role_required
+from app.controllers.task_controller import TaskController
 
 
 class RoleController:
@@ -9,15 +11,13 @@ class RoleController:
     def admin(self):
         
         return render_template("users/admin_dashboard.html")
+
     @login_required
     @role_required("teacher")
-    
     def teacher(self):
-        # simple placeholder response for teacher
-           return render_template("users/teacher_dashboard.html")
+        return TaskController().teacher_dashboard()
+
     @login_required
     @role_required("student")
-    
     def student(self):
-        # simple placeholder response for student
-        return render_template("users/student_dashboard.html")
+        return TaskController().student_dashboard()

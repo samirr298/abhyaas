@@ -1,0 +1,170 @@
+{% extends "base_app.html" %}
+
+{% block title %}Student Tasks{% endblock %}
+{% block page_heading %}Student Task Center{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="task-page student-task-page">
+  <section class="task-hero card task-hero-card">
+    <div>
+      <p class="section-kicker">Student view</p>
+      <h2>Tasks and progress for the week</h2>
+      <p class="section-copy">Track assigned work, stay ahead of deadlines, and review teacher comments in one place.</p>
+    </div>
+    <div class="hero-pills">
+      <span class="stat-pill"><strong>{{ overview['completed'] }}</strong> completed</span>
+      <span class="stat-pill"><strong>{{ overview['pending'] }}</strong> pending</span>
+      <span class="stat-pill"><strong>{{ overview['average_score'] }}</strong> average score</span>
+    </div>
+  </section>
+
+  <section class="task-summary-grid">
+    <article class="summary-tile card">
+      <div class="summary-icon">✓</div>
+      <div>
+        <p class="summary-label">Completed</p>
+        <h3>{{ overview['completed'] }}</h3>
+        <p class="summary-note">Assignments already submitted</p>
+      </div>
+    </article>
+
+    <article class="summary-tile card">
+      <div class="summary-icon">⏳</div>
+      <div>
+        <p class="summary-label">Pending</p>
+        <h3>{{ overview['pending'] }}</h3>
+        <p class="summary-note">Need attention before deadlines</p>
+      </div>
+    </article>
+
+    <article class="summary-tile card">
+      <div class="summary-icon">⭐</div>
+      <div>
+        <p class="summary-label">Average score</p>
+        <h3>{{ overview['average_score'] }}</h3>
+        <p class="summary-note">Current performance across tasks</p>
+      </div>
+    </article>
+
+    <article class="summary-tile card">
+      <div class="summary-icon">⚡</div>
+      <div>
+        <p class="summary-label">Due soon</p>
+        <h3>{{ overview['due_soon'] }}</h3>
+        <p class="summary-note">Tasks due in the next 48 hours</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="task-grid-two">
+    <article class="card task-list-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Assignment feed</p>
+          <h3>Your tasks</h3>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="submitted">Submitted</button>
+          <button class="filter-chip" data-filter="pending">Pending</button>
+        </div>
+      </div>
+
+      <div class="task-list">
+        {% for task in tasks %}
+        <article class="task-item task-card {% if task['status'] == 'Submitted' %}submitted{% else %}pending{% endif %}" data-status="{{ 'submitted' if task['status'] == 'Submitted' else 'pending' }}">
+          <div class="task-topline">
+            <div>
+              <p class="task-subject">{{ task['subject'] }}</p>
+              <h4>{{ task['title'] }}</h4>
+            </div>
+            <span class="status-badge {{ 'submitted' if task['status'] == 'Submitted' else 'pending' }}">{{ task['status'] }}</span>
+          </div>
+
+          <p class="task-description">{{ task['description'] }}</p>
+
+          <div class="task-meta-row">
+            <span>Due: {{ task['due'] }}</span>
+            <span>Priority: {{ task['priority'] }}</span>
+          </div>
+
+          <div class="task-progress-block">
+            <div class="progress-copy">
+              <span>Progress</span>
+              <strong>{{ task['progress'] }}%</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: {{ task['progress'] }}%;"></div>
+            </div>
+          </div>
+
+          <div class="task-footer-row">
+            <span class="score-chip">Score: {{ task['score'] }}</span>
+            <button class="secondary-btn task-action-btn" type="button">Submit task</button>
+          </div>
+
+          <form class="submission-panel" method="POST" enctype="multipart/form-data" hidden>
+            <input type="hidden" name="task_id" value="{{ task['id'] if task['id'] is defined else '' }}">
+            <label>
+              <span>Write your response</span>
+              <textarea name="submission_text" rows="4" placeholder="Type your answer, explanation, or notes here"></textarea>
+            </label>
+
+            <label>
+              <span>Paste a link (optional)</span>
+              <input type="url" name="submission_link" placeholder="https://example.com/file-or-work">
+            </label>
+
+            <label>
+              <span>Upload file or document</span>
+              <input type="file" name="submission_file">
+            </label>
+
+            <div class="submission-actions">
+              <p class="submission-note">Upload a file, paste a link, or write your work and submit it.</p>
+              <button type="submit" class="primary-btn">Submit work</button>
+            </div>
+          </form>
+        </article>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="card feedback-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Teacher notes</p>
+          <h3>Feedback & reminders</h3>
+        </div>
+      </div>
+
+      <div class="feedback-list">
+        {% for item in feedback %}
+        <article class="feedback-item">
+          <div class="feedback-item-header">
+            <h4>{{ item['title'] }}</h4>
+            <span class="time-pill">{{ item['time'] }}</span>
+          </div>
+          <p>{{ item['message'] }}</p>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="task-note-box">
+        <p class="section-kicker">Next action</p>
+        <h4>Submission checklist</h4>
+        <ul>
+          <li>Upload the latest draft before the due time.</li>
+          <li>Review feedback notes from your teacher.</li>
+          <li>Keep your file names clean and organized.</li>
+        </ul>
+      </div>
+    </article>
+  </section>
+</div>
+
+<script src="{{ url_for('static', filename='js/task.js') }}"></script>
+{% endblock %}
