@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from app.controllers.base_controller import BaseController
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import Users
@@ -30,7 +30,8 @@ class AuthController(BaseController):
                 if check_password_hash(user_details['password_hash'], password):
                     self.session['user_id'] = user_details['id']
                     self.session['role'] = user_details['role']
-                    self.session['username'] = user_details['name']
+                    # prefer username if set otherwise use name
+                    self.session['username'] = user_details.get('username') or user_details.get('name')
                     self.session['email'] = email
                     self.session['profile_pic'] = user_details.get('profile_pic')
                     if user_details['role'] == 'teacher':
@@ -55,11 +56,12 @@ class AuthController(BaseController):
     def register(self):
         if request.method == 'POST':
             name = request.form.get('name', '').strip()
+            username = request.form.get('username', '').strip()
             email = request.form.get('email', '').strip()
             password = request.form.get('password', '')
             role = request.form.get('role', 'student').strip().lower()
 
-            if not name or not email or not password:
+            if not name or not email or not password or not username:
                 flash('Please fill in all required fields', 'error')
                 return self.render('auth/register.html')
 
@@ -81,14 +83,24 @@ class AuthController(BaseController):
                 self.flash('Email already registered. Please login or use a different email.', 'error')
                 return self.render('auth/register.html')
 
+            # validate username (3-30 chars, letters/numbers/underscores)
+            import re
+            if not re.match(r'^[A-Za-z0-9_]{3,30}$', username):
+                flash('Username must be 3-30 chars and contain only letters, numbers, and underscores.', 'error')
+                return self.render('auth/register.html')
+
+            if Users.is_username_taken(username):
+                flash('Username already taken. Please choose another one.', 'error')
+                return self.render('auth/register.html')
+
             password_valid, message = self._validate_password(password)
             if not password_valid:
                 flash(message, 'error')
                 return self.render('auth/register.html')
-            sql = "insert into users(name,email,password_hash,role) values(%s,%s,%s,%s)"
-            user_id = BaseModel.execute_write(sql,[name,email,generate_password_hash(password),role])
+            # create new user with username
+            user_created = Users.create_user(name, username, email, generate_password_hash(password), role)
 
-            if user_id:
+            if user_created:
                 flash('Registration successful! Please login to continue.', 'success')
                 return redirect(url_for('auth.login'))
 
@@ -96,6 +108,14 @@ class AuthController(BaseController):
             return self.render('auth/register.html')
 
         return self.render('auth/register.html')
+
+    def check_username(self):
+        username = request.args.get('username', '').strip()
+        import re
+        if not username or not re.match(r'^[A-Za-z0-9_]{3,30}$', username):
+            return jsonify({'available': False})
+        taken = Users.is_username_taken(username)
+        return jsonify({'available': not taken})
 
     def forgot(self):
         if request.method == 'POST':
@@ -168,32 +188,55 @@ class AuthController(BaseController):
     @login_required
     def profile(self):
         if request.method == 'POST':
+            # Two possible POST actions on profile page: upload profile image OR set username
+            user_id = self.session.get('user_id')
+
+            # 1) Username update
+            if 'username' in request.form:
+                new_username = request.form.get('username', '').strip()
+                import re
+                if not new_username or not re.match(r'^[A-Za-z0-9_]{3,30}$', new_username):
+                    flash('Username must be 3-30 chars and contain only letters, numbers, and underscores.', 'error')
+                    return redirect(url_for('auth.profile'))
+
+                existing = Users.get_by_username(new_username)
+                if existing and existing['id'] != user_id:
+                    flash('Username already taken. Please choose another one.', 'error')
+                    return redirect(url_for('auth.profile'))
+
+                if Users.set_username(user_id, new_username):
+                    self.session['username'] = new_username
+                    flash('Username updated successfully.', 'success')
+                else:
+                    flash('Failed to update username. Try again later.', 'error')
+
+                return redirect(url_for('auth.profile'))
+
+            # 2) Profile image upload (existing behavior)
             valid = ['.jpg', '.jpeg', '.png']
             filee = request.files.get('profile_image')
-            user_id = self.session.get('user_id')
-            if not filee or filee.filename == '':
-                flash("No file selected!", "error")
-                return redirect(url_for('auth.profile'))
-            upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
-            if not os.path.exists(upload_folder):
-                os.makedirs(upload_folder)
-            file_extension = os.path.splitext(filee.filename)[1].lower()
-            if file_extension not in valid:
-                flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
-                return redirect(url_for('auth.profile'))
-            filename = f"user_{user_id}_profile{file_extension}"
-           
-            destination_path = os.path.join(upload_folder, filename)
-            filee.save(destination_path)
-            db_updated = Users.update_profile_pic(user_id, filename)
-            if db_updated:
-        # 6. CRUCIAL: Update the current active session state immediately!
-                self.session['profile_pic'] = filename
-                flash("Profile picture updated successfully!", "success")
-            else:
-                 flash("Database update failed.", "error")
+            if filee:
+                if not filee.filename:
+                    flash("No file selected!", "error")
+                    return redirect(url_for('auth.profile'))
+                upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                file_extension = os.path.splitext(filee.filename)[1].lower()
+                if file_extension not in valid:
+                    flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
+                    return redirect(url_for('auth.profile'))
+                filename = f"user_{user_id}_profile{file_extension}"
+                destination_path = os.path.join(upload_folder, filename)
+                filee.save(destination_path)
+                db_updated = Users.update_profile_pic(user_id, filename)
+                if db_updated:
+                    self.session['profile_pic'] = filename
+                    flash("Profile picture updated successfully!", "success")
+                else:
+                    flash("Database update failed.", "error")
 
-            return redirect(url_for('auth.profile'))
+                return redirect(url_for('auth.profile'))
         return self.render("users/profile.html",
         email = self.session.get('email'),
         role=self.session.get('role'),
