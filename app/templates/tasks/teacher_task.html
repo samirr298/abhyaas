@@ -1,0 +1,178 @@
+{% extends "base_app.html" %}
+
+{% block title %}Teacher Tasks{% endblock %}
+{% block page_heading %}Teacher Task Workspace{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="task-page teacher-task-page">
+  <section class="task-hero card teacher-hero-card">
+    <div>
+      <p class="section-kicker">Teacher control room</p>
+      <h2>Manage assignments, feedback, and submissions</h2>
+      <p class="section-copy">Create new tasks, monitor who has submitted, and keep review notes organized for the class.</p>
+    </div>
+    <div class="hero-pills teacher-summary-pills">
+      <span class="stat-pill"><strong>{{ class_summary['submitted'] }}</strong> submitted</span>
+      <span class="stat-pill"><strong>{{ class_summary['pending'] }}</strong> pending</span>
+      <span class="stat-pill"><strong>{{ class_summary['average_completion'] }}</strong> completion</span>
+    </div>
+  </section>
+
+  <section class="teacher-layout-grid">
+    <article class="card task-form-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Create assignment</p>
+          <h3>Add a task</h3>
+        </div>
+      </div>
+
+      <form id="task-create-form" class="task-form" method="POST">
+        <input type="hidden" name="action" value="create_task">
+        <label>
+          <span>Task title</span>
+          <input type="text" name="title" placeholder="Chapter 6 Quiz" required>
+        </label>
+
+        <label>
+          <span>Subject</span>
+          <select name="subject" required>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Science">Science</option>
+            <option value="English">English</option>
+            <option value="History">History</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Due date</span>
+          <input type="date" name="deadline" required>
+        </label>
+
+        <label>
+          <span>Instructions</span>
+          <textarea name="description" rows="5" placeholder="Describe what students need to do" required></textarea>
+        </label>
+
+        <button type="submit" class="primary-btn">Publish task</button>
+      </form>
+    </article>
+
+    <article class="card current-task-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Published tasks</p>
+          <h3>Current task feed</h3>
+        </div>
+      </div>
+
+      <div class="teacher-task-list">
+        {% for task in tasks %}
+        <article class="teacher-task-item">
+          <div class="teacher-task-topline">
+            <div>
+              <p class="task-subject">{{ task['subject'] }}</p>
+              <h4>{{ task['title'] }}</h4>
+            </div>
+            <span class="status-badge live">{{ task['status'] }}</span>
+          </div>
+          <p class="task-meta-line">Due: {{ task['due'] }} • Posted: {{ task['posted'] }}</p>
+          <div class="task-meta-row">
+            <span>{{ task['submissions'] }} submissions</span>
+            <span>Class monitor</span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="teacher-bottom-grid">
+    <article class="card feedback-board-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Feedback hub</p>
+          <h3>Post feedback</h3>
+        </div>
+      </div>
+
+      <form id="feedback-form" class="task-form">
+        <label>
+          <span>Select student</span>
+          <select name="student" required>
+            <option value="Aarav Mehta">Aarav Mehta</option>
+            <option value="Diya Kapoor">Diya Kapoor</option>
+            <option value="Ishaan Verma">Ishaan Verma</option>
+            <option value="Sneha Rao">Sneha Rao</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Feedback note</span>
+          <textarea name="feedback" rows="4" placeholder="Add review or next steps" required></textarea>
+        </label>
+
+        <button type="submit" class="secondary-btn">Save feedback</button>
+      </form>
+
+      <div class="feedback-list teacher-feedback-list">
+        {% for item in feedback_queue %}
+        <article class="feedback-item">
+          <div class="feedback-item-header">
+            <h4>{{ item['student'] }} — {{ item['task'] }}</h4>
+            <span class="time-pill">{{ item['status'] }}</span>
+          </div>
+          <p>{{ item['note'] }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="card submissions-card">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Submission tracker</p>
+          <h3>Who submitted?</h3>
+        </div>
+        <input type="search" id="submission-search" placeholder="Search student" class="mini-search">
+      </div>
+
+      <div class="submission-table-wrap">
+        <table class="submission-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Submission</th>
+              <th>File</th>
+              <th>Status</th>
+              <th>Submitted at</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in submissions %}
+            <tr class="submission-row" data-name="{{ student['name']|lower }}">
+              <td>{{ student['name'] }}</td>
+              <td><pre class="submission-text-preview">{{ student['submission_text'] or 'No written response' }}</pre></td>
+              <td>
+                {% if student['submission_file_path'] %}
+                <a class="link-inline" href="{{ url_for('static', filename=student['submission_file_path']) }}" target="_blank">View file</a>
+                {% else %}
+                <span class="muted-note">No file</span>
+                {% endif %}
+              </td>
+              <td><span class="status-badge {{ 'submitted' if student['status'] == 'Submitted' else 'pending' }}">{{ student['status'] }}</span></td>
+              <td>{{ student['time'] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+</div>
+
+<script src="{{ url_for('static', filename='js/task.js') }}"></script>
+{% endblock %}

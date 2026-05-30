@@ -59,5 +59,45 @@ class Database:
                         print('table created')
                         connection.close()
 
+        def create_task_tables():
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                                """
+                                CREATE TABLE IF NOT EXISTS tasks (
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        teacher_id INT NOT NULL,
+                                        title VARCHAR(255) NOT NULL,
+                                        description TEXT,
+                                        subject VARCHAR(100) NOT NULL,
+                                        deadline DATE NOT NULL,
+                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                        is_active TINYINT(1) DEFAULT 1,
+                                        FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+                                )
+                                """
+                                )
+                                cursor.execute(
+                                """
+                                CREATE TABLE IF NOT EXISTS task_submissions (
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        task_id INT NOT NULL,
+                                        student_id INT NOT NULL,
+                                        submission_text MEDIUMTEXT,
+                                        submission_file_path VARCHAR(255),
+                                        status VARCHAR(50) DEFAULT 'pending',
+                                        submitted_at DATETIME NULL,
+                                        teacher_feedback TEXT,
+                                        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                                        FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+                                )
+                                """
+                                )
+                        connection.commit()
+                finally:
+                        print('table created')
+                        connection.close()
+
 
 print("🚀 Connection successful!")

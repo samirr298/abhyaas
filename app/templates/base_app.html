@@ -18,7 +18,12 @@
       </div>
       <nav class="sidebar-nav">
         <a class="active" href="#">Dashboard</a>
-        <a href="#">Tasks</a>
+        {% if session.get('role') == 'student' %}
+        <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('auth.student') }}">Student Task</a>
+        {% endif %}
+        {% if session.get('role') == 'teacher' %}
+        <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher') }}">Teacher Task</a>
+        {% endif %}
         <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
         <a href="#">Announcements</a>
         <a href="{{ url_for('auth.profile') }}">Profile</a>

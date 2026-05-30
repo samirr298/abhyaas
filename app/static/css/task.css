@@ -1,0 +1,464 @@
+:root {
+  --bg-main: #f4f4fb;
+  --bg-soft: #f9faff;
+  --card-bg: #ffffff;
+  --border-color: rgba(94, 114, 228, 0.12);
+  --accent: #3b5bdb;
+  --accent-soft: rgba(59, 91, 219, 0.12);
+  --accent-strong: #1b2b6b;
+  --success: #0f9d58;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --text-main: #172033;
+  --text-muted: #6b7280;
+  --shadow: 0 20px 50px rgba(23, 32, 51, 0.08);
+}
+
+.task-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.task-hero-card {
+  padding: 24px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 91, 219, 0.16), transparent 30%),
+    linear-gradient(180deg, #fff, #fcfdff);
+}
+
+.task-hero-card h2, .teacher-hero-card h2 {
+  font-size: 1.8rem;
+  margin: 6px 0 8px;
+  color: var(--text-main);
+}
+
+.section-copy {
+  color: var(--text-muted);
+  max-width: 720px;
+}
+
+.section-kicker {
+  color: var(--accent);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+}
+
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stat-pill {
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(59, 91, 219, 0.16);
+  color: var(--text-main);
+  font-size: 0.78rem;
+}
+
+.stat-pill strong {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.task-summary-grid, .teacher-layout-grid, .teacher-bottom-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.task-summary-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.summary-tile {
+  padding: 18px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summary-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.summary-tile h3 {
+  margin: 4px 0;
+  font-size: 1.45rem;
+}
+
+.summary-label, .summary-note {
+  color: var(--text-muted);
+  display: block;
+}
+
+.task-grid-two {
+  display: grid;
+  grid-template-columns: 1.65fr 0.95fr;
+  gap: 18px;
+}
+
+.task-list-card, .feedback-card, .task-form-card, .current-task-card, .feedback-board-card, .submissions-card {
+  padding: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-header h3 {
+  margin: 6px 0 0;
+  color: var(--text-main);
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-chip, .secondary-btn, .primary-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(59, 91, 219, 0.2);
+  background: #fff;
+  color: var(--accent-strong);
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.filter-chip.active, .primary-btn {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item, .teacher-task-item, .feedback-item {
+  border-radius: 18px;
+  padding: 15px 16px;
+  border: 1px solid rgba(59, 91, 219, 0.1);
+  background: #fff;
+}
+
+.task-topline, .teacher-task-topline, .feedback-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.task-subject {
+  color: var(--accent);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.task-item h4, .teacher-task-item h4, .feedback-item h4 {
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.task-description {
+  color: var(--text-muted);
+  margin: 10px 0 12px;
+  line-height: 1.45;
+}
+
+.task-meta-row, .task-footer-row, .task-meta-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.task-meta-row {
+  margin: 10px 0 12px;
+}
+
+.task-progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.progress-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-main);
+}
+
+.progress-track {
+  width: 100%;
+  height: 9px;
+  border-radius: 999px;
+  background: #e6ebff;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3b5bdb, #19a6b3);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.status-badge.submitted, .status-badge.live {
+  background: rgba(15, 157, 88, 0.14);
+  color: #0b7b46;
+}
+
+.status-badge.pending, .status-badge.needs-review {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b77905;
+}
+
+.score-chip {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.submission-panel {
+  margin-top: 12px;
+  padding: 12px 13px;
+  border-radius: 14px;
+  border: 1px solid rgba(59, 91, 219, 0.14);
+  background: #fafdff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.submission-panel[hidden] {
+  display: none;
+}
+
+.submission-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-main);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.submission-panel textarea,
+.submission-panel input[type="url"],
+.submission-panel input[type="file"] {
+  border-radius: 10px;
+  border: 1px solid rgba(59, 91, 219, 0.16);
+  padding: 10px 11px;
+  font-size: 0.78rem;
+  background: #fff;
+}
+
+.submission-panel textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.submission-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.submission-note {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  margin: 0;
+}
+
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feedback-item p {
+  margin-top: 8px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.time-pill {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: rgba(59, 91, 219, 0.12);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
+.submission-text-preview {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.72rem;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.muted-note {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.task-note-box {
+  margin-top: 14px;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #f7f9ff, #f2f4ff);
+  border: 1px solid rgba(59, 91, 219, 0.12);
+}
+
+.task-note-box ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teacher-layout-grid {
+  grid-template-columns: 0.92fr 1.08fr;
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-main);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.task-form input,
+.task-form select,
+.task-form textarea,
+.mini-search {
+  border-radius: 10px;
+  border: 1px solid rgba(44, 62, 140, 0.16);
+  padding: 10px 12px;
+  color: var(--text-main);
+  background: #fff;
+  font-size: 0.84rem;
+}
+
+.task-form textarea {
+  resize: vertical;
+}
+
+.teacher-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teacher-bottom-grid {
+  grid-template-columns: 0.95fr 1.05fr;
+}
+
+.mini-search {
+  min-width: 140px;
+}
+
+.submission-table-wrap {
+  overflow-x: auto;
+}
+
+.submission-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.submission-table th,
+.submission-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(59, 91, 219, 0.08);
+  font-size: 0.82rem;
+}
+
+.submission-table th {
+  color: var(--text-muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 900px) {
+  .task-summary-grid,
+  .task-grid-two,
+  .teacher-layout-grid,
+  .teacher-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-hero-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
