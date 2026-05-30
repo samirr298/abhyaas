@@ -39,7 +39,7 @@
       <form id="username-form" action="{{ url_for('auth.profile') }}" method="POST">
         <label class="field"><span>Username</span>
           <div style="display:flex;gap:8px;align-items:center">
-            <input name="username" id="profile-username" value="{{ username or '' }}" readonly minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$">
+            <input name="username" id="profile-username" value="{{ username or '' }}" minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$" style="cursor:text">
             <button type="button" class="btn-secondary" id="edit-username">Edit</button>
             <button type="submit" class="btn-primary" id="save-username" style="display:none">Save</button>
             <button type="button" class="btn-secondary" id="cancel-username" style="display:none">Cancel</button>

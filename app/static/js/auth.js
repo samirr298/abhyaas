@@ -124,17 +124,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var original = input.value || '';
 
-    editBtn.addEventListener('click', function () {
-      input.readOnly = false;
-      input.focus();
+    function enableEditMode() {
+      input.style.cursor = 'text';
+      setTimeout(function () {
+        input.focus();
+        try {
+          input.select();
+          if (input.setSelectionRange) input.setSelectionRange(0, input.value.length);
+        } catch (e) {}
+      }, 0);
       editBtn.style.display = 'none';
       saveBtn.style.display = '';
       cancelBtn.style.display = '';
+    }
+
+    editBtn.addEventListener('click', enableEditMode);
+    input.addEventListener('click', function () {
+      if (saveBtn.style.display === 'none') {
+        enableEditMode();
+      }
+    });
+    input.addEventListener('focus', function () {
+      if (saveBtn.style.display === 'none') {
+        enableEditMode();
+      }
     });
 
     cancelBtn.addEventListener('click', function () {
       input.value = original;
-      input.readOnly = true;
       note.textContent = '';
       editBtn.style.display = '';
       saveBtn.style.display = 'none';

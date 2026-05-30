@@ -114,8 +114,16 @@ class AuthController(BaseController):
         import re
         if not username or not re.match(r'^[A-Za-z0-9_]{3,30}$', username):
             return jsonify({'available': False})
-        taken = Users.is_username_taken(username)
-        return jsonify({'available': not taken})
+
+        # If logged in and checking the same username as the current user, consider it available
+        current_user_id = self.session.get('user_id')
+        existing = Users.get_by_username(username)
+        if existing:
+            if current_user_id and existing.get('id') == current_user_id:
+                return jsonify({'available': True})
+            return jsonify({'available': False})
+
+        return jsonify({'available': True})
 
     def forgot(self):
         if request.method == 'POST':

@@ -39,7 +39,11 @@ class Users(BaseModel):
     @staticmethod
     def create_user(name, username, email, password_hash, role):
         sql = "INSERT INTO users (name, username, email, password_hash, role) VALUES (%s, %s, %s, %s, %s)"
-        return Users.execute_write(sql, [name, username, email, password_hash, role])
+        try:
+            return Users.execute_write(sql, [name, username, email, password_hash, role])
+        except Exception:
+            # If insert fails (e.g., uniqueness violation), return False
+            return False
 
     @staticmethod
     def get_by_username(username):
@@ -49,4 +53,8 @@ class Users(BaseModel):
     @staticmethod
     def set_username(user_id, username):
         sql = "UPDATE users SET username = %s WHERE id = %s"
-        return Users.execute_write(sql, [username, user_id])
+        try:
+            return Users.execute_write(sql, [username, user_id])
+        except Exception:
+            # Likely a UNIQUE constraint violation — caller will handle False
+            return False
