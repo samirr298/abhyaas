@@ -8,7 +8,7 @@
   <div class="card profile-card">
     <div class="profile-header">
       <div class="profile-copy">
-        <h2>{{ username or 'User' }}</h2>
+        <h2 id="display-username">{{ username or 'User' }}</h2>
         <p class="muted">{{ email }}</p>
         <p class="muted">Role : {{ role }}</p>
       </div>
@@ -34,6 +34,23 @@
   </div>
 
   <div class="card profile-card">
+    <h3>Personal Information</h3>
+    <div id="personal-info">
+      <form id="username-form" action="{{ url_for('auth.profile') }}" method="POST">
+        <label class="field"><span>Username</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input name="username" id="profile-username" value="{{ username or '' }}" readonly minlength="3" maxlength="30" pattern="^[a-zA-Z0-9_]+$">
+            <button type="button" class="btn-secondary" id="edit-username">Edit</button>
+            <button type="submit" class="btn-primary" id="save-username" style="display:none">Save</button>
+            <button type="button" class="btn-secondary" id="cancel-username" style="display:none">Cancel</button>
+          </div>
+          <div class="field-note" id="profile-username-availability" aria-live="polite"></div>
+        </label>
+      </form>
+    </div>
+
+    <hr>
+
     <h3>Account Actions</h3>
     <div class="profile-actions" style="color: black;">
       <a class="btn-secondary full-width" href="{{ url_for('auth.change_my_password') }}">Change Passwzord</a>
