@@ -18,6 +18,10 @@ class AuthRoutes:
         self.bp.route("/register", methods=["GET", "POST"])(
             self.controller.register
         )
+        # username availability check for frontend
+        self.bp.route("/check-username", methods=["GET"])(
+            self.controller.check_username
+        )
         self.bp.route("/forgot", methods=["GET", "POST"])(
             self.controller.forgot
         )

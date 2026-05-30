@@ -25,10 +25,11 @@ class Database:
                                 CREATE TABLE IF NOT EXISTS users (
                                     id INT AUTO_INCREMENT PRIMARY KEY,
                                     name VARCHAR(255) NOT NULL,
+                                    username VARCHAR(50) UNIQUE,
                                     email VARCHAR(255) NOT NULL UNIQUE,
                                     password_hash VARCHAR(255) NOT NULL,
                                     role VARCHAR(50) NOT NULL,
-                                    profile_pic varchar(255) unique,
+                                    profile_pic VARCHAR(255),
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                 )
                                 """
