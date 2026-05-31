@@ -182,6 +182,37 @@ class AuthController(BaseController):
             user_id = self.session.get('user_id')
             profile_updated = False
 
+            # Handle profile-picture-only uploads from the inline upload form.
+            # That form sends only file + upload_only flag, without profile text fields.
+            upload_only = request.form.get('upload_only') == '1'
+            valid_extensions = ['.jpg', '.jpeg', '.png']
+
+            if upload_only:
+                filee = request.files.get('profile_image')
+                if not filee or filee.filename == '':
+                    flash('Please choose an image to upload.', 'error')
+                    return redirect(url_for('auth.profile'))
+
+                file_extension = os.path.splitext(filee.filename)[1].lower()
+                if file_extension not in valid_extensions:
+                    flash('Wrong file format. Please choose a JPG, JPEG, or PNG image.', 'error')
+                    return redirect(url_for('auth.profile'))
+
+                upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+
+                filename = f"user_{user_id}_profile{file_extension}"
+                destination_path = os.path.join(upload_folder, filename)
+                filee.save(destination_path)
+
+                if Users.update_profile_pic(user_id, filename):
+                    self.session['profile_pic'] = filename
+                    flash('Profile picture updated successfully!', 'success')
+                else:
+                    flash('Profile picture database update failed.', 'error')
+                return redirect(url_for('auth.profile'))
+
             full_name = request.form.get('full_name', '').strip()
             email = request.form.get('email', '').strip()
             new_username = request.form.get('username', '').strip()
@@ -224,15 +255,14 @@ class AuthController(BaseController):
                 flash('Failed to update username. Try again later.', 'error')
                 return redirect(url_for('auth.profile'))
 
-            # Profile image upload
-            valid = ['.jpg', '.jpeg', '.png']
+            # Profile image upload (when saving details form with an optional new image)
             filee = request.files.get('profile_image')
             if filee and filee.filename != '':
                 upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
                 file_extension = os.path.splitext(filee.filename)[1].lower()
-                if file_extension not in valid:
+                if file_extension not in valid_extensions:
                     flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
                     return redirect(url_for('auth.profile'))
 

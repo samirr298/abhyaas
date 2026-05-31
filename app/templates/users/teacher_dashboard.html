@@ -1,0 +1,39 @@
+{% extends "base_app.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+{% block page_heading %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="cards">
+  <div class="card">
+    <h2>Welcome, {{ username or 'Teacher' }}</h2>
+    <p class="muted">Class overview and shortcuts to manage tasks.</p>
+  </div>
+
+  <div class="card profile-grid">
+    <div class="summary-grid">
+      <div class="card summary-tile">
+        <p class="summary-label">Submitted</p>
+        <h3>{{ class_summary.submitted if class_summary else '—' }}</h3>
+      </div>
+      <div class="card summary-tile">
+        <p class="summary-label">Pending</p>
+        <h3>{{ class_summary.pending if class_summary else '—' }}</h3>
+      </div>
+      <div class="card summary-tile">
+        <p class="summary-label">Completion</p>
+        <h3>{{ class_summary.average_completion if class_summary else '—' }}</h3>
+      </div>
+      <div class="card summary-tile">
+        <p class="summary-label">Tasks</p>
+        <h3></h3>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <p>Use the teacher workspace to create assignments and review student submissions.</p>
+      <a class="btn-primary" href="{{ url_for('auth.teacher_dashboard') if False else url_for('auth.teacher_dashboard') }}">Open Teacher Workspace</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

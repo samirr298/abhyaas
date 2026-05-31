@@ -1,64 +1,107 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const filterButtons = document.querySelectorAll('.filter-chip');
-  const taskItems = document.querySelectorAll('.task-item');
+document.addEventListener('DOMContentLoaded', initTaskScripts);
+
+function initTaskScripts() {
+  setupFilterChips();
+  setupSubmissionToggles();
+  setupSubmissionFormHandlers();
+  setupSubmissionSearch();
+}
+
+function setupFilterChips() {
+  const filterButtons = Array.from(document.querySelectorAll('.filter-chip'));
+  const taskItems = Array.from(document.querySelectorAll('.task-item'));
+
+  if (!filterButtons.length || !taskItems.length) return;
+
+  function applyFilter(filterValue) {
+    taskItems.forEach((item) => {
+      const status = (item.dataset.status || '').toString();
+      const shouldShow = filterValue === 'all' || status === filterValue;
+      item.style.display = shouldShow ? 'block' : 'none';
+    });
+  }
 
   filterButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      filterButtons.forEach((btn) => btn.classList.remove('active'));
+      // update active state on chips
+      filterButtons.forEach((b) => b.classList.remove('active'));
       button.classList.add('active');
 
-      const filter = button.dataset.filter;
+      const selectedFilter = button.dataset.filter || 'all';
+      applyFilter(selectedFilter);
+    });
+  });
+}
 
-      taskItems.forEach((item) => {
-        const status = item.dataset.status;
-        const matches = filter === 'all' || status === filter;
-        item.style.display = matches ? 'block' : 'none';
+function setupSubmissionToggles() {
+  const actionButtons = Array.from(document.querySelectorAll('.task-action-btn'));
+  if (!actionButtons.length) return;
+
+  actionButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const taskCard = btn.closest('.task-item');
+      if (!taskCard) return;
+
+      const panel = taskCard.querySelector('.submission-panel');
+      if (!panel) return;
+
+      const panelIsCurrentlyHidden = !!panel.hidden;
+
+      // Close all other open panels first
+      document.querySelectorAll('.submission-panel').forEach((other) => {
+        if (other !== panel) other.hidden = true;
       });
+
+      // Toggle the target panel and update the button label
+      panel.hidden = !panelIsCurrentlyHidden;
+      btn.textContent = panel.hidden ? 'Submit task' : 'Hide submission';
     });
   });
+}
 
-  const markButtons = document.querySelectorAll('.task-action-btn');
-  markButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const card = button.closest('.task-item');
-      const panel = card.querySelector('.submission-panel');
-      const isHidden = panel.hidden;
+function setupSubmissionFormHandlers() {
+  const submissionForms = Array.from(document.querySelectorAll('.submission-panel'));
+  if (!submissionForms.length) return;
 
-      document.querySelectorAll('.submission-panel').forEach((openPanel) => {
-        if (openPanel !== panel) {
-          openPanel.hidden = true;
-        }
-      });
+  submissionForms.forEach((form) => {
+    form.addEventListener('submit', (e) => {
+      // If the user provided a link, append it to the textarea so server receives it as part of the message
+      const urlInput = form.querySelector('input[type="url"]');
+      const messageBox = form.querySelector('textarea');
 
-      panel.hidden = !isHidden;
-      button.textContent = panel.hidden ? 'Submit task' : 'Hide submission';
+      if (!messageBox) return;
+      if (!urlInput) return; // nothing to do if no url input present
+
+      const link = (urlInput.value || '').trim();
+      if (!link) return; // allow normal submit when link empty
+
+      const existing = (messageBox.value || '').trim();
+      const linkLine = `Submission link: ${link}`;
+      messageBox.value = existing ? `${existing}\n${linkLine}` : linkLine;
+      urlInput.value = '';
+
+      // Let the form submit normally; server-side handles publishing
     });
   });
+}
 
-  document.querySelectorAll('.submission-panel').forEach((form) => {
-    form.addEventListener('submit', (event) => {
-      const linkInput = form.querySelector('input[type="url"]');
-      const textarea = form.querySelector('textarea');
-
-      if (linkInput && textarea && linkInput.value.trim()) {
-        const currentText = textarea.value.trim();
-        const linkText = `Submission link: ${linkInput.value.trim()}`;
-        textarea.value = currentText ? `${currentText}\n${linkText}` : linkText;
-        linkInput.value = '';
-      }
-    });
-  });
-
-  // Real task publishing and feedback are handled by the server.
-
+function setupSubmissionSearch() {
   const searchInput = document.getElementById('submission-search');
-  if (searchInput) {
-    searchInput.addEventListener('input', (event) => {
-      const query = event.target.value.toLowerCase().trim();
-      document.querySelectorAll('.submission-row').forEach((row) => {
-        const name = row.dataset.name || '';
-        row.style.display = name.includes(query) ? '' : 'none';
-      });
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', (event) => {
+    const raw = (event.target.value || '').toLowerCase().trim();
+    const rows = Array.from(document.querySelectorAll('.submission-row'));
+
+    if (!raw) {
+      // show all rows when search is cleared
+      rows.forEach((r) => (r.style.display = ''));
+      return;
+    }
+
+    rows.forEach((row) => {
+      const name = (row.dataset.name || '').toLowerCase();
+      row.style.display = name.includes(raw) ? '' : 'none';
     });
-  }
-});
+  });
+}

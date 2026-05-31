@@ -1,6 +1,8 @@
 from flask import Blueprint
+from app.auth import login_required
 from app.controllers.attendance_controller import AttendanceController
 from app.controllers.rolecontroller import RoleController
+
 class AttendanceRoutes:
     def __init__(self):
         self.bp = Blueprint("attend", __name__)
@@ -9,6 +11,6 @@ class AttendanceRoutes:
 
     def register(self):
         self.bp.route("/attendance", methods=["GET", "POST"])(
-            self.controller.mark_attendance
+            login_required(self.controller.mark_attendance)
         )
         return self.bp
