@@ -2,7 +2,7 @@ from flask import Blueprint
 from app.auth import login_required
 from app.controllers.announcement_controller import AnnouncementController
 from app.controllers.rolecontroller import RoleController
-class AttendanceRoutes:
+class AnnouncementRoutes:
     def __init__(self):
         self.bp = Blueprint("announce", __name__)
         self.controller = AnnouncementController()
