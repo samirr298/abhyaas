@@ -17,6 +17,8 @@ def create_app():
     Database.create_attendance_table()
     Database.create_announcement_table()
     Database.create_task_tables()
+    Database.create_submission_table()
+    Database.create_feedback_table()
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY
@@ -44,8 +46,17 @@ def create_app():
     app.register_blueprint(attendance_routes.register())
 
     # register announcements blueprint
-    from app.routes.announcement_route import AttendanceRoutes as AnnouncementRoutes
+    from app.routes.announcement_route import AnnouncementRoutes
     announcement_routes = AnnouncementRoutes()
     app.register_blueprint(announcement_routes.register())
+
+    #regisetr task blueprint
+    from app.routes.task_route import TaskRoutes 
+    task_routes = TaskRoutes()
+    app.register_blueprint(task_routes.register())
+
+    from app.routes.role_route import RoleRoutes
+    role_routes = RoleRoutes()
+    app.register_blueprint(role_routes.register())
 
     return app

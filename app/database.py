@@ -80,44 +80,67 @@ class Database:
                 finally:
                         print('table created')
                         connection.close()
+                 # tasks and task_submissions are deleted by project cleanup.
         def create_task_tables():
-                connection = Database.db()
+                connection =  Database.db()
                 try:
                         with connection.cursor() as cursor:
                                 cursor.execute(
-                                """
-                                CREATE TABLE IF NOT EXISTS tasks (
-                                        id INT AUTO_INCREMENT PRIMARY KEY,
-                                        teacher_id INT NOT NULL,
-                                        title VARCHAR(255) NOT NULL,
-                                        description TEXT,
-                                        subject VARCHAR(100) NOT NULL,
-                                        deadline DATE NOT NULL,
-                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                        is_active TINYINT(1) DEFAULT 1,
-                                        FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
-                                )
-                                """
-                                )
-                                cursor.execute(
-                                """
-                                CREATE TABLE IF NOT EXISTS task_submissions (
-                                        id INT AUTO_INCREMENT PRIMARY KEY,
-                                        task_id INT NOT NULL,
-                                        student_id INT NOT NULL,
-                                        submission_text MEDIUMTEXT,
-                                        submission_file_path VARCHAR(255),
-                                        status VARCHAR(50) DEFAULT 'pending',
-                                        submitted_at DATETIME NULL,
-                                        teacher_feedback TEXT,
-                                        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-                                        FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
-                                )
-                                """
-                                )
-                        connection.commit()
+                               ''' CREATE TABLE if not exists tasks (
+                                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                                title VARCHAR(255) NOT NULL,
+                                                description TEXT NULL,
+                                                created_by INT NOT NULL,  -- Teacher's user ID
+                                                due_date DATETIME NULL,
+                                                attached_filename varchar(255) null,
+                                                completed_by_students TEXT NULL,
+                                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                                subject varchar(255),
+                                                CONSTRAINT fk_task_teacher FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+                                                );''')
+                                connection.commit()
                 finally:
                         print('table created')
                         connection.close()
-
+        def create_submission_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE IF NOT EXISTS submissions
+                                (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                task_id INT NOT NULL,
+                                student_id INT NOT NULL,
+                                submitted_filename VARCHAR(255) NOT NULL,
+                                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                status VARCHAR(50) DEFAULT 'Not Reviewed',
+                                CONSTRAINT fk_sub_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                                CONSTRAINT fk_sub_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+                                );''')
+                                connection.commit()
+                finally:
+                        print('table created')
+                        connection.close() 
+        def create_feedback_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE if not exists feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    task_id INT NOT NULL,  -- 🔑 This is the missing column causing the crash!
+    feedback_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_feedback_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_feedback_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_feedback_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);;''')
+                                connection.commit()
+                finally:
+                        print('table created')
+                        connection.close() 
 print("🚀 Connection successful!")
