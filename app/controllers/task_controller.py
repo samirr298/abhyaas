@@ -271,6 +271,11 @@ class TaskController(BaseController):
             score = score * 100
         except:
             score = 0
+        # Convert to float first if it's currently a string
+        score = float(score) 
+
+# Format to 2 decimal places
+        score = f"{score:.2f}"  # If score was 85, it cleanly becomes "85.00"
         return self.render(
             'tasks/student_task.html', 
             tasks=all_tasks, 

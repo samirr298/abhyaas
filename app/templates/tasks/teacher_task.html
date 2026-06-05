@@ -79,6 +79,7 @@
       </div>
 
       <div class="teacher-task-list">
+        
         {% for task in tasks %}
         <article class="teacher-task-item">
           <div class="teacher-task-topline">
@@ -116,41 +117,41 @@
               {% endif %}
               {% endfor %}
 
-            
-               
-                <div style="margin-top:10px;">
-                  {% if task_count > 0 %}
-                  <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                      <tr style="text-align:left; font-size:0.85rem; color:var(--text-muted);">
-                        <th style="padding:6px 8px;">Student</th>
-                        <th style="padding:6px 8px;">File</th>
-                        <th style="padding:6px 8px;">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for s in totalsubmissions %}
-                      {% if s.task_id == task.id %}
-                      <tr>
-                        <td style="padding:6px 8px;">{{ s.student_name }}</td>
-                        <td style="padding:6px 8px;">
-                          {% if s.submitted_filename %}
-                          <a href="{{ url_for('static', filename='student_uploads/' ~ s.submitted_filename) }}"
-                            target="_blank">{{ s.submitted_filename }}</a>
-                          {% else %}
-                          —
-                          {% endif %}
-                        </td>
-                        <td style="padding:6px 8px;">{{ s.status }}</td>
-                      </tr>
-                      {% endif %}
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                  {% else %}
-                  
-                  {% endif %}
-                </div>
+
+
+              <div style="margin-top:10px;">
+                {% if task_count > 0 %}
+                <table style="width:100%; border-collapse:collapse;">
+                  <thead>
+                    <tr style="text-align:left; font-size:0.85rem; color:var(--text-muted);">
+                      <th style="padding:6px 8px;">Student</th>
+                      <th style="padding:6px 8px;">File</th>
+                      <th style="padding:6px 8px;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for s in totalsubmissions %}
+                    {% if s.task_id == task.id %}
+                    <tr>
+                      <td style="padding:6px 8px;">{{ s.student_name }}</td>
+                      <td style="padding:6px 8px;">
+                        {% if s.submitted_filename %}
+                        <a href="{{ url_for('static', filename='student_uploads/' ~ s.submitted_filename) }}"
+                          target="_blank">{{ s.submitted_filename }}</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                      </td>
+                      <td style="padding:6px 8px;">{{ s.status }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% else %}
+
+                {% endif %}
+              </div>
               </details>
             </div>
           </div>
@@ -241,25 +242,32 @@
           <h3>Who submitted?</h3>
         </div>
         <div>
-          <span class="muted-note">Use the table below to review submissions. Sorting and searching are server-side
-            operations.</span>
+          <span class="muted-note">
+
+          </span>
         </div>
       </div>
-
+      <style>
+  .hidden {
+    display: none !important;
+  }
+</style>
       <div class="submission-table-wrap">
+        <input type="search" id="searchbar" placeholder="Search by student or task..."
+          style="margin-bottom: 12px; padding: 6px; width: 100%; box-sizing: border-box;">
+
         <table class="submission-table">
           <thead>
             <tr>
               <th>Student</th>
               <th>Task Title</th>
               <th>Document File</th>
-
               <th>Review Status</th>
             </tr>
           </thead>
           <tbody>
             {% for submission in totalsubmissions %}
-            <tr>
+            <tr class="student-row">
               <td><strong>{{ submission.student_name }}</strong></td>
               <td>{{ submission.task_title }}</td>
               <td>
@@ -284,6 +292,26 @@
     </article>
   </section>
 </div>
+<script>
+const searchInput = document.getElementById('searchbar');
 
+// Target the table rows directly
+const rows = document.querySelectorAll('tr.student-row');
+
+searchInput.addEventListener('input', (e) => {
+    const searchText = e.target.value.toLowerCase();
+
+    rows.forEach(row => {
+        // textContent extracts text from all <td> elements inside this row (Name, Task Title, Status)
+        const rowText = row.textContent.toLowerCase();
+
+        if (rowText.includes(searchText)) {
+            row.classList.remove('hidden'); 
+        } else {
+            row.classList.add('hidden');    
+        }
+    });
+});
+</script>
 
 {% endblock %}

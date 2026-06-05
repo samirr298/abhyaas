@@ -7,6 +7,12 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .hidden {
+    display: none !important;
+  }
+  
+</style>
 <div class="task-page student-task-page">
   <section class="task-hero card task-hero-card">
     <div>
@@ -54,7 +60,7 @@
       <div>
         <p class="summary-label">Over due</p>
         <h3>{{ over_due }}</h3>
-        <p class="summary-note">Tasks due in the next 48 hours</p>
+        <p class="summary-note">So late !</p>
       </div>
     </article>
   </section>
@@ -84,7 +90,11 @@
               {% if submission_map[task.id|int] == 'Reviewed' %}
               <div style="display: flex; gap: 6px;">
                 <span class="tag reviewed" style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
-                <span class="tag feedback" style="background: #f1f5f9; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;"><a href="{{ url_for('auth.task_detail', task_id=task.id) }}" style="text-decoration: none; color: #475569;">See Feedback</a></span>
+               <span class="tag feedback" style="background: #f1f5f9; border-radius: 20px; font-size: 0.75rem; display: inline-block;">
+  <a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569; padding: 4px 10px; display: inline-block;">
+    See Feedback
+  </a>
+</span>
               </div>
               {% else %}
               <span class="tag submitted" style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
@@ -163,4 +173,32 @@
     </div>
   </section>
 </div>
+<script>
+// We wait for the DOM content to fully load 
+document.addEventListener("DOMContentLoaded", () => {
+    // Looks for the search input rendered by base_app.html
+    const globalSearchInput = document.getElementById("search");
+    
+    // Selects all the individual task cards in this specific view
+    const cards = document.querySelectorAll(".assignment-card");
+
+    // Only run the logic if the global search bar actually exists on this page
+    if (globalSearchInput) {
+        globalSearchInput.addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+
+            cards.forEach(card => {
+                // Extracts text inside the card (Title, Subject, Description)
+                const cardText = card.textContent.toLowerCase();
+
+                if (cardText.includes(searchText)) {
+                    card.classList.remove('hidden'); 
+                } else {
+                    card.classList.add('hidden');    
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
