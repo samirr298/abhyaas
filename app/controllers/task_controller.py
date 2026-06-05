@@ -26,9 +26,9 @@ class TaskController(BaseController):
                 except Exception as e:
                     print(f"Failed to remove task file {attached_filename}: {e}")
 
-        return redirect(url_for('tasks.teacher_dashboard'))
+        return redirect(url_for('auth.teacher_task'))
 
-    def teacher_dashboard(self):
+    def teacher_task(self):
         # ========================================================
         # 1️⃣ HANDLE FORM SUBMISSIONS (POST)
         # ========================================================
@@ -69,7 +69,7 @@ class TaskController(BaseController):
                 status = BaseModel.execute_write(sql, [task_title, description, current_teacher_id, due_date, '', filename, subject])
                 
                 if status:
-                    return redirect(url_for('tasks.teacher_dashboard'))
+                    return redirect(url_for('auth.teacher_task'))
 
             # --- ACTION B: SAVE STUDENT FEEDBACK SECURELY (ONCE PER TASK) ---
             elif method == "save_feedback":
@@ -118,10 +118,10 @@ class TaskController(BaseController):
                     else:
                         print("⚠️ Security Alert: Unauthorized attempt blocked.")
 
-                return redirect(url_for('tasks.teacher_dashboard'))
+                return redirect(url_for('auth.teacher_task'))
                 
         # ========================================================
-        # 2️⃣ RENDER DASHBOARD INTERFACE FEED (GET)
+        # 2️⃣ RENDER task INTERFACE FEED (GET)
         # ========================================================
         teacher_id = self.session.get('user_id')
         
@@ -154,7 +154,7 @@ class TaskController(BaseController):
         )
         
 
-    def student_dashboard(self):
+    def student_task(self):
         # ========================================================
         # 1️⃣ HANDLE FILE SUBMISSION (POST)
         # ========================================================
@@ -227,10 +227,10 @@ class TaskController(BaseController):
                     except Exception as e:
                         print(f"Failed handling student submission file: {e}")
                         
-                return redirect(url_for('tasks.student_dashboard'))
+                return redirect(url_for('auth.student_task'))
 
         # ========================================================
-        # 2️⃣ RENDER DASHBOARD FEED (GET)
+        # 2️⃣ RENDER task FEED (GET)
         # ========================================================
         current_student_id = self.session.get('user_id')
         
@@ -331,7 +331,7 @@ class TaskController(BaseController):
                     except Exception as e:
                         print(f"Failed handling student submission file on detail page: {e}")
 
-                return redirect(url_for('tasks.task_detail', task_id=task_id))
+                return redirect(url_for('auth.task_detail', task_id=task_id))
 
         # GET: render task details
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"

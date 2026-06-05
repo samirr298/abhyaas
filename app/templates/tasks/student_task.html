@@ -84,7 +84,7 @@
               {% if submission_map[task.id|int] == 'Reviewed' %}
               <div style="display: flex; gap: 6px;">
                 <span class="tag reviewed" style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
-                <span class="tag feedback" style="background: #f1f5f9; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;"><a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569;">See Feedback</a></span>
+                <span class="tag feedback" style="background: #f1f5f9; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;"><a href="{{ url_for('auth.task_detail', task_id=task.id) }}" style="text-decoration: none; color: #475569;">See Feedback</a></span>
               </div>
               {% else %}
               <span class="tag submitted" style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>

@@ -8,9 +8,9 @@ class TaskRoutes:
 
     def register(self):
         # Teacher workspace
-        self.bp.route('/teacher_task', methods=['GET', 'POST'])(self.controller.teacher_dashboard)
+        self.bp.route('/teacher_task', methods=['GET', 'POST'])(self.controller.teacher_task)
         # Student workspace
-        self.bp.route('/student_task', methods=['GET', 'POST'])(self.controller.student_dashboard)
+        self.bp.route('/student_task', methods=['GET', 'POST'])(self.controller.student_task)
         # Single task detail (student-facing)
         self.bp.route('/task/<int:task_id>', methods=['GET', 'POST'])(self.controller.task_detail)
         

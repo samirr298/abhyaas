@@ -32,9 +32,9 @@ class AuthController(BaseController):
                     self.session['profile_pic'] = user_details.get('profile_pic')
                     
                     if user_details['role'] == 'teacher':
-                        return self.redirect_to('auth.teacher')
+                        return self.redirect_to('auth.teacher_dashboard')
                     else:
-                        return self.redirect_to('auth.student')
+                        return self.redirect_to('auth.student_dashboard')
                 else:
                     self.flash("Incorrect password.", "error")
             else:
@@ -326,7 +326,7 @@ class AuthController(BaseController):
                 return redirect(url_for('auth.change_my_password'))
                 
             email = self.session['email']
-            user_details = Users.change_my_password(email)
+            user_details = Users.get_my_email(email)
             if check_password_hash(user_details['password_hash'], current_password):
                 msg = Users.finally_change_my_password(generate_password_hash(new_password), email)
                 flash(msg, 'success')
