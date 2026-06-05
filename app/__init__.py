@@ -44,7 +44,7 @@ def create_app():
     app.register_blueprint(attendance_routes.register())
 
     # register announcements blueprint
-    from app.routes.announcement_route import AttendanceRoutes as AnnouncementRoutes
+    from app.routes.announcement_route import AnnouncementRoutes
     announcement_routes = AnnouncementRoutes()
     app.register_blueprint(announcement_routes.register())
 
