@@ -24,3 +24,9 @@ class Announcement(BaseModel):
         sql = "SELECT a.*, u.name AS author_name FROM announcements a JOIN users u ON a.author_id = u.id WHERE a.id = %s"
         result = cls.fetch_one(sql, [anid])
         return result if result else 0
+
+    @classmethod
+    def get_latest_announcements(cls, limit=3):
+        sql = "SELECT a.*, u.name AS author_name FROM announcements a JOIN users u ON a.author_id = u.id ORDER BY a.created_at DESC LIMIT %s"
+        result = cls.fetch_all(sql, [limit])
+        return result if result else []

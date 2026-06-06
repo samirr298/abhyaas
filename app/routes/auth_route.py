@@ -1,6 +1,7 @@
 from flask import Blueprint
 from app.controllers.auth_controller import AuthController
 from app.controllers.rolecontroller import RoleController
+from app.controllers.task_controller import TaskController
 
 class AuthRoutes:
     def __init__(self):
@@ -51,6 +52,13 @@ class AuthRoutes:
         )
         self.bp.route("/student", methods=["GET", "POST"])(
             self.rolecontroller.student
+        )
+        self.bp.route("/student/dashboard", methods=["GET"])(
+            self.rolecontroller.student_dashboard
+        )
+        # Task detail page (view only)
+        self.bp.route('/task/<int:task_id>', methods=['GET'])(
+            TaskController().view_task
         )
 
         return self.bp
