@@ -1,0 +1,46 @@
+{% extends "base_app.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}Student Dashboard{% endblock %}
+
+{% block content %}
+<section class="card dashboard-intro">
+  <div>
+    <p class="section-kicker">Welcome back</p>
+    <h2>Recent announcements</h2>
+    <p>Stay up to date with the latest news from your school.</p>
+  </div>
+</section>
+
+<section class="card announcement-preview">
+  <div class="section-header">
+    <div>
+      <p class="section-kicker">Announcements</p>
+      <h3>Latest updates</h3>
+    </div>
+    <div>
+      <a class="secondary-btn" href="{{ url_for('announce.announcement') }}">View all announcements</a>
+    </div>
+  </div>
+
+  {% if latest_announcements and latest_announcements|length > 0 %}
+    <div class="announcement-list">
+      {% for announcement in latest_announcements %}
+        <article class="announcement-card">
+          <div class="announcement-card-header">
+            <h4><a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">{{ announcement['title'] }}</a></h4>
+            <span class="meta">Posted on {{ announcement['created_at'].strftime('%b %d, %Y') if announcement['created_at'] is not none else announcement['created_at'] }}</span>
+          </div>
+          <p class="announcement-meta">Author: {{ announcement['author_name'] }}</p>
+          <p class="announcement-summary">{{ announcement['summary'] }}</p>
+          <div class="announcement-actions">
+            <a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}" class="primary-btn">Read full announcement</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">No announcements are available right now.</p>
+  {% endif %}
+</section>
+{% endblock %}
