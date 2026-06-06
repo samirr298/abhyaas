@@ -34,7 +34,7 @@ class AuthController(BaseController):
                     if user_details['role'] == 'teacher':
                         return self.redirect_to('auth.teacher')
                     else:
-                        return self.redirect_to('auth.student')
+                        return self.redirect_to('auth.student_dashboard')
                 else:
                     self.flash("Incorrect password.", "error")
             else:
