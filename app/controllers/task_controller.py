@@ -176,6 +176,37 @@ class TaskController:
 
         today_tasks = Task.get_today_tasks(student_id)
 
+        # normalize and annotate tasks: compute overdue status
+        normalized_today_tasks = []
+        for task in (today_tasks or []):
+            # task['deadline'] may be a date or string; try to compare safely
+            is_overdue = False
+            try:
+                deadline_val = task.get('deadline')
+                if hasattr(deadline_val, 'strftime'):
+                    deadline_date = deadline_val
+                else:
+                    # try parsing YYYY-MM-DD
+                    from datetime import datetime as _dt
+
+                    try:
+                        deadline_date = _dt.strptime(str(deadline_val), '%Y-%m-%d').date()
+                    except Exception:
+                        deadline_date = None
+
+                if deadline_date and task.get('submission_status') != 'submitted':
+                    from datetime import date as _date
+
+                    if deadline_date < _date.today():
+                        is_overdue = True
+            except Exception:
+                is_overdue = False
+
+            task['is_overdue'] = is_overdue
+            normalized_today_tasks.append(task)
+
+        today_tasks = normalized_today_tasks
+
         completed_count = sum(1 for task in today_tasks if task.get('submission_status') == 'submitted')
         pending_count = len(today_tasks) - completed_count
         due_soon_count = sum(1 for task in today_tasks if task.get('submission_status') != 'submitted')
@@ -216,5 +247,27 @@ class TaskController:
             tasks=tasks,
             feedback=feedback,
             today_tasks=today_tasks,
+            username=self.session.get('username'),
+        )
+
+    def view_task(self, task_id):
+        """Render a simple task detail page. No JavaScript required."""
+        user_id = self.session.get('user_id')
+        task = Task.get_task(task_id)
+        if not task:
+            from flask import abort
+
+            return render_template('errors/404.html'), 404
+
+        submission = None
+        try:
+            submission = TaskSubmission.get_submission_for_task(task_id, user_id)
+        except Exception:
+            submission = None
+
+        return render_template(
+            'tasks/task_detail.html',
+            task=task,
+            submission=submission,
             username=self.session.get('username'),
         )

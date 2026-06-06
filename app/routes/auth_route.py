@@ -47,6 +47,9 @@ class AuthRoutes:
         self.bp.route("/admin", methods=["GET", "POST"])(
             self.rolecontroller.admin
         )
+        self.bp.route("/admin/fees", methods=["GET"])(
+            self.rolecontroller.fees_management
+        )
         self.bp.route("/teacher", methods=["GET", "POST"])(
             self.rolecontroller.teacher
         )
