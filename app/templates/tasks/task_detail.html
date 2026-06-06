@@ -1,0 +1,48 @@
+{% extends "base_app.html" %}
+
+{% block title %}Task Detail{% endblock %}
+{% block page_heading %}Task Detail{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task.css') }}">
+{% endblock %}
+
+{% block content %}
+<article class="card task-detail-card">
+  <div class="task-detail-top">
+    <p class="task-subject">{{ task.subject }}</p>
+    <h2>{{ task.title }}</h2>
+    <p class="task-deadline">Deadline: {{ task.deadline }}</p>
+    {% if submission and submission.status != 'submitted' and task.deadline and task.deadline < (now().date() if now is defined else '') %}
+      <span class="overdue-badge">Overdue</span>
+    {% endif %}
+  </div>
+
+  <section class="task-detail-body">
+    <h3>Description</h3>
+    <p>{{ task.description or 'No description provided.' }}</p>
+
+    <h3>Details</h3>
+    <ul>
+      <li><strong>Subject:</strong> {{ task.subject }}</li>
+      <li><strong>Deadline:</strong> {{ task.deadline }}</li>
+      <li><strong>Posted:</strong> {{ task.created_at }}</li>
+    </ul>
+
+    {% if submission %}
+    <div class="your-submission">
+      <h4>Your submission</h4>
+      <p>Status: {{ submission.status }}</p>
+      <p>Submitted at: {{ submission.submitted_at }}</p>
+      <p>{{ submission.submission_text }}</p>
+      {% if submission.submission_file_path %}
+        <p>File: <a href="{{ url_for('static', filename=submission.submission_file_path) }}">Download</a></p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="task-actions">
+      <a class="secondary-btn" href="{{ url_for('auth.student') }}">Back to dashboard</a>
+    </div>
+  </section>
+</article>
+{% endblock %}

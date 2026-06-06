@@ -59,6 +59,48 @@
     </article>
   </section>
 
+  <section class="today-tasks card">
+    <div class="section-header">
+      <div>
+        <p class="section-kicker">Today</p>
+        <h3>Today's Tasks</h3>
+      </div>
+    </div>
+
+    <div class="today-task-list">
+      {% if today_tasks and today_tasks|length > 0 %}
+        <ul class="list-unstyled">
+          {% for t in today_tasks %}
+            <li class="today-task-item card">
+              <div class="task-line">
+                <div>
+                  <p class="task-subject">{{ t.subject }}</p>
+                  <a class="task-title-link" href="{{ url_for('auth.view_task', task_id=t.id) }}">{{ t.title }}</a>
+                </div>
+                <div class="task-meta">
+                  <span>Due: {{ t.deadline }}</span>
+                  {% if t.is_overdue %}
+                    <strong class="overdue">Overdue</strong>
+                  {% elif t.submission_status == 'submitted' %}
+                    <strong class="submitted">Submitted</strong>
+                  {% else %}
+                    <strong class="pending">Pending</strong>
+                  {% endif %}
+                </div>
+              </div>
+              <p class="task-desc">{{ t.description or 'No description.' }}</p>
+              <div class="task-actions">
+                <a href="{{ url_for('auth.view_task', task_id=t.id) }}" class="secondary-btn">View details</a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">No tasks for today.</p>
+      {% endif %}
+    </div>
+  </section>
+
   <section class="task-grid-two">
     <article class="card task-list-card">
       <div class="section-header">
