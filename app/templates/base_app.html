@@ -29,9 +29,13 @@
         {% endif %}
         {% if session.get('role') == 'teacher' %}
         <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'attend.manage_attendance' %}active{% endif %}" href="{{ url_for('attend.manage_attendance') }}">Attendance Management</a>
         {% endif %}
         <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
         <a href="{{ url_for('announce.announcement') }}">Announcements</a>
+        {% if session.get('role') == 'admin' %}
+        <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin') }}">Admin</a>
+        {% endif %}
         <a href="{{ url_for('auth.profile') }}">Profile</a>
         
       </nav>

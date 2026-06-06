@@ -1,0 +1,57 @@
+{% extends "base_app.html" %}
+
+{% block title %}Manage Attendance{% endblock %}
+{% block page_heading %}Manage Student Attendance{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="attendance-manage-page">
+  <section class="card attendance-hero">
+    <div>
+      <p class="attendance-eyebrow">Teacher view</p>
+      <h2>Student attendance for {{ date }}</h2>
+      <p>Mark students present or absent and review the class attendance status.</p>
+    </div>
+  </section>
+
+  <section class="card attendance-history">
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td>{{ student['name'] }}</td>
+          <td>{{ student['email'] }}</td>
+          <td>
+            {% if student['status'] == 'present' %}
+              <span class="status-chip present">Present</span>
+            {% elif student['status'] == 'absent' %}
+              <span class="status-chip absent">Absent</span>
+            {% else %}
+              <span class="status-chip not-marked">Not marked</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('attend.manage_attendance') }}" style="display:inline-flex; gap:8px;">
+              <input type="hidden" name="student_id" value="{{ student['student_id'] }}">
+              <button type="submit" name="status" value="present" class="btn btn-primary">Present</button>
+              <button type="submit" name="status" value="absent" class="btn btn-outline">Absent</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}
