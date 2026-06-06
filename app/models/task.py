@@ -39,6 +39,7 @@ class Task(BaseModel):
 
     @classmethod
     def get_today_tasks(cls, student_id):
+        # Return tasks that are either due today or still pending (not submitted) for this student
         sql = """
             SELECT t.*, 
                    ts.id AS submission_id,
@@ -51,6 +52,11 @@ class Task(BaseModel):
             LEFT JOIN task_submissions ts
                 ON ts.task_id = t.id AND ts.student_id = %s
             WHERE t.is_active = 1
+              AND (
+                    DATE(t.deadline) = CURDATE()
+                    OR ts.status IS NULL
+                    OR ts.status != 'submitted'
+                  )
             ORDER BY t.deadline ASC, t.created_at ASC
         """
         return cls.fetch_all(sql, [student_id])

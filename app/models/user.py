@@ -61,6 +61,16 @@ class Users(BaseModel):
         return Users.fetch_one(sql, [username])
 
     @staticmethod
+    def get_all_users():
+        sql = "SELECT id, name, username, email, role FROM users ORDER BY created_at DESC"
+        return Users.fetch_all(sql) or []
+
+    @staticmethod
+    def update_role(user_id, role):
+        sql = "UPDATE users SET role = %s WHERE id = %s"
+        return Users.execute_write(sql, [role, user_id])
+
+    @staticmethod
     def set_username(user_id, username):
         sql = "UPDATE users SET username = %s WHERE id = %s"
         try:
