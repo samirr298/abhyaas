@@ -1,0 +1,8 @@
+{% extends "base_app.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+<p>Welcome{{ ', ' ~ username if username else '' }}.</p>
+{% endblock %}
