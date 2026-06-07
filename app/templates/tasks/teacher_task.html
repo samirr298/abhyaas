@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <form id="task-create-form" class="task-form" action="{{ url_for('auth.teacher_task') }}" method="POST"
+      <form id="task-create-form" class="task-form" action="{{ url_for('tasks.teacher_task') }}" method="POST"
         enctype="multipart/form-data">
 
         <input type="hidden" name="action" value="create_task">
@@ -107,7 +107,7 @@
               {% else %}
               <span class="muted-note">No file attached</span>
               {% endif %}
-              <a href="{{ url_for('auth.task_delete', task_id=task.id) }}" class="muted-note"
+              <a href="{{ url_for('tasks.task_delete', task_id=task.id) }}" class="muted-note"
                 style="color: rgb(242, 3, 3); border:solid red 2px; border-radius:50px;">❌</a>
               {# Server-rendered submissions panel (no JS) #}
               {% set task_count = 0 %}

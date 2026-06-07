@@ -18,7 +18,7 @@
             <div class="summary-icon">📚</div>
             <div>
                 <p class="summary-label">Workspaces</p>
-                <a href="{% if session.get('role') == 'teacher' %}{{ url_for('auth.teacher_task') }}{% else %}{{ url_for('auth.student_task') }}{% endif %}" class="primary-btn" style="margin-top: 10px; text-decoration: none;">Go to Tasks</a>
+                <a href="{% if session.get('role') == 'teacher' %}{{ url_for('tasks.teacher_task') }}{% else %}{{ url_for('tasks.student_task') }}{% endif %}" class="primary-btn" style="margin-top: 10px; text-decoration: none;">Go to Tasks</a>
             </div>
         </article>
 
