@@ -13,4 +13,7 @@ class AttendanceRoutes:
         self.bp.route("/attendance", methods=["GET", "POST"])(
             login_required(self.controller.mark_attendance)
         )
+        self.bp.route("/attendance/manage", methods=["GET", "POST"])(
+            self.controller.manage_attendance
+        )
         return self.bp

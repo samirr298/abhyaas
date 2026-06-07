@@ -93,3 +93,39 @@ class Attendance(BaseModel):
 
         result = cls.fetch_one(sql, params)
         return result['count'] if result else 0
+
+    @classmethod
+    def get_students_attendance_for_date(cls, attendance_date):
+        sql = """
+            SELECT u.id AS student_id, u.name, u.username, u.email,
+                   COALESCE(a.status, 'not_marked') AS status,
+                   a.id AS attendance_id,
+                   a.marked_at
+            FROM users u
+            LEFT JOIN attendance a
+              ON a.user_id = u.id AND a.attendance_date = %s
+            WHERE u.role = 'student'
+            ORDER BY u.name ASC
+        """
+        return cls.fetch_all(sql, [attendance_date]) or []
+
+    @classmethod
+    def set_attendance_status(cls, user_id, attendance_date, status):
+        existing = cls.get_today_record(user_id, attendance_date)
+        if existing:
+            sql = "UPDATE attendance SET status = %s WHERE user_id = %s AND attendance_date = %s"
+            return cls.execute_write(sql, [status, user_id, attendance_date])
+
+        sql = "INSERT INTO attendance (user_id, attendance_date, status) VALUES (%s, %s, %s)"
+        return cls.execute_write(sql, [user_id, attendance_date, status])
+
+        if start_date:
+            sql += " AND attendance_date >= %s"
+            params.append(start_date)
+
+        if end_date:
+            sql += " AND attendance_date < %s"
+            params.append(end_date)
+
+        result = cls.fetch_one(sql, params)
+        return result['count'] if result else 0

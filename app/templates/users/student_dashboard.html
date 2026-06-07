@@ -1,34 +1,46 @@
 {% extends "base_app.html" %}
 
-{% block title %}Abhyas - Dashboard{% endblock %}
-{% block page_heading %}Welcome, {{ session.get('name') or 'User' }}{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}Student Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-landing">
-    <section class="task-hero card">
-        <div>
-            <p class="section-kicker">Overview</p>
-            <h2>Your Learning Progress</h2>
-            <p class="section-copy">Welcome back to Abhyas. Here is a quick look at your current status.</p>
-        </div>
-    </section>
+<section class="card dashboard-intro">
+  <div>
+    <p class="section-kicker">Welcome back</p>
+    <h2>Recent announcements</h2>
+    <p>Stay up to date with the latest news from your school.</p>
+  </div>
+</section>
 
-    <div class="task-summary-grid" style="margin-top: 20px;">
-        <article class="summary-tile card">
-            <div class="summary-icon">📚</div>
-            <div>
-                <p class="summary-label">Workspaces</p>
-                <a href="{% if session.get('role') == 'teacher' %}{{ url_for('tasks.teacher_task') }}{% else %}{{ url_for('tasks.student_task') }}{% endif %}" class="primary-btn" style="margin-top: 10px; text-decoration: none;">Go to Tasks</a>
-            </div>
-        </article>
-
-        <article class="summary-tile card">
-            <div class="summary-icon">👤</div>
-            <div>
-                <p class="summary-label">Account</p>
-                <a href="{{ url_for('auth.profile') }}" class="secondary-btn" style="margin-top: 10px; text-decoration: none;">Edit Profile</a>
-            </div>
-        </article>
+<section class="card announcement-preview">
+  <div class="section-header">
+    <div>
+      <p class="section-kicker">Announcements</p>
+      <h3>Latest updates</h3>
     </div>
-</div>
+    <div>
+      <a class="secondary-btn" href="{{ url_for('announce.announcement') }}">View all announcements</a>
+    </div>
+  </div>
+
+  {% if latest_announcements and latest_announcements|length > 0 %}
+    <div class="announcement-list">
+      {% for announcement in latest_announcements %}
+        <article class="announcement-card">
+          <div class="announcement-card-header">
+            <h4><a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">{{ announcement['title'] }}</a></h4>
+            <span class="meta">Posted on {{ announcement['created_at'].strftime('%b %d, %Y') if announcement['created_at'] is not none else announcement['created_at'] }}</span>
+          </div>
+          <p class="announcement-meta">Author: {{ announcement['author_name'] }}</p>
+          <p class="announcement-summary">{{ announcement['summary'] }}</p>
+          <div class="announcement-actions">
+            <a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}" class="primary-btn">Read full announcement</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">No announcements are available right now.</p>
+  {% endif %}
+</section>
 {% endblock %}

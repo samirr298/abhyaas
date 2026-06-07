@@ -48,12 +48,22 @@ class AuthRoutes:
         self.bp.route("/admin", methods=["GET", "POST"])(
             login_required(self.rolecontroller.admin)
         )
-        self.bp.route("/teacher", methods=["GET", "POST"], endpoint="teacher_dashboard")(
-            login_required(self.rolecontroller.teacher)
+        self.bp.route("/admin/fees", methods=["GET"])(
+            self.rolecontroller.fees_management
+        )
+        self.bp.route("/teacher", methods=["GET", "POST"])(
+            self.rolecontroller.teacher
         )
         # Dashboard routes (simple frontends)
         self.bp.route("/student", methods=["GET", "POST"], endpoint="student_dashboard")(
             login_required(self.rolecontroller.student)
+        )
+        self.bp.route("/student/dashboard", methods=["GET"])(
+            self.rolecontroller.student_dashboard
+        )
+        # Task detail page (view only)
+        self.bp.route('/task/<int:task_id>', methods=['GET'])(
+            TaskController().view_task
         )
 
         # Full workspaces (task pages) kept under separate paths

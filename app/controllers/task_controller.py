@@ -334,7 +334,40 @@ class TaskController(BaseController):
                     except Exception as e:
                         print(f"Failed handling student submission file on detail page: {e}")
 
-                return redirect(url_for('tasks.task_detail', task_id=task_id))
+        # normalize and annotate tasks: compute overdue status
+        normalized_today_tasks = []
+        for task in (today_tasks or []):
+            # task['deadline'] may be a date or string; try to compare safely
+            is_overdue = False
+            try:
+                deadline_val = task.get('deadline')
+                if hasattr(deadline_val, 'strftime'):
+                    deadline_date = deadline_val
+                else:
+                    # try parsing YYYY-MM-DD
+                    from datetime import datetime as _dt
+
+                    try:
+                        deadline_date = _dt.strptime(str(deadline_val), '%Y-%m-%d').date()
+                    except Exception:
+                        deadline_date = None
+
+                if deadline_date and task.get('submission_status') != 'submitted':
+                    from datetime import date as _date
+
+                    if deadline_date < _date.today():
+                        is_overdue = True
+            except Exception:
+                is_overdue = False
+
+            task['is_overdue'] = is_overdue
+            normalized_today_tasks.append(task)
+
+        today_tasks = normalized_today_tasks
+
+        completed_count = sum(1 for task in today_tasks if task.get('submission_status') == 'submitted')
+        pending_count = len(today_tasks) - completed_count
+        due_soon_count = sum(1 for task in today_tasks if task.get('submission_status') != 'submitted')
 
         # GET: render task details
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"

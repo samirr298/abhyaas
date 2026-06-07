@@ -18,6 +18,10 @@ class AnnouncementRoutes:
         self.bp.route("/announcement/view/<int:announcement_id>", methods=["GET", "POST"])(
             login_required(self.controller.announcement_view)
 
+        
+        )
+        self.bp.route("/announcement/delete/<int:announcement_id>", methods=["POST"])(
+            self.controller.announcement_delete
         )
         self.bp.route("/announcement/annoucementcategory/<string:category>", methods=["GET", "POST"])(
             login_required(self.controller.annoucement_category)

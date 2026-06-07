@@ -1,8 +1,10 @@
-from flask import render_template, request,redirect,url_for,flash
+from flask import render_template, request, redirect, url_for, flash
 from app.controllers.base_controller import BaseController
 from app.models.announcement import Announcement
+from app.auth import login_required, role_required
 import math
 class AnnouncementController(BaseController):
+    @login_required
     def announcement(self):
         # Showing the annoucements now 
         page = request.args.get('page',default=1,type = int)
@@ -30,17 +32,32 @@ class AnnouncementController(BaseController):
         )
     def name(self):
         print("name")
+    @login_required
     def announcement_view(self,announcement_id):
        annoucementshistory = Announcement.get_annoucement_byid(announcement_id)
        return self.render(
             'announcement/announcementview.html',
-           
-            annoucementshistory=annoucementshistory   # <--- Passed to HTML table loop
-            
-            
-            
+            annoucementshistory=annoucementshistory
         )
 
+    @login_required
+    @role_required('teacher')
+    def announcement_delete(self, announcement_id):
+        announcement = Announcement.get_annoucement_byid(announcement_id)
+        if not announcement:
+            flash('Announcement not found.', 'error')
+            return redirect(url_for('announce.announcement'))
+
+        if announcement['author_id'] != self.session.get('user_id'):
+            flash('You may only delete your own announcements.', 'error')
+            return redirect(url_for('announce.announcement_view', announcement_id=announcement_id))
+
+        Announcement.delete_announcement(announcement_id)
+        flash('Announcement deleted successfully.', 'success')
+        return redirect(url_for('announce.announcement'))
+
+    @login_required
+    @role_required('teacher')
     def announcement_create(self):
         if request.method == "POST":
             title = request.form.get('title')

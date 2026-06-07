@@ -2,3 +2,56 @@
 
 {% block title %}Admin Dashboard{% endblock %}
 {% block page_heading %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="card admin-dashboard-card">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+    <div>
+      <h2>Manage user roles</h2>
+      <p>Assign teacher and admin permissions, and review current user roles.</p>
+    </div>
+    <div>
+      <a href="{{ url_for('auth.fees_management') }}" class="secondary-btn">Fee Management</a>
+    </div>
+  </div>
+</section>
+
+<section class="card user-role-table">
+  {% if users %}
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user['name'] }}</td>
+        <td>{{ user['username'] }}</td>
+        <td>{{ user['email'] }}</td>
+        <td>{{ user['role'] }}</td>
+        <td>
+          <form method="post" action="{{ url_for('auth.admin') }}">
+            <input type="hidden" name="user_id" value="{{ user['id'] }}">
+            <select name="role">
+              <option value="student" {% if user['role'] == 'student' %}selected{% endif %}>Student</option>
+              <option value="teacher" {% if user['role'] == 'teacher' %}selected{% endif %}>Teacher</option>
+              <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+            <button type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No users found.</p>
+  {% endif %}
+</section>
+{% endblock %}

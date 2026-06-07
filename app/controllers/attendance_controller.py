@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 from app.controllers.base_controller import BaseController
 from app.models.attendance import Attendance  # Imported your model class
+from app.auth import login_required, role_required
 from datetime import date,timedelta
 import calendar
 import math
@@ -113,4 +114,29 @@ class AttendanceController(BaseController):
             month_options=month_options,
             year_options=year_options,
             selected_month_label=f"{calendar.month_name[selected_month]} {selected_year}"
+        )
+
+    @login_required
+    @role_required('teacher')
+    def manage_attendance(self):
+        today = date.today()
+
+        if request.method == 'POST':
+            student_id = request.form.get('student_id')
+            status = request.form.get('status')
+            if student_id and status in ['present', 'absent']:
+                Attendance.set_attendance_status(student_id, today, status)
+                flash('Attendance updated successfully.', 'success')
+            else:
+                flash('Invalid attendance update.', 'error')
+            return redirect(url_for('attend.manage_attendance'))
+
+        student_list = Attendance.get_students_attendance_for_date(today)
+
+        return self.render('attendance/manage_attendance.html',
+            username=self.session.get('username'),
+            email=self.session.get('email'),
+            role=self.session.get('role'),
+            date=today,
+            students=student_list,
         )

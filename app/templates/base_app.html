@@ -17,24 +17,28 @@
         <span>Abhyas</span>
       </div>
       <nav class="sidebar-nav">
-    {% if session.get('role') == 'teacher' %}
-        <a class="{% if request.endpoint == 'auth.teacher_dashboard' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
-    {% else %}
-        <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
-    {% endif %}
-    
-    {% if session.get('role') == 'student' %}
-        <a class="{% if request.endpoint == 'auth.student_task' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
-    {% endif %}
-    
-    {% if session.get('role') == 'teacher' %}
-        <a class="{% if request.endpoint == 'auth.teacher_task' %}active{% endif %}" href="{{ url_for('tasks.teacher_task') }}">Teacher Task</a>
-    {% endif %}
-    
-    <a class="{% if request.endpoint == 'attend.mark_attendance' %}active{% endif %}" href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
-    <a class="{% if request.endpoint == 'announce.announcement' %}active{% endif %}" href="{{ url_for('announce.announcement') }}">Announcements</a>
-    <a class="{% if request.endpoint == 'auth.profile' %}active{% endif %}" href="{{ url_for('auth.profile') }}">Profile</a>
-</nav>
+        {% if session.get('role') == 'student' %}
+          <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('tasks.student') }}">Student Task</a>
+        {% elif session.get('role') == 'teacher' %}
+          <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher') }}">Dashboard</a>
+        {% elif session.get('role') == 'admin' %}
+          <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin') }}">Dashboard</a>
+        {% else %}
+          <a class="active" href="#">Dashboard</a>
+        {% endif %}
+        {% if session.get('role') == 'teacher' %}
+        <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('tasks.teacher') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'attend.manage_attendance' %}active{% endif %}" href="{{ url_for('attend.manage_attendance') }}">Attendance Management</a>
+        {% endif %}
+        <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
+        <a href="{{ url_for('announce.announcement') }}">Announcements</a>
+        {% if session.get('role') == 'admin' %}
+        <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin') }}">Admin</a>
+        {% endif %}
+        <a href="{{ url_for('auth.profile') }}">Profile</a>
+        
+      </nav>
     </aside>
 
     <div class="app-main">
