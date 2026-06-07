@@ -13,6 +13,11 @@ Announcements | Abhyas
 {% block extra_head %}{% endblock %}
 
 {% block content %}
+<style>
+    .hidden {
+    display: none !important;
+  }
+</style>
 <section class="announcement-page">
 
     {% if single_view %}
@@ -69,7 +74,7 @@ Announcements | Abhyas
     <section class="announcement-hero">
         <div class="announcement-hero-copy">
             <span class="hero-kicker">Campus Bulletin</span>
-            <h1 class="hero-title">Latest announcements, notices, and updates in one place</h1>
+            <h1 class="hero-title">Latest announcements, notices, and updates in one place</h1> 
             <p class="hero-copy">
                 Follow every institutional update with a more visual board that keeps important items easy to scan.
             </p>
@@ -107,6 +112,7 @@ Announcements | Abhyas
         <div>
             <h2>Latest Announcements</h2>
             <p>Stay updated with the latest news from the institution.</p>
+             <input class="search" id="search" placeholder="Search Announcement" style="margin-top: 5px;">
         </div>
         <div class="toolbar-actions">
             <div class="chip-group" aria-label="Announcement filters">
@@ -220,4 +226,32 @@ Announcements | Abhyas
         {% endif %}
     </div>
 </section>
+<script>
+// We wait for the DOM content to fully load 
+document.addEventListener("DOMContentLoaded", () => {
+    // Looks for the search input rendered by base_app.html
+    const globalSearchInput = document.getElementById("search");
+    
+    // Selects all the individual announcement cards in this specific view
+    const cards = document.querySelectorAll(".announcement-card");
+
+    // Only run the logic if the global search bar actually exists on this page
+    if (globalSearchInput) {
+        globalSearchInput.addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+
+            cards.forEach(card => {
+                
+                const cardText = card.textContent.toLowerCase();
+
+                if (cardText.includes(searchText)) {
+                    card.classList.remove('hidden'); 
+                } else {
+                    card.classList.add('hidden');    
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
