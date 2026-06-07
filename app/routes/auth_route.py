@@ -46,7 +46,6 @@ class AuthRoutes:
         self.bp.route("/admin", methods=["GET", "POST"]) (
             self.rolecontroller.admin
         )
-<<<<<<< HEAD
         self.bp.route("/teacher", methods=["GET", "POST"], endpoint="teacher_dashboard")(
             login_required(self.rolecontroller.teacher)
         )

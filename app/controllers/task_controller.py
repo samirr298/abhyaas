@@ -26,7 +26,7 @@ class TaskController(BaseController):
                 except Exception as e:
                     print(f"Failed to remove task file {attached_filename}: {e}")
 
-        return redirect(url_for('auth.teacher_task'))
+        return redirect(url_for('tasks.teacher_task'))
 
     def teacher_task(self):
         # ========================================================
@@ -69,7 +69,7 @@ class TaskController(BaseController):
                 status = BaseModel.execute_write(sql, [task_title, description, current_teacher_id, due_date, '', filename, subject])
                 
                 if status:
-                    return redirect(url_for('auth.teacher_task'))
+                    return redirect(url_for('tasks.teacher_task'))
 
             # --- ACTION B: SAVE STUDENT FEEDBACK SECURELY (ONCE PER TASK) ---
             elif method == "save_feedback":
@@ -118,7 +118,7 @@ class TaskController(BaseController):
                     else:
                         print("⚠️ Security Alert: Unauthorized attempt blocked.")
 
-                return redirect(url_for('auth.teacher_task'))
+                return redirect(url_for('tasks.teacher_task'))
                 
         # ========================================================
         # 2️⃣ RENDER task INTERFACE FEED (GET)
@@ -225,7 +225,7 @@ class TaskController(BaseController):
                     except Exception as e:
                         print(f"Failed handling student submission file: {e}")
                         
-                return redirect(url_for('auth.student_task'))
+                return redirect(url_for('tasks.student_task'))
 
         # ========================================================
         # 2️⃣ RENDER task FEED (GET)
@@ -334,7 +334,7 @@ class TaskController(BaseController):
                     except Exception as e:
                         print(f"Failed handling student submission file on detail page: {e}")
 
-                return redirect(url_for('auth.task_detail', task_id=task_id))
+                return redirect(url_for('tasks.task_detail', task_id=task_id))
 
         # GET: render task details
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"

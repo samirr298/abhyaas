@@ -22,7 +22,7 @@ class RoleController:
     def teacher(self):
         # Serve the static teacher task HTML (no backend logic)
         return render_template(
-            'tasks/teacher_task.html',
+            'users/teacher_dashboard.html',
             class_summary={},
             tasks=[],
             feedback_queue=[],
@@ -37,7 +37,7 @@ class RoleController:
     def student(self):
         # Serve the static student task HTML (no backend logic)
         return render_template(
-            'tasks/student_task.html',
+            'users/student_dashboard.html',
             overview={},
             tasks=[],
             feedback=[],
