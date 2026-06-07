@@ -24,11 +24,11 @@
     {% endif %}
     
     {% if session.get('role') == 'student' %}
-        <a class="{% if request.endpoint == 'auth.student_task' %}active{% endif %}" href="{{ url_for('auth.student_task') }}">Student Task</a>
+        <a class="{% if request.endpoint == 'auth.student_task' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
     {% endif %}
     
     {% if session.get('role') == 'teacher' %}
-        <a class="{% if request.endpoint == 'auth.teacher_task' %}active{% endif %}" href="{{ url_for('auth.teacher_task') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'auth.teacher_task' %}active{% endif %}" href="{{ url_for('tasks.teacher_task') }}">Teacher Task</a>
     {% endif %}
     
     <a class="{% if request.endpoint == 'attend.mark_attendance' %}active{% endif %}" href="{{ url_for('attend.mark_attendance') }}">Attendance</a>

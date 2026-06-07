@@ -1,6 +1,6 @@
 from flask import Blueprint
 from app.controllers.task_controller import TaskController
-
+from app.auth import login_required
 class TaskRoutes:
     def __init__(self):
         self.bp = Blueprint('tasks', __name__)
@@ -8,12 +8,17 @@ class TaskRoutes:
 
     def register(self):
         # Teacher workspace
-        self.bp.route('/teacher_task', methods=['GET', 'POST'])(self.controller.teacher_task)
-        # Student workspace
-        self.bp.route('/student_task', methods=['GET', 'POST'])(self.controller.student_task)
-        # Single task detail (student-facing)
-        self.bp.route('/task/<int:task_id>', methods=['GET', 'POST'])(self.controller.task_detail)
-        
-        self.bp.route('/delete_task/<int:task_id>', methods=['GET', 'POST'])(self.controller.task_delete)
+        self.bp.route("/teacher/tasks", methods=["GET", "POST"])(
+            login_required(TaskController().teacher_task)
+        )
+        self.bp.route("/student/tasks", methods=["GET", "POST"])(
+            login_required(TaskController().student_task)
+        )
+        self.bp.route("/task/<int:task_id>", methods=["GET", "POST"])(
+            login_required(TaskController().task_detail)
+        )
+        self.bp.route("/delete-task/<int:task_id>", methods=["GET", "POST"])(
+            login_required(TaskController().task_delete)
+        )
         
         return self.bp

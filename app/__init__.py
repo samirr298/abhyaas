@@ -55,8 +55,6 @@ def create_app():
     task_routes = TaskRoutes()
     app.register_blueprint(task_routes.register())
 
-    from app.routes.role_route import RoleRoutes
-    role_routes = RoleRoutes()
-    app.register_blueprint(role_routes.register())
+   
 
     return app

@@ -155,9 +155,7 @@ class TaskController(BaseController):
         
 
     def student_task(self):
-        # ========================================================
-        # 1️⃣ HANDLE FILE SUBMISSION (POST)
-        # ========================================================
+        
         if request.method == 'POST':
             method = request.form.get('action')
             
