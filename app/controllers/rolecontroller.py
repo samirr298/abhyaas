@@ -17,7 +17,7 @@ class RoleController:
 
     @login_required
     @role_required("admin")
-    def admin(self):
+    def admin_dashboard(self):
         if request.method == 'POST':
             user_id = request.form.get('user_id')
             new_role = request.form.get('role')
@@ -26,7 +26,7 @@ class RoleController:
                 flash('Role updated successfully.', 'success')
             else:
                 flash('Invalid role assignment.', 'error')
-            return redirect(url_for('auth.admin'))
+            return redirect(url_for('auth.admin_dashboard'))
 
         users = Users.get_all_users()
         return render_template("users/admin_dashboard.html", users=users)
@@ -38,7 +38,7 @@ class RoleController:
 
     @login_required
     @role_required("teacher")
-    def teacher(self):
+    def teacher_dashboard(self):
         # Serve the static teacher task HTML (no backend logic)
         return render_template(
             'users/teacher_dashboard.html',

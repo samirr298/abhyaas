@@ -15,7 +15,7 @@ class TaskRoutes:
             login_required(TaskController().student_task)
         )
         self.bp.route("/task/<int:task_id>", methods=["GET", "POST"])(
-            login_required(TaskController().task_detail)
+            login_required(TaskController().view_task)
         )
         self.bp.route("/delete-task/<int:task_id>", methods=["GET", "POST"])(
             login_required(TaskController().task_delete)

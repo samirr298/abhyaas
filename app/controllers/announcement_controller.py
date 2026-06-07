@@ -14,9 +14,7 @@ class AnnouncementController(BaseController):
         unique_categories = set(rec['category'] for rec in annoucementshistory)
         total_rows = Announcement.get_total_annoucement_count()
         total_pages = math.ceil(total_rows / perpage) if total_rows > 0 else 1
-        print(unique_categories)
-        print(total_pages)
-        print(total_rows)
+        # debug prints removed
         return self.render(
             'announcement/announcement.html',
             username=self.session.get('username'),
@@ -31,7 +29,7 @@ class AnnouncementController(BaseController):
             
         )
     def name(self):
-        print("name")
+        pass
     @login_required
     def announcement_view(self,announcement_id):
        annoucementshistory = Announcement.get_annoucement_byid(announcement_id)
@@ -85,7 +83,7 @@ class AnnouncementController(BaseController):
             else:
                 flash("Can't add the annoucements !",'error')
             return redirect(url_for('announce.announcement'))
-            print('done')
+            # debug print removed
 
         # Showing twdhe annoucements now 
        
@@ -108,9 +106,7 @@ class AnnouncementController(BaseController):
         unique_categories = set(rec['category'] for rec in annoucementshistory)
         total_rows = Announcement.get_total_annoucement_count()
         total_pages = math.ceil(total_rows / perpage) if total_rows > 0 else 1
-        print(unique_categories)
-        print(total_pages)
-        print(total_rows)
+        # debug prints removed
         return self.render(
             'announcement/announcementcategory.html',
             categories = category,

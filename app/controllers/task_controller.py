@@ -24,13 +24,14 @@ class TaskController(BaseController):
                 try:
                     os.remove(file_path)
                 except Exception as e:
-                    print(f"Failed to remove task file {attached_filename}: {e}")
+                        # Failed to remove file during cleanup; debug print removed
+                        pass
 
         return redirect(url_for('tasks.teacher_task'))
 
     def teacher_task(self):
         # ========================================================
-        # 1️⃣ HANDLE FORM SUBMISSIONS (POST)
+        # handle form submissions (post)
         # ========================================================
         if request.method == 'POST':
             method = request.form.get('action')
@@ -59,7 +60,8 @@ class TaskController(BaseController):
                     try:
                         attached_file.save(destination_path)
                     except Exception as e:
-                        print(f"File save error: {e}")
+                        # File save error logged earlier during development; removed debug print
+                        pass
 
                 # Insert the fresh assignment details into the main ledger
                 sql = """
@@ -77,10 +79,10 @@ class TaskController(BaseController):
                 feedback_text = (request.form.get("feedback") or "").strip()
                 
                 if combined_student_data and feedback_text:
-                    # ✂️ Split the string identifiers FIRST 
+                    # split the string identifiers
                     task_id, student_id = combined_student_data.split(":")
-                    
-                    # 🛡️ Security Check: Verify this task belongs to the logged-in teacher
+
+                    # security check: verify task belongs to logged-in teacher
                     security_check_sql = """
                         SELECT 1 
                         FROM submissions s
@@ -93,7 +95,7 @@ class TaskController(BaseController):
                     is_valid_submission = BaseModel.fetch_one(security_check_sql, [int(student_id), int(task_id), current_teacher_id])
             
                     if is_valid_submission:
-                        # 🛑 Duplicate Guard Check: Ensure feedback doesn't already exist
+                        # duplicate guard: ensure feedback doesn't already exist
                         dup_sql = "SELECT id FROM feedback WHERE student_id = %s AND task_id = %s LIMIT 1"
                         exists = BaseModel.fetch_one(dup_sql, [int(student_id), int(task_id)])
                         
@@ -112,16 +114,17 @@ class TaskController(BaseController):
                                 WHERE task_id = %s AND student_id = %s
                             """
                             BaseModel.execute_write(update_status_sql, [int(task_id), int(student_id)])
-                            print(f"🚀 Feedback saved securely for Student {student_id}!")
                         else:
-                            print("🛑 Double submission blocked. Feedback already exists.")
+                            # Duplicate feedback attempt; no action needed beyond guard
+                            pass
                     else:
-                        print("⚠️ Security Alert: Unauthorized attempt blocked.")
+                        # Unauthorized attempt blocked; debug print removed
+                        pass
 
                 return redirect(url_for('tasks.teacher_task'))
                 
         # ========================================================
-        # 2️⃣ RENDER task INTERFACE FEED (GET)
+        # render task interface feed (get)
         # ========================================================
         teacher_id = self.session.get('user_id')
         
@@ -212,7 +215,6 @@ class TaskController(BaseController):
                                 WHERE task_id = %s AND student_id = %s
                             """
                             BaseModel.execute_write(update_sub_sql, [filename, task_id, int(student_id)])
-                            print("Submission successfully updated (Reuploaded).")
                         else:
                             # If it's the first time, INSERT a fresh row
                             insert_sub_sql = """
@@ -220,15 +222,15 @@ class TaskController(BaseController):
                                 VALUES (%s, %s, %s, 'Pending')
                             """
                             BaseModel.execute_write(insert_sub_sql, [task_id, int(student_id), filename])
-                            print("Fresh submission recorded.")
                             
                     except Exception as e:
-                        print(f"Failed handling student submission file: {e}")
+                        # Error handling for file operations; debug print removed
+                        pass
                         
                 return redirect(url_for('tasks.student_task'))
 
         # ========================================================
-        # 2️⃣ RENDER task FEED (GET)
+        # render task feed (get)
         # ========================================================
         current_student_id = self.session.get('user_id')
         
@@ -289,7 +291,7 @@ class TaskController(BaseController):
             
         )
 
-    def task_detail(self, task_id):
+    def view_task(self, task_id):
         """Student-facing single task view. Allows viewing full details and submitting a file."""
         current_student_id = self.session.get('user_id')
 
@@ -332,42 +334,8 @@ class TaskController(BaseController):
                         BaseModel.execute_write(insert_sub_sql, [task_id, int(student_id), filename])
 
                     except Exception as e:
-                        print(f"Failed handling student submission file on detail page: {e}")
-
-        # normalize and annotate tasks: compute overdue status
-        normalized_today_tasks = []
-        for task in (today_tasks or []):
-            # task['deadline'] may be a date or string; try to compare safely
-            is_overdue = False
-            try:
-                deadline_val = task.get('deadline')
-                if hasattr(deadline_val, 'strftime'):
-                    deadline_date = deadline_val
-                else:
-                    # try parsing YYYY-MM-DD
-                    from datetime import datetime as _dt
-
-                    try:
-                        deadline_date = _dt.strptime(str(deadline_val), '%Y-%m-%d').date()
-                    except Exception:
-                        deadline_date = None
-
-                if deadline_date and task.get('submission_status') != 'submitted':
-                    from datetime import date as _date
-
-                    if deadline_date < _date.today():
-                        is_overdue = True
-            except Exception:
-                is_overdue = False
-
-            task['is_overdue'] = is_overdue
-            normalized_today_tasks.append(task)
-
-        today_tasks = normalized_today_tasks
-
-        completed_count = sum(1 for task in today_tasks if task.get('submission_status') == 'submitted')
-        pending_count = len(today_tasks) - completed_count
-        due_soon_count = sum(1 for task in today_tasks if task.get('submission_status') != 'submitted')
+                        # Debug print removed
+                        pass
 
         # GET: render task details
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"

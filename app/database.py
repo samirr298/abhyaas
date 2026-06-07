@@ -36,7 +36,7 @@ class Database:
                         )
                         connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close()
 
         def create_attendance_table():
@@ -58,7 +58,7 @@ class Database:
                         
                         connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close()
         def create_announcement_table():
                 connection =  Database.db()
@@ -78,7 +78,7 @@ class Database:
                                          );''')
                                 connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close()
                  # tasks and task_submissions are deleted by project cleanup.
         def create_task_tables():
@@ -100,7 +100,7 @@ class Database:
                                                 );''')
                                 connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close()
         def create_submission_table():
                 connection =  Database.db()
@@ -120,7 +120,7 @@ class Database:
                                 );''')
                                 connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close() 
         def create_feedback_table():
                 connection =  Database.db()
@@ -131,7 +131,7 @@ class Database:
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     teacher_id INT NOT NULL,
-    task_id INT NOT NULL,  -- 🔑 This is the missing column causing the crash!
+        task_id INT NOT NULL,  -- key column for task id
     feedback_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
@@ -141,6 +141,6 @@ class Database:
 );;''')
                                 connection.commit()
                 finally:
-                        print('table created')
+                        pass
                         connection.close() 
-print("🚀 Connection successful!")
+# Connection debug message removed during cleanup

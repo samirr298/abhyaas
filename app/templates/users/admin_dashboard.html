@@ -36,7 +36,7 @@
         <td>{{ user['email'] }}</td>
         <td>{{ user['role'] }}</td>
         <td>
-          <form method="post" action="{{ url_for('auth.admin') }}">
+          <form method="post" action="{{ url_for('auth.admin_dashboard') }}">
             <input type="hidden" name="user_id" value="{{ user['id'] }}">
             <select name="role">
               <option value="student" {% if user['role'] == 'student' %}selected{% endif %}>Student</option>

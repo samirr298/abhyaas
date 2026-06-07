@@ -14,12 +14,10 @@ class AuthController(BaseController):
     
     def login(self):
         if request.method == 'POST':
-            print('login form data received:', request.form)
             email = request.form.get('email')
             password = request.form.get('password')
             
             user_details = Users.get_my_email(email)
-            print("What Python sees from DB:", user_details)
             
             if user_details is not None:
                 if check_password_hash(user_details['password_hash'], password):
@@ -31,7 +29,9 @@ class AuthController(BaseController):
                     self.session['email'] = email
                     self.session['profile_pic'] = user_details.get('profile_pic')
                     
-                    if user_details['role'] == 'teacher':
+                    if user_details['role'] == 'admin':
+                        return self.redirect_to('auth.admin_dashboard')
+                    elif user_details['role'] == 'teacher':
                         return self.redirect_to('auth.teacher_dashboard')
                     else:
                         return self.redirect_to('auth.student_dashboard')
