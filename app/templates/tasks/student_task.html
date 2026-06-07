@@ -98,7 +98,7 @@
 </span>
               </div>
               {% else %}
-              <span class="tag submitted" style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
+              <span class="tag submitted" style="background: #01ff63; color: #ffff00; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
               {% endif %}
             </div>
             
@@ -112,7 +112,7 @@
             {% if submission_map[task.id|int] != 'Reviewed' %}
             <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
               <input type="hidden" name="action" value="submit_assignment">
-              <input type="hidden" name="task_id" value="{{ task.id }}"> <label class="file-label" style="border: 2px dashed #3b82f6; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #3b82f6; font-size: 0.9rem; font-weight: 500; display: block;">
+              <input type="hidden" name="task_id" value="{{ task.id }}"> <label class="file-label" style="border: 2px dashed #1fe700; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #46e607; font-size: 0.9rem; font-weight: 500; display: block;">
                 🔄 Resubmit File <input type="file" name="student_file" required style="display: none;">
               </label>
 
