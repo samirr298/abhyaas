@@ -1,39 +1,34 @@
 {% extends "base_app.html" %}
 
-{% block title %}Teacher Dashboard{% endblock %}
-{% block page_heading %}Teacher Dashboard{% endblock %}
+{% block title %}Abhyas - Dashboard{% endblock %}
+{% block page_heading %}Welcome, {{ session.get('name') or 'User' }}{% endblock %}
 
 {% block content %}
-<div class="cards">
-  <div class="card">
-    <h2>Welcome, {{ username or 'Teacher' }}</h2>
-    <p class="muted">Class overview and shortcuts to manage tasks.</p>
-  </div>
+<div class="dashboard-landing">
+    <section class="task-hero card">
+        <div>
+            <p class="section-kicker">Overview</p>
+            <h2>Your Learning Progress</h2>
+            <p class="section-copy">Welcome back to Abhyas. Here is a quick look at your current status.</p>
+        </div>
+    </section>
 
-  <div class="card profile-grid">
-    <div class="summary-grid">
-      <div class="card summary-tile">
-        <p class="summary-label">Submitted</p>
-        <h3>{{ class_summary.submitted if class_summary else '—' }}</h3>
-      </div>
-      <div class="card summary-tile">
-        <p class="summary-label">Pending</p>
-        <h3>{{ class_summary.pending if class_summary else '—' }}</h3>
-      </div>
-      <div class="card summary-tile">
-        <p class="summary-label">Completion</p>
-        <h3>{{ class_summary.average_completion if class_summary else '—' }}</h3>
-      </div>
-      <div class="card summary-tile">
-        <p class="summary-label">Tasks</p>
-        <h3></h3>
-      </div>
-    </div>
+    <div class="task-summary-grid" style="margin-top: 20px;">
+        <article class="summary-tile card">
+            <div class="summary-icon">📚</div>
+            <div>
+                <p class="summary-label">Workspaces</p>
+                <a href="{% if session.get('role') == 'teacher' %}{{ url_for('tasks.teacher_task') }}{% else %}{{ url_for('tasks.student_task') }}{% endif %}" class="primary-btn" style="margin-top: 10px; text-decoration: none;">Go to Tasks</a>
+            </div>
+        </article>
 
-    <div style="margin-top:16px;">
-      <p>Use the teacher workspace to create assignments and review student submissions.</p>
-      <a class="btn-primary" href="{{ url_for('auth.teacher_dashboard') if False else url_for('auth.teacher_dashboard') }}">Open Teacher Workspace</a>
+        <article class="summary-tile card">
+            <div class="summary-icon">👤</div>
+            <div>
+                <p class="summary-label">Account</p>
+                <a href="{{ url_for('auth.profile') }}" class="secondary-btn" style="margin-top: 10px; text-decoration: none;">Edit Profile</a>
+            </div>
+        </article>
     </div>
-  </div>
 </div>
 {% endblock %}

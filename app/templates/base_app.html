@@ -17,15 +17,25 @@
         <span>Abhyas</span>
       </div>
       <nav class="sidebar-nav">
-        <a class="active" href="#">Dashboard</a>
         {% if session.get('role') == 'student' %}
-        <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('auth.student') }}">Student Task</a>
+          <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
+        {% elif session.get('role') == 'teacher' %}
+          <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
+        {% elif session.get('role') == 'admin' %}
+          <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Dashboard</a>
+        {% else %}
+          <a class="active" href="#">Dashboard</a>
         {% endif %}
         {% if session.get('role') == 'teacher' %}
-        <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('tasks.teacher_task') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'attend.manage_attendance' %}active{% endif %}" href="{{ url_for('attend.manage_attendance') }}">Attendance Management</a>
         {% endif %}
         <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
         <a href="{{ url_for('announce.announcement') }}">Announcements</a>
+        {% if session.get('role') == 'admin' %}
+        <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Admin</a>
+        {% endif %}
         <a href="{{ url_for('auth.profile') }}">Profile</a>
         
       </nav>
@@ -34,7 +44,7 @@
     <div class="app-main">
       <header class="app-topbar">
         <div class="topbar-left">
-          <input class="search" placeholder="Search tasks, materials, or people...">
+         
         </div>
         <div class="topbar-right">
           <div class="profile-summary" aria-label="Current profile information">

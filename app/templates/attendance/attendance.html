@@ -7,6 +7,11 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .hidden {
+    display: none !important;
+  }
+</style>
 <div class="attendance-page">
     <section class="attendance-hero card">
         <div class="attendance-hero-copy">
@@ -63,6 +68,7 @@
                 <p class="attendance-eyebrow">History</p>
                 <h3 class="history-title">Attendance history</h3>
                 <p class="attendance-copy">Showing {{ selected_month_name }} {{ selected_year }}. Newest records appear first.</p>
+                 <input class="search" id="search" placeholder="Search Attendance date or Day" style="margin-top: 10px;">
             </div>
 
             <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="month-filter">
@@ -95,7 +101,7 @@
                 </thead>
                 <tbody>
                     {% for row in history %}
-                    <tr>
+                    <tr class="attendance">
                         <td data-label="Date">
                             <div class="date-cell">
                                 <strong>{{ row['attendance_date'] }}</strong>
@@ -164,4 +170,32 @@
         </div>
     </section>
 </div>
+<script>
+// We wait for the DOM content to fully load 
+document.addEventListener("DOMContentLoaded", () => {
+    // Looks for the search input rendered by base_app.html
+    const globalSearchInput = document.getElementById("search");
+    
+    // Selects all the individual announcement cards in this specific view
+    const cards = document.querySelectorAll(".attendance");
+
+    // Only run the logic if the global search bar actually exists on this page
+    if (globalSearchInput) {
+        globalSearchInput.addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+
+            cards.forEach(card => {
+                
+                const cardText = card.textContent.toLowerCase();
+
+                if (cardText.includes(searchText)) {
+                    card.classList.remove('hidden'); 
+                } else {
+                    card.classList.add('hidden');    
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

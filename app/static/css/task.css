@@ -121,7 +121,7 @@
 }
 
 .task-list-card, .feedback-card, .task-form-card, .current-task-card, .feedback-board-card, .submissions-card {
-  padding: 20px;
+  padding: 16px;
 }
 
 .section-header {
@@ -417,6 +417,29 @@
   gap: 10px;
 }
 
+/* Make published task lists scrollable so mouse wheel and touch work */
+.teacher-task-list, .task-list {
+  max-height: 420px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px; /* prevent content from hiding behind scrollbar */
+}
+
+/* Light custom scrollbar for WebKit browsers */
+.teacher-task-list::-webkit-scrollbar,
+.task-list::-webkit-scrollbar {
+  width: 10px;
+}
+.teacher-task-list::-webkit-scrollbar-thumb,
+.task-list::-webkit-scrollbar-thumb {
+  background: rgba(59,91,219,0.12);
+  border-radius: 8px;
+}
+.teacher-task-list::-webkit-scrollbar-track,
+.task-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .teacher-bottom-grid {
   grid-template-columns: 0.95fr 1.05fr;
 }
@@ -494,4 +517,214 @@
   .mini-search {
     width: 100%;
   }
+}
+
+/* Student view improvements: spacing, button polish, hover states */
+.task-page.student-task-page {
+  padding-top: 8px;
+  padding-bottom: 18px;
+}
+
+/* Widen the left task column on student view for a larger assignment feed */
+.task-page.student-task-page .task-grid-two {
+  grid-template-columns: 2.6fr 0.6fr;
+}
+
+/* Single-column assignment lists inside each student column for clarity */
+.task-page.student-task-page .assignments-grid {
+  grid-template-columns: 1fr;
+}
+
+/* Ensure columns are scrollable when long */
+.two-column-sections > .completed-column,
+.two-column-sections > .incomplete-column {
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* New student-task-card styles for clearer, less congested layout */
+.tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.student-task-card {
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-task-card .task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.student-task-card .task-title {
+  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+}
+
+.student-task-card .task-sub {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.student-task-card .task-meta {
+  text-align: right;
+}
+
+.student-task-card .status {
+  margin-top: 6px;
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.student-task-card .status.overdue { color: var(--danger); }
+.student-task-card .status.active { color: var(--success); }
+
+.student-task-card .task-desc { color: var(--text-muted); margin:0; }
+
+.student-task-card .task-attachment { margin-top: 8px; display:flex; gap:8px; align-items:center; }
+
+.student-task-card .task-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+
+.student-task-card .badge { padding:6px 8px; border-radius:8px; font-weight:700; }
+.student-task-card .badge.reviewed { background:#e6f4ea; color:#0b7b46; }
+.student-task-card .badge.pending { background:#fff4e5; color:#b77905; }
+.student-task-card .badge.missing { background:transparent; color:#ef4444; }
+
+.file-label input[type=file] { display:inline-block; margin-left:10px; }
+
+/* Student dashboard symmetric layout */
+.student-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.left-column .summary-card {
+  padding: 18px;
+}
+
+.summary-card h4 { margin: 0 0 12px 0; }
+.summary-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid rgba(0,0,0,0.04); }
+.summary-row:first-of-type { border-top: none; }
+.summary-count { font-size:1.4rem; font-weight:800; color:var(--accent-strong); }
+.summary-label { color:var(--text-muted); }
+
+.upcoming-list { list-style:none; margin:8px 0 0 0; padding:0; }
+.upcoming-list li { padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.04); }
+.up-title { font-weight:700; }
+.up-date { color:var(--text-muted); font-size:0.85rem; }
+
+.right-column .section-header { margin-bottom:12px; }
+
+.assignments-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.assignment-card { padding:16px; border-radius:10px; min-height:100px; display:flex; flex-direction:column; gap:8px; background: linear-gradient(180deg,#fff,#fcfeff); border:1px solid rgba(59,91,219,0.04); }
+
+.two-column-sections { display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+.two-column-sections .incomplete-column, .two-column-sections .completed-column { display:flex; flex-direction:column; gap:12px; }
+
+.column-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:12px; border-bottom:2px solid var(--border-color); margin-bottom:12px; }
+.column-header h4 { font-size:1.1rem; color:var(--text-main); font-weight:800; }
+.count-badge { background:var(--accent-soft); color:var(--accent-strong); padding:4px 10px; border-radius:999px; font-weight:800; font-size:0.8rem; }
+
+.assignment-card { border-left:4px solid transparent; transition: all 0.14s ease; }
+.assignment-card:hover { transform: translateY(-6px); box-shadow: 0 14px 36px rgba(23,32,51,0.06); }
+.incomplete-column .assignment-card { border-left-color:var(--warning); }
+.completed-column .assignment-card { border-left-color:var(--success); }
+.card-top { display:flex; justify-content:flex-end; }
+.tag { padding:6px 8px; border-radius:8px; font-weight:800; font-size:0.7rem; }
+.tag.overdue { background: linear-gradient(90deg,#ffecec,#fff6f6); color:var(--danger); border:1px solid rgba(239,68,68,0.08); }
+.tag.pending { background: linear-gradient(90deg,#fff9ec,#fffdf6); color:var(--warning); border:1px solid rgba(245,158,11,0.06); }
+.tag.submitted { background: linear-gradient(90deg,#eef9ee,#f9fffb); color:var(--success); border:1px solid rgba(15,157,88,0.06); }
+
+.assign-title { margin:0; font-size:1rem; }
+.assign-title a { color:var(--text-main); text-decoration:none; }
+.assign-desc { color:var(--text-muted); margin:6px 0; font-size:0.92rem; }
+.assign-meta { display:flex; justify-content:space-between; align-items:center; margin-top:auto; color:var(--text-muted); }
+.assign-meta .attach { font-size:1.05rem; }
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .assignments-grid { grid-template-columns: 1fr; }
+}
+
+.task-summary-grid .summary-tile {
+  align-items: flex-start;
+}
+
+.task-list .task-item,
+.teacher-task-list .teacher-task-item {
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.task-list .task-item:hover,
+.teacher-task-list .teacher-task-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(23, 32, 51, 0.06);
+}
+
+/* Buttons: clearer primary/secondary styles for student controls */
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid rgba(23, 32, 51, 0.06);
+  color: var(--accent-strong);
+}
+
+/* Slightly larger progress tracks on student view for visibility */
+.student-task-page .progress-track {
+  height: 12px;
+}
+
+/* Distinct backgrounds for individual assignment entries */
+.task-list-card article {
+  background: linear-gradient(180deg, #ffffff, #fcfeff);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(59, 91, 219, 0.06);
+}
+
+.task-list-card article:nth-of-type(even) {
+  background: linear-gradient(180deg, #f7fbff, #f2f8ff);
+}
+
+.task-list-card article .task-topline,
+.task-list-card article .task-footer-row {
+  align-items: center;
+}
+
+/* Ensure lists collapse nicely on small screens */
+@media (max-width: 640px) {
+  .task-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .task-grid-two { grid-template-columns: 1fr; }
 }

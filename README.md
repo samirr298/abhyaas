@@ -16,10 +16,9 @@ Don't commit yet — follow your git workflow.
 People who worked on this project, based on the branch plan and git history:
 
 - Samir Subedi / `samirr298`
-- Sijan Subedi / `sijansubedi30-lgtm`
+- Season Subedi / `sijansubedi30-lgtm`
 - Bharat Oli / `bharatoli10`
 - Abhisha / `AbishaLammichanne56-Dot`
-- Season Subedi
 - Ayush
 - `Your Name` (placeholder identity seen in history)
 

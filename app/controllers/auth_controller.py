@@ -14,12 +14,10 @@ class AuthController(BaseController):
     
     def login(self):
         if request.method == 'POST':
-            print('login form data received:', request.form)
             email = request.form.get('email')
             password = request.form.get('password')
             
             user_details = Users.get_my_email(email)
-            print("What Python sees from DB:", user_details)
             
             if user_details is not None:
                 if check_password_hash(user_details['password_hash'], password):
@@ -31,10 +29,12 @@ class AuthController(BaseController):
                     self.session['email'] = email
                     self.session['profile_pic'] = user_details.get('profile_pic')
                     
-                    if user_details['role'] == 'teacher':
-                        return self.redirect_to('auth.teacher')
+                    if user_details['role'] == 'admin':
+                        return self.redirect_to('auth.admin_dashboard')
+                    elif user_details['role'] == 'teacher':
+                        return self.redirect_to('auth.teacher_dashboard')
                     else:
-                        return self.redirect_to('auth.student')
+                        return self.redirect_to('auth.student_dashboard')
                 else:
                     self.flash("Incorrect password.", "error")
             else:
@@ -181,14 +181,13 @@ class AuthController(BaseController):
         if request.method == 'POST':
             user_id = self.session.get('user_id')
             profile_updated = False
-
-            # Handle profile-picture-only uploads from the inline upload form.
-            # That form sends only file + upload_only flag, without profile text fields.
+            # Support inline upload-only form: the upload button posts `upload_only=1`
             upload_only = request.form.get('upload_only') == '1'
             valid_extensions = ['.jpg', '.jpeg', '.png']
 
             if upload_only:
                 filee = request.files.get('profile_image')
+                
                 if not filee or filee.filename == '':
                     flash('Please choose an image to upload.', 'error')
                     return redirect(url_for('auth.profile'))
@@ -204,9 +203,18 @@ class AuthController(BaseController):
 
                 filename = f"user_{user_id}_profile{file_extension}"
                 destination_path = os.path.join(upload_folder, filename)
-                filee.save(destination_path)
+                try:
+                    filee.save(destination_path)
+                except Exception as e:
+                    flash(f'Failed to save file: {e}', 'error')
+                    return redirect(url_for('auth.profile'))
 
-                if Users.update_profile_pic(user_id, filename):
+                try:
+                    db_updated = Users.update_profile_pic(user_id, filename)
+                except Exception:
+                    db_updated = False
+
+                if db_updated:
                     self.session['profile_pic'] = filename
                     flash('Profile picture updated successfully!', 'success')
                 else:
@@ -255,35 +263,8 @@ class AuthController(BaseController):
                 flash('Failed to update username. Try again later.', 'error')
                 return redirect(url_for('auth.profile'))
 
-            # Profile image upload (when saving details form with an optional new image)
-            filee = request.files.get('profile_image')
-            if filee and filee.filename != '':
-                upload_folder = os.path.join('app', 'static', 'images', 'profile_pics')
-                if not os.path.exists(upload_folder):
-                    os.makedirs(upload_folder)
-                file_extension = os.path.splitext(filee.filename)[1].lower()
-                if file_extension not in valid_extensions:
-                    flash("Wrong file format. Please choose a JPG, JPEG, or PNG image.", "error")
-                    return redirect(url_for('auth.profile'))
-
-                filename = f"user_{user_id}_profile{file_extension}"
-                destination_path = os.path.join(upload_folder, filename)
-                filee.save(destination_path)
-
-                db_updated = Users.update_profile_pic(user_id, filename)
-                if db_updated:
-                    self.session['profile_pic'] = filename
-                    profile_updated = True
-                else:
-                    flash("Profile picture database update failed.", "error")
-                    return redirect(url_for('auth.profile'))
-
-            if profile_updated:
-                flash("Profile updated successfully!", "success")
-            elif not full_name and not email and not new_username and (not filee or filee.filename == ''):
-                flash("No changes were submitted.", "info")
-
-            return redirect(url_for('auth.profile'))
+            # 
+           
 
         # --- GET Request Render Execution ---
         profile_pic_name = self.session.get('profile_pic')
@@ -326,7 +307,7 @@ class AuthController(BaseController):
                 return redirect(url_for('auth.change_my_password'))
                 
             email = self.session['email']
-            user_details = Users.change_my_password(email)
+            user_details = Users.get_my_email(email)
             if check_password_hash(user_details['password_hash'], current_password):
                 msg = Users.finally_change_my_password(generate_password_hash(new_password), email)
                 flash(msg, 'success')

@@ -2,7 +2,7 @@ from flask import Blueprint
 from app.auth import login_required
 from app.controllers.announcement_controller import AnnouncementController
 from app.controllers.rolecontroller import RoleController
-class AttendanceRoutes:
+class AnnouncementRoutes:
     def __init__(self):
         self.bp = Blueprint("announce", __name__)
         self.controller = AnnouncementController()
@@ -18,6 +18,10 @@ class AttendanceRoutes:
         self.bp.route("/announcement/view/<int:announcement_id>", methods=["GET", "POST"])(
             login_required(self.controller.announcement_view)
 
+        
+        )
+        self.bp.route("/announcement/delete/<int:announcement_id>", methods=["POST"])(
+            self.controller.announcement_delete
         )
         self.bp.route("/announcement/annoucementcategory/<string:category>", methods=["GET", "POST"])(
             login_required(self.controller.annoucement_category)

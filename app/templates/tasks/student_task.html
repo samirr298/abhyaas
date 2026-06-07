@@ -1,23 +1,29 @@
 {% extends "base_app.html" %}
 
 {% block title %}Student Tasks{% endblock %}
-{% block page_heading %}Student Task Center{% endblock %}
+{% block page_heading %}Student Task Workspace{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/task.css') }}">
 {% endblock %}
 
 {% block content %}
+<style>
+  .hidden {
+    display: none !important;
+  }
+</style>
 <div class="task-page student-task-page">
   <section class="task-hero card task-hero-card">
     <div>
       <p class="section-kicker">Student view</p>
       <h2>Tasks and progress for the week</h2>
-      <p class="section-copy">Track assigned work, stay ahead of deadlines, and review teacher comments in one place.</p>
+      <p class="section-copy">Track assigned work, stay ahead of deadlines, and review teacher comments in one place.
+      </p>
     </div>
     <div class="hero-pills">
-      <span class="stat-pill"><strong>{{ overview['completed'] }}</strong> completed</span>
-      <span class="stat-pill"><strong>{{ overview['pending'] }}</strong> pending</span>
-      <span class="stat-pill"><strong>{{ overview['average_score'] }}</strong> average score</span>
+      <span class="stat-pill"><strong>{{completion_count}}</strong> completed</span>
+      <span class="stat-pill"><strong>{{non_completion_count}}</strong> pending</span>
+      <span class="stat-pill"><strong>{{ score }}</strong> average score</span>
     </div>
   </section>
 
@@ -26,7 +32,7 @@
       <div class="summary-icon">✓</div>
       <div>
         <p class="summary-label">Completed</p>
-        <h3>{{ overview['completed'] }}</h3>
+        <h3>{{ completion_count }}</h3>
         <p class="summary-note">Assignments already submitted</p>
       </div>
     </article>
@@ -35,136 +41,187 @@
       <div class="summary-icon">⏳</div>
       <div>
         <p class="summary-label">Pending</p>
-        <h3>{{ overview['pending'] }}</h3>
+        <h3>{{ non_completion_count }}</h3>
         <p class="summary-note">Need attention before deadlines</p>
       </div>
     </article>
 
     <article class="summary-tile card">
-      <div class="summary-icon">⭐</div>
+      <div class="summary-icon"> ⭐</div>
       <div>
-        <p class="summary-label">Average score</p>
-        <h3>{{ overview['average_score'] }}</h3>
-        <p class="summary-note">Current performance across tasks</p>
+        <p class="summary-label">Total</p>
+        <h3>{{ total_tasks_count }}</h3>
+        <p class="summary-note">How many Task were there ?</p>
       </div>
     </article>
 
     <article class="summary-tile card">
       <div class="summary-icon">⚡</div>
       <div>
-        <p class="summary-label">Due soon</p>
-        <h3>{{ overview['due_soon'] }}</h3>
-        <p class="summary-note">Tasks due in the next 48 hours</p>
+        <p class="summary-label">Over due</p>
+        <h3>{{ over_due }}</h3>
+        <p class="summary-note">So late !</p>
       </div>
     </article>
   </section>
 
-  <section class="task-grid-two">
+  <section class="task-grid-two" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- LEFT COLUMN: SUBMITTED / REVIEWED -->
     <article class="card task-list-card">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 20px;">
         <div>
           <p class="section-kicker">Assignment feed</p>
-          <h3>Your tasks</h3>
+          <h3>Completed & Submitted</h3>
         </div>
-        <div class="filter-row">
-          <button class="filter-chip active" data-filter="all">All</button>
-          <button class="filter-chip" data-filter="submitted">Submitted</button>
-          <button class="filter-chip" data-filter="pending">Pending</button>
-        </div>
+        <span class="count-badge"
+          style="background: #e6f4ea; color: #137333; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+          {{ submission_map|length }}
+        </span>
       </div>
 
-      <div class="task-list">
+      <div class="assignments-grid" style="display: flex; flex-direction: column; gap: 16px;">
         {% for task in tasks %}
-        <article class="task-item task-card {% if task['status'] == 'Submitted' %}submitted{% else %}pending{% endif %}" data-status="{{ 'submitted' if task['status'] == 'Submitted' else 'pending' }}">
-          <div class="task-topline">
-            <div>
-              <p class="task-subject">{{ task['subject'] }}</p>
-              <h4>{{ task['title'] }}</h4>
+        {% if (task.id|int) in submission_map %}
+        <article class="assignment-card"
+          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;">
+          <div class="card-top" style="display: flex; justify-content: space-between; align-items: center;">
+            <strong class="task-subject"
+              style="color: #3b82f6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+              {{ task.subject or 'General' }}
+            </strong>
+            {% if submission_map[task.id|int] == 'Reviewed' %}
+            <div style="display: flex; gap: 6px;">
+              <span class="tag reviewed"
+                style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
+              <span class="tag feedback"
+                style="background: #f1f5f9; border-radius: 20px; font-size: 0.75rem;">
+                <a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569; padding: 4px 10px; display: inline-block;">
+                  See Feedback
+                </a>
+              </span>
             </div>
-            <span class="status-badge {{ 'submitted' if task['status'] == 'Submitted' else 'pending' }}">{{ task['status'] }}</span>
+            {% else %}
+            <span class="tag submitted"
+              style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
+            {% endif %}
           </div>
 
-          <p class="task-description">{{ task['description'] }}</p>
+          <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
+          <p class="assign-desc" style="margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{ task.description }}</p>
 
-          <div class="task-meta-row">
-            <span>Due: {{ task['due'] }}</span>
-            <span>Priority: {{ task['priority'] }}</span>
+          <div class="assign-meta" style="margin-top: auto; padding-top: 12px; border-top: 1px dashed #e2e8f0; color: #64748b; font-size: 0.85rem;">
+            <div><small>Due: {{ task.due_date.strftime('%d %b, %Y') if task.due_date else 'No Date' }}</small></div>
           </div>
 
-          <div class="task-progress-block">
-            <div class="progress-copy">
-              <span>Progress</span>
-              <strong>{{ task['progress'] }}%</strong>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" style="width: {{ task['progress'] }}%;"></div>
-            </div>
-          </div>
-
-          <div class="task-footer-row">
-            <span class="score-chip">Score: {{ task['score'] }}</span>
-            <button class="secondary-btn task-action-btn" type="button">Submit task</button>
-          </div>
-
-          <form class="submission-panel" method="POST" enctype="multipart/form-data" hidden>
-            <input type="hidden" name="task_id" value="{{ task['id'] if task['id'] is defined else '' }}">
-            <label>
-              <span>Write your response</span>
-              <textarea name="submission_text" rows="4" placeholder="Type your answer, explanation, or notes here"></textarea>
+          {% if submission_map[task.id|int] != 'Reviewed' %}
+          <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+            <input type="hidden" name="action" value="submit_assignment">
+            <input type="hidden" name="task_id" value="{{ task.id }}">
+            <label class="file-label"
+              style="border: 2px dashed #3b82f6; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #3b82f6; font-size: 0.85rem; font-weight: 500; display: block;">
+              🔄 Resubmit File <input type="file" name="student_file" required style="display: none;">
             </label>
-
-            <label>
-              <span>Paste a link (optional)</span>
-              <input type="url" name="submission_link" placeholder="https://example.com/file-or-work">
-            </label>
-
-            <label>
-              <span>Upload file or document</span>
-              <input type="file" name="submission_file">
-            </label>
-
-            <div class="submission-actions">
-              <p class="submission-note">Upload a file, paste a link, or write your work and submit it.</p>
-              <button type="submit" class="primary-btn">Submit work</button>
-            </div>
+            <button class="primary-btn" type="submit"
+              style="background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 500; cursor: pointer; width: 100%;">
+              Turn In Again
+            </button>
           </form>
+          {% endif %}
         </article>
+        {% endif %}
         {% endfor %}
       </div>
     </article>
 
-    <article class="card feedback-card">
-      <div class="section-header">
+    <!-- RIGHT COLUMN: NOT SUBMITTED -->
+    <article class="card task-list-card">
+      <div class="section-header" style="margin-bottom: 20px;">
         <div>
-          <p class="section-kicker">Teacher notes</p>
-          <h3>Feedback & reminders</h3>
+          <p class="section-kicker">Needs attention</p>
+          <h4 style="margin: 0; font-size: 1.1rem; color: #1e293b; font-weight: 600;">Not Submitted</h4>
         </div>
+        <span class="count-badge"
+          style="background: #fee2e2; color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+          {{ tasks|length - (submission_map|length) }}
+        </span>
       </div>
 
-      <div class="feedback-list">
-        {% for item in feedback %}
-        <article class="feedback-item">
-          <div class="feedback-item-header">
-            <h4>{{ item['title'] }}</h4>
-            <span class="time-pill">{{ item['time'] }}</span>
+      <div class="assignments-grid" style="display: flex; flex-direction: column; gap: 16px;">
+        {% for task in tasks %}
+        {% if (task.id|int) not in submission_map %}
+        <article class="assignment-card"
+          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;">
+          <strong class="task-subject"
+            style="color: #ef4444; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+            {{ task.subject or 'General' }}
+          </strong>
+          <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
+          <p class="assign-desc" style="margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{ task.description }}</p>
+
+          <div class="assign-meta" style="margin-top: auto; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.85rem;">
+            <div><small>Due: {{ task.due_date.strftime('%d %b, %Y') if task.due_date else 'No Date' }}</small></div>
+            <div class="attach">
+              {% if task.attached_filename %}
+              <a href="{{ url_for('static', filename='uploads/' ~ task.attached_filename) }}" target="_blank"
+                style="color: #3b82f6; text-decoration: none; font-weight: 500;">📎 Download Material</a>
+              {% endif %}
+            </div>
           </div>
-          <p>{{ item['message'] }}</p>
-        </article>
-        {% endfor %}
-      </div>
 
-      <div class="task-note-box">
-        <p class="section-kicker">Next action</p>
-        <h4>Submission checklist</h4>
-        <ul>
-          <li>Upload the latest draft before the due time.</li>
-          <li>Review feedback notes from your teacher.</li>
-          <li>Keep your file names clean and organized.</li>
-        </ul>
+          <div style="margin-top: 8px;">
+            {% if not task.due_date < now %}
+            <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px;">
+              <input type="hidden" name="action" value="submit_assignment">
+              <input type="hidden" name="task_id" value="{{ task.id }}">
+              <label class="file-label"
+                style="border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #475569; font-size: 0.9rem; display: block;">
+                Upload Document <input type="file" name="student_file" required style="display: none;">
+              </label>
+              <button class="primary-btn" type="submit"
+                style="background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 500; cursor: pointer; width: 100%;">
+                Turn In Assignment
+              </button>
+            </form>
+            {% else %}
+            <div class="tag overdue"
+              style="background: #fef2f2; color: #b91c1c; text-align: center; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 0.85rem;">
+              ⚠️ TIME OVER !
+            </div>
+            {% endif %}
+          </div>
+        </article>
+        {% endif %}
+        {% endfor %}
       </div>
     </article>
   </section>
 </div>
+<script>
+  // We wait for the DOM content to fully load 
+  document.addEventListener("DOMContentLoaded", () => {
+    // Looks for the search input rendered by base_app.html
+    const globalSearchInput = document.getElementById("search");
 
-<script src="{{ url_for('static', filename='js/task.js') }}"></script>
+    // Selects all the individual task cards in this specific view
+    const cards = document.querySelectorAll(".assignment-card");
+
+    // Only run the logic if the global search bar actually exists on this page
+    if (globalSearchInput) {
+      globalSearchInput.addEventListener('input', (e) => {
+        const searchText = e.target.value.toLowerCase();
+
+        cards.forEach(card => {
+          // Extracts text inside the card (Title, Subject, Description)
+          const cardText = card.textContent.toLowerCase();
+
+          if (cardText.includes(searchText)) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    }
+  });
+</script>
 {% endblock %}
