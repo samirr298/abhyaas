@@ -1,10 +1,17 @@
 from flask import render_template, session
 
 from app.auth import login_required, role_required
-from app.controllers.task_controller import TaskController
 
 
 class RoleController:
+    @login_required
+    def dashboard(self):
+        return render_template(
+            "users/role_dashboard.html",
+            username=session.get("username"),
+            role=session.get("role"),
+        )
+
     @login_required
     @role_required("admin")
     def admin(self):
@@ -13,21 +20,27 @@ class RoleController:
     @login_required
     @role_required("teacher")
     def teacher(self):
-        # render the simple teacher dashboard (no JS)
+        # Serve the static teacher task HTML (no backend logic)
         return render_template(
-            'users/teacher_dashboard.html',
+            'tasks/teacher_task.html',
+            class_summary={},
+            tasks=[],
+            feedback_queue=[],
+            submissions=[],
+            teacher_tasks=[],
+            total_submissions=0,
             username=session.get('username'),
-            class_summary=None,
-            tasks=None,
         )
 
     @login_required
     @role_required("student")
     def student(self):
-        # render the simple student dashboard (no JS)
+        # Serve the static student task HTML (no backend logic)
         return render_template(
-            'users/student_dashboard.html',
+            'tasks/student_task.html',
+            overview={},
+            tasks=[],
+            feedback=[],
+            today_tasks=[],
             username=session.get('username'),
-            overview=None,
-            tasks=None,
         )

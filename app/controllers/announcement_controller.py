@@ -25,7 +25,7 @@ class AnnouncementController(BaseController):
             annoucementshistory=annoucementshistory,      # <--- Passed to HTML table loop
             current_page=page,            # <--- Passed for active page color
             total_pages=total_pages
-            
+             
             
         )
     def name(self):
@@ -70,7 +70,7 @@ class AnnouncementController(BaseController):
             return redirect(url_for('announce.announcement'))
             print('done')
 
-        # Showing the annoucements now 
+        # Showing twdhe annoucements now 
        
         return self.render(
             'announcement/announcement.html',
@@ -108,4 +108,3 @@ class AnnouncementController(BaseController):
             
             
         )
-        
