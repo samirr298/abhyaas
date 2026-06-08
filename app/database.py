@@ -30,7 +30,9 @@ class Database:
                                     password_hash VARCHAR(255) NOT NULL,
                                     role VARCHAR(50) NOT NULL,
                                     profile_pic VARCHAR(255),
-                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    fee_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
+                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                 )
                                 """
                         )
