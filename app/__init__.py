@@ -55,6 +55,9 @@ def create_app():
     task_routes = TaskRoutes()
     app.register_blueprint(task_routes.register())
 
-   
+    # register fees blueprint
+    from app.routes.fee_route import FeeRoutes
+    fee_routes = FeeRoutes()
+    app.register_blueprint(fee_routes.register())
 
     return app

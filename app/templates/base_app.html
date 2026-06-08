@@ -33,6 +33,13 @@
         {% endif %}
         <a href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
         <a href="{{ url_for('announce.announcement') }}">Announcements</a>
+        
+        {% if session.get('role') == 'admin' %}
+          <a class="{% if request.endpoint == 'auth.fees_management' %}active{% endif %}" href="{{ url_for('auth.fees_management') }}">Fee Management</a>
+        {% elif session.get('role') == 'student' %}
+          <a class="{% if request.endpoint == 'auth.student_fees' %}active{% endif %}" href="{{ url_for('auth.student_fees') }}">Fees</a>
+        {% endif %}
+
         {% if session.get('role') == 'admin' %}
         <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Admin</a>
         {% endif %}

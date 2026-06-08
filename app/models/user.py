@@ -78,3 +78,32 @@ class Users(BaseModel):
         except Exception:
             # Likely a UNIQUE constraint violation — caller will handle False
             return False
+
+    @staticmethod
+    def get_all_students(fee_filter=None):
+        """
+        Fetch all students with their fee status.
+        fee_filter: None (all), 'paid', or 'unpaid'
+        """
+        sql = "SELECT id, name, username, email, fee_status, fee_updated_at FROM users WHERE role = 'student'"
+        params = []
+        
+        if fee_filter == 'unpaid':
+            sql += " AND fee_status = 'unpaid'"
+        elif fee_filter == 'paid':
+            sql += " AND fee_status = 'paid'"
+        
+        sql += " ORDER BY name ASC"
+        return Users.fetch_all(sql, params) or []
+
+    @staticmethod
+    def get_student_by_id(student_id):
+        """Fetch a specific student by ID."""
+        sql = "SELECT id, name, username, email, fee_status, fee_updated_at FROM users WHERE id = %s AND role = 'student'"
+        return Users.fetch_one(sql, [student_id])
+
+    @staticmethod
+    def update_fee_status(student_id, fee_status):
+        """Update fee status and timestamp for a student."""
+        sql = "UPDATE users SET fee_status = %s, fee_updated_at = CURRENT_TIMESTAMP WHERE id = %s AND role = 'student'"
+        return Users.execute_write(sql, [fee_status, student_id])

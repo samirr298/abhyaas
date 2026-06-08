@@ -1,6 +1,7 @@
 import config
 import pymysql
 class Database:
+        @staticmethod
         def db():
                 connection = pymysql.connect(
                 host=config.MYSQL_HOST,
@@ -34,6 +35,15 @@ class Database:
                                 )
                                 """
                         )
+                                # Dynamically add new columns to support the fee feature
+                                try:
+                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_status VARCHAR(20) DEFAULT 'unpaid'")
+                                except Exception:
+                                        pass
+                                try:
+                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_updated_at TIMESTAMP NULL DEFAULT NULL")
+                                except Exception:
+                                        pass
                         connection.commit()
                 finally:
                         pass
@@ -138,7 +148,7 @@ class Database:
     CONSTRAINT fk_feedback_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_feedback_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_feedback_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
-);;''')
+);''')
                                 connection.commit()
                 finally:
                         pass
