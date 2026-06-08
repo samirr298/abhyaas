@@ -107,3 +107,9 @@ class Users(BaseModel):
         """Update fee status and timestamp for a student."""
         sql = "UPDATE users SET fee_status = %s, fee_updated_at = CURRENT_TIMESTAMP WHERE id = %s AND role = 'student'"
         return Users.execute_write(sql, [fee_status, student_id])
+
+    @staticmethod
+    def get_fee_status(user_id):
+        """Fetch a user's fee status and last update timestamp."""
+        sql = "SELECT fee_status, fee_updated_at FROM users WHERE id = %s"
+        return Users.fetch_one(sql, [user_id])
