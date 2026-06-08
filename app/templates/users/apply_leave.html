@@ -1,0 +1,472 @@
+{% extends "base_app.html" %}
+
+{% block title %}Apply for Leave{% endblock %}
+{% block page_heading %}Leave Application{% endblock %}
+
+{% block content %}
+<div class="leave-container">
+  <!-- Leave Request Form Section -->
+  <div class="card leave-form-card">
+    <div class="card-header">
+      <h2>Submit a Leave Request</h2>
+      <p class="card-subtitle">Fill in the details below to request leave</p>
+    </div>
+
+    <form method="POST" action="#" class="leave-form">
+      <div class="form-group">
+        <label for="leave_date" class="form-label">Leave Date <span class="required">*</span></label>
+        <input 
+          type="date" 
+          id="leave_date" 
+          name="leave_date" 
+          class="form-input" 
+          required
+          min="{{ today_date }}"
+          title="You cannot apply for a date that has already passed">
+        <small class="form-help">Select a date from today onwards</small>
+      </div>
+
+      <div class="form-group">
+        <label for="leave_reason" class="form-label">Reason for Leave <span class="required">*</span></label>
+        <textarea 
+          id="leave_reason" 
+          name="leave_reason" 
+          class="form-textarea" 
+          rows="5" 
+          placeholder="Please provide a detailed reason for your leave request..."
+          required
+          minlength="10"
+          maxlength="500"></textarea>
+        <small class="form-help">Minimum 10 characters, Maximum 500 characters</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Submit Leave Request</button>
+        <button type="reset" class="btn-secondary">Clear Form</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Leave History Section -->
+  <div class="card leave-history-card">
+    <div class="card-header">
+      <h2>Your Leave Requests</h2>
+      <p class="card-subtitle">View all your submitted leave applications</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="leave-filters">
+      <form method="GET" action="#" class="filter-form">
+        <label for="status_filter" class="filter-label">Filter by Status:</label>
+        <select name="status_filter" id="status_filter" class="filter-select">
+          <option value="">All Requests</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button type="submit" class="btn-small">Apply Filter</button>
+      </form>
+    </div>
+
+    <!-- Leave Requests Table -->
+    {% if leave_requests %}
+    <div class="leave-table-wrapper">
+      <table class="leave-table">
+        <thead>
+          <tr>
+            <th>Leave Date</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Submitted On</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for request in leave_requests %}
+          <tr class="leave-row leave-row-{{ request.status | lower }}">
+            <td class="leave-date">{{ request.leave_date }}</td>
+            <td class="leave-reason">{{ request.reason }}</td>
+            <td class="leave-status">
+              <span class="status-badge status-{{ request.status | lower }}">
+                {{ request.status | upper }}
+              </span>
+            </td>
+            <td class="leave-submitted">{{ request.submitted_on }}</td>
+            <td class="leave-actions">
+              {% if request.status | lower == 'pending' %}
+              <form method="POST" action="#" style="display: inline;">
+                <input type="hidden" name="request_id" value="{{ request.id }}">
+                <button type="submit" name="action" value="cancel" class="btn-cancel-leave" title="Cancel this leave request">Cancel</button>
+              </form>
+              {% else %}
+              <span class="action-text">No action</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>You haven't submitted any leave requests yet.</p>
+      <p class="empty-state-hint">Fill out the form above to request leave.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Notifications Section (for future integration) -->
+  <div class="card notifications-card">
+    <div class="card-header">
+      <h3>Notifications</h3>
+    </div>
+    <div id="notifications-container" class="notifications-list">
+      <!-- Notifications will appear here -->
+      <p class="empty-notification">No new notifications</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .leave-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .card-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .card-header h2 {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+    color: #333;
+  }
+
+  .card-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: #999;
+  }
+
+  /* Form Styles */
+  .leave-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .required {
+    color: #dc3545;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+
+  .form-input:invalid,
+  .form-textarea:invalid {
+    border-color: #dc3545;
+  }
+
+  .form-textarea {
+    resize: vertical;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .form-help {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-small {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #545b62;
+  }
+
+  .btn-small {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .btn-small:hover {
+    background-color: #0056b3;
+  }
+
+  /* Filter Styles */
+  .leave-filters {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #666;
+  }
+
+  .filter-select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  /* Table Styles */
+  .leave-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .leave-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .leave-table thead {
+    background-color: #f5f5f5;
+  }
+
+  .leave-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .leave-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .leave-table tbody tr:hover {
+    background-color: #fafafa;
+  }
+
+  .leave-date {
+    font-weight: 500;
+    color: #333;
+  }
+
+  .leave-reason {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #666;
+  }
+
+  .leave-status {
+    text-align: center;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 70px;
+  }
+
+  .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .status-approved {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .leave-submitted {
+    font-size: 12px;
+    color: #999;
+  }
+
+  .leave-actions {
+    text-align: center;
+  }
+
+  .btn-cancel-leave {
+    padding: 6px 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel-leave:hover {
+    background-color: #c82333;
+  }
+
+  .action-text {
+    color: #999;
+    font-size: 12px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+  }
+
+  .empty-state p {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  .empty-state-hint {
+    font-size: 12px;
+    color: #bbb;
+  }
+
+  /* Notifications */
+  .notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .empty-notification {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-size: 13px;
+  }
+
+  .notification-item {
+    padding: 12px 16px;
+    border-radius: 4px;
+    border-left: 4px solid;
+  }
+
+  .notification-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left-color: #28a745;
+  }
+
+  .notification-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left-color: #dc3545;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .filter-form {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .leave-table {
+      font-size: 12px;
+    }
+
+    .leave-table th,
+    .leave-table td {
+      padding: 8px;
+    }
+
+    .leave-reason {
+      max-width: 150px;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
