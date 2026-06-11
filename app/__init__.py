@@ -19,6 +19,8 @@ def create_app():
     Database.create_task_tables()
     Database.create_submission_table()
     Database.create_feedback_table()
+    Database.create_conversation_table()
+    Database.create_message_table()
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY
@@ -59,5 +61,10 @@ def create_app():
     from app.routes.fee_route import FeeRoutes
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
+
+    # register messages blueprint
+    from app.routes.message_route import MessageRoutes
+    message_routes = MessageRoutes()
+    app.register_blueprint(message_routes.register())
 
     return app
