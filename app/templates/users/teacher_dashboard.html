@@ -23,7 +23,16 @@
         </article>
 
         <article class="summary-tile card">
-            <div class="summary-icon">👤</div>
+            <div class="summary-icon">�</div>
+            <div>
+                <p class="summary-label">Published tasks</p>
+                <h3>{{ teacher_tasks|length }}</h3>
+                <p class="summary-note">Assignments created so far</p>
+            </div>
+        </article>
+
+        <article class="summary-tile card">
+            <div class="summary-icon">�👤</div>
             <div>
                 <p class="summary-label">Account</p>
                 <a href="{{ url_for('auth.profile') }}" class="secondary-btn" style="margin-top: 10px; text-decoration: none;">Edit Profile</a>

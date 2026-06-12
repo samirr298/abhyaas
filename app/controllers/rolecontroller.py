@@ -41,6 +41,7 @@ class RoleController:
     @login_required
     @role_required("teacher")
     def teacher_dashboard(self):
+        teacher_tasks = Task.get_teacher_tasks(session.get('user_id')) or []
         # Serve the static teacher task HTML (no backend logic)
         return render_template(
             'users/teacher_dashboard.html',
@@ -48,8 +49,8 @@ class RoleController:
             tasks=[],
             feedback_queue=[],
             submissions=[],
-            teacher_tasks=[],
-            total_submissions=0,
+            teacher_tasks=teacher_tasks,
+            total_submissions=len(teacher_tasks),
             username=session.get('username'),
         )
 
@@ -59,6 +60,7 @@ class RoleController:
     @role_required("student")
     def student_dashboard(self):
         latest_announcements = Announcement.get_latest_announcements(3)
+        today_tasks = Task.get_today_tasks(session.get('user_id')) or []
         return render_template(
             'users/student_dashboard.html',
             username=session.get('username'),
@@ -66,5 +68,6 @@ class RoleController:
             overview={},
             tasks=[],
             feedback=[],
-            today_tasks=[],
+            today_tasks=today_tasks,
+            now=datetime.now(),
         )
