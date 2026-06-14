@@ -32,7 +32,7 @@ class Database:
                                     profile_pic VARCHAR(255),
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     fee_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
-                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                                 )
                                 """
                         )
@@ -144,5 +144,44 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
-                        connection.close() 
+                        connection.close()
+        def create_conversation_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE If not exists conversations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_conv_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_conv_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_private_chat (student_id, teacher_id)
+);''')
+                                connection.commit()
+                finally:
+                        pass
+                        connection.close()
+        def create_message_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE if not exists messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    message_text TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_msg_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_msg_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);''')
+                                connection.commit()
+                finally:
+                        pass
+                        connection.close()                
+
+
 # Connection debug message removed during cleanup

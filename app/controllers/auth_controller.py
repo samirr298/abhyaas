@@ -268,6 +268,9 @@ class AuthController(BaseController):
 
         # --- GET Request Render Execution ---
         profile_pic_name = self.session.get('profile_pic')
+        user_id = self.session.get('user_id')
+        fee_info = Users.get_fee_status(user_id)
+        
         return self.render(
             "users/profile.html",
             email=self.session.get('email'),
@@ -275,7 +278,9 @@ class AuthController(BaseController):
             username=self.session.get('username'),
             full_name=self.session.get('name') or self.session.get('username'),
             profile_url=url_for('static', filename=f"images/profile_pics/{profile_pic_name}") if profile_pic_name else None,
-            filename=profile_pic_name
+            filename=profile_pic_name,
+            fee_status=fee_info.get('fee_status') if fee_info else 'unpaid',
+            fee_updated_at=fee_info.get('fee_updated_at') if fee_info else None
         )
 
     @login_required        

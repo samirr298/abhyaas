@@ -1,17 +1,213 @@
-{% extends 'base_app.html' %}
+{% extends "base_app.html" %}
 
-{% block title %}Fee Management{% endblock %}
-{% block page_heading %}Fee Management{% endblock %}
+{% block title %}Fees Management{% endblock %}
+{% block page_heading %}Fees Management{% endblock %}
 
 {% block content %}
-<section class="card attendance-hero">
-  <div>
-    <p class="section-kicker">Admin access only</p>
-    <h2>Fee management</h2>
-    <p>This page is reserved for administrators. Teachers cannot access this area.</p>
-  </div>
+<section class="card fees-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div>
+            <h2>Student Fees Management</h2>
+            <p>View and manage student fee payment status</p>
+        </div>
+        <div>
+            <a href="{{ url_for('auth.admin_dashboard') }}" class="secondary-btn">← Back to Admin</a>
+        </div>
+    </div>
 </section>
-<section class="card">
-  <p>Here admins can manage fee records, uploads, and student account billing.</p>
+
+<!-- Filter Section -->
+<section class="card fees-filter">
+    <form method="get" action="{{ url_for('auth.fees_management') }}">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <label for="filter" style="font-weight: 600;">Filter by Status:</label>
+            <select name="filter" id="filter">
+                <option value="">All Students</option>
+                <option value="unpaid" {% if current_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                <option value="paid" {% if current_filter == 'paid' %}selected{% endif %}>Paid</option>
+            </select>
+            <button type="submit" class="primary-btn">Apply Filter</button>
+        </div>
+    </form>
 </section>
+
+<!-- Students Table -->
+<section class="card fees-table">
+    {% if students %}
+    <table>
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Current Status</th>
+                <th>Last Updated</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student['name'] }}</td>
+                <td>{{ student['username'] or 'N/A' }}</td>
+                <td>{{ student['email'] }}</td>
+                <td>
+                    <span class="status-badge {% if student['fee_status'] == 'paid' %}status-paid{% else %}status-unpaid{% endif %}">
+                        {{ student['fee_status'] | upper }}
+                    </span>
+                </td>
+                <td>
+                    {% if student['fee_updated_at'] %}
+                        {{ student['fee_updated_at'] }}
+                    {% else %}
+                        Never
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display: inline;">
+                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                        <div style="display: flex; gap: 6px;">
+                            {% if student['fee_status'] == 'unpaid' %}
+                            <button type="submit" name="fee_status" value="paid" class="action-btn mark-paid">Mark as Paid</button>
+                            {% else %}
+                            <button type="submit" name="fee_status" value="unpaid" class="action-btn mark-unpaid">Mark as Unpaid</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px;">
+        <p style="font-size: 16px; color: #666;">
+            {% if current_filter %}
+                No students found with status: <strong>{{ current_filter | upper }}</strong>
+            {% else %}
+                No students found in the system.
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+</section>
+
+<style>
+    .fees-header, .fees-filter, .fees-table {
+        margin-bottom: 20px;
+    }
+
+    .fees-filter form {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .fees-filter select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: white;
+        cursor: pointer;
+    }
+
+    .fees-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .fees-table th {
+        background-color: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .fees-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .fees-table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-unpaid {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .mark-paid {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .mark-paid:hover {
+        background-color: #218838;
+    }
+
+    .mark-unpaid {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .mark-unpaid:hover {
+        background-color: #c82333;
+    }
+
+    .primary-btn, .secondary-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .primary-btn {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .primary-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .secondary-btn {
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .secondary-btn:hover {
+        background-color: #545b62;
+    }
+</style>
 {% endblock %}

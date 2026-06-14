@@ -3,12 +3,14 @@ from app.auth import login_required
 from app.controllers.auth_controller import AuthController
 from app.controllers.rolecontroller import RoleController
 from app.controllers.task_controller import TaskController
+from app.controllers.fee_controller import FeeController
 
 class AuthRoutes:
     def __init__(self):
         self.bp = Blueprint("auth", __name__)
         self.controller = AuthController()
         self.rolecontroller = RoleController()
+        self.fee_controller = FeeController()
 
     def register(self):
         self.bp.route("/", methods=["GET", "POST"])(
@@ -48,8 +50,11 @@ class AuthRoutes:
         self.bp.route("/admin", methods=["GET", "POST"])(
             login_required(self.rolecontroller.admin_dashboard)
         )
-        self.bp.route("/admin/fees", methods=["GET"])(
-            self.rolecontroller.fees_management
+        self.bp.route("/admin/fees", methods=["GET", "POST"], endpoint="fees_management")(
+            self.fee_controller.fees_management
+        )
+        self.bp.route("/admin/fees/update", methods=["POST"], endpoint="update_fee_status")(
+            self.fee_controller.update_fee_status
         )
         self.bp.route("/teacher", methods=["GET", "POST"])(
             login_required(self.rolecontroller.teacher_dashboard)

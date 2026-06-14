@@ -1,0 +1,269 @@
+{% extends 'base_app.html' %}
+
+{% block title %}Messages - Abhyas{% endblock %}
+
+{% block page_heading %}Messages{% endblock %}
+
+{% block content %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<div class="message-page">
+  <div class="message-card">
+    
+    <aside class="message-sidebar">
+      <div class="message-sidebar-header">
+        <h2>Contacts</h2>
+        <p class="message-sidebar-subtitle">Recent conversations</p>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <div style="position:relative;flex:1">
+            <input id="message-search-input" placeholder="Search people or messages..." style="width:100%;padding:10px 36px 10px 12px;border-radius:10px;border:1px solid #e6e9ef;" />
+            <button id="message-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#64748b;cursor:pointer;font-weight:700;padding:6px;display:none">×</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="message-contact-list">
+        {% for teacher in teachers %}
+          {% if teacher.conversation_id %}
+            <a href="/messages/{{ teacher.conversation_id }}" class="message-contact {% if teacher.conversation_id == active_conv_id %}active{% endif %}">
+          {% elif teacher.user_id %}
+            <a href="/messages/start/{{ teacher.user_id }}" class="message-contact">
+          {% else %}
+            <a href="#" class="message-contact">
+          {% endif %}
+            <div style="display:flex;gap:12px;align-items:center;min-width:0">
+              <div class="avatar" title="{{ teacher.name }}">{{ teacher.name.split(' ')[0][:1] }}{{ (teacher.name.split(' ')[1][:1] if teacher.name.split(' ')|length > 1 else '') }}</div>
+              <div class="message-contact-info">
+                <span class="message-contact-name">{{ teacher['name'] }}</span>
+                <span class="message-contact-text">{{ teacher.last_message or 'Click to start chatting...' }}</span>
+              </div>
+            </div>
+            <span class="message-contact-time">{{ teacher.last_message_time or '' }}</span>
+          </a>
+        {% else %}
+          <p style="padding: 20px; text-align: center; color: #a0aec0; font-size: 0.9rem;">No contacts found.</p>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <section class="message-panel">
+      <div class="message-panel-header">
+        <div>
+          <h2>{{ partner_name if partner_name else "Select a contact" }}</h2>
+          <p class="message-panel-subtitle">Your conversation history appears here.</p>
+        </div>
+      </div>
+
+      <div class="message-thread" id="chat-history-stream">
+        {% if active_conv_id %}
+          {% for msg in history %}
+            <div class="message-bubble {% if msg.sender_id == current_user_id %}outgoing{% else %}incoming{% endif %}">
+              <p>{{ msg.message_text }}</p>
+              <span class="message-time">{{ msg.msg_time }}</span>
+            </div>
+          {% else %}
+            <p id="empty-chat-notice" style="text-align: center; color: #a0aec0; margin-top: 40px; font-size: 0.95rem;">
+              This is the beginning of your message history with {{ partner_name }}.
+            </p>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; color: #a0aec0; margin-top: 80px;">
+            <img src="/static/img/chat-illustration.png" alt="No conversation" style="max-width:220px;opacity:0.85;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto" onerror="this.style.display='none'" />
+            <p style="font-size: 1.15rem; margin-bottom: 6px;">No Conversation Selected</p>
+            <p style="font-size: 0.9rem;">Search for a person or click a contact on the left to start chatting.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if active_conv_id %}
+        <form class="message-composer" id="chat-form-dispatcher">
+          <textarea id="chat-input-text" name="body" placeholder="Write your message..." rows="2" required></textarea>
+          <button type="submit" class="btn-primary" id="chat-send-btn" disabled>Send</button>
+        </form>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+
+<script>
+// Open WebSocket handshake connection link to Flask server shell
+const socket = io();
+
+// Variables injected by Python Controller rendering process via Jinja execution templates
+const activeConversationId = "{{ active_conv_id }}"; 
+const currentLoggedInUserId = "{{ current_user_id }}";
+
+// JavaScript Target Selector DOM Element Pointers
+const chatStreamWindow = document.getElementById('chat-history-stream');
+const chatForm = document.getElementById('chat-form-dispatcher');
+const textInputField = document.getElementById('chat-input-text');
+
+const sendBtn = document.getElementById('chat-send-btn');
+const searchInput = document.getElementById('message-search-input');
+
+
+function scrollChatToBottom() {
+    if (chatStreamWindow) {
+        chatStreamWindow.scrollTop = chatStreamWindow.scrollHeight;
+    }
+}
+
+// Instantly force scrollbar viewport down to trace newest historical message items on load
+if (chatStreamWindow) {
+    requestAnimationFrame(scrollChatToBottom);
+}
+
+socket.on('connect', function() {
+    console.log('[socket] connected');
+});
+
+socket.on('disconnect', function() {
+    console.log('[socket] disconnected');
+});
+
+// Security Check: Only open lines if a real conversation channel is active
+if (activeConversationId && activeConversationId !== "None" && activeConversationId !== "") {
+
+    // 🚀 FLOW STEP A: Lock this client tab stream into isolated room pipeline partition
+    socket.emit('join_private_room', { conversation_id: activeConversationId });
+
+    // 🚀 FLOW STEP B: Catch send submit executions, trap form reload, transmit payload packet
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Intercepts default action to stop slow page refreshes!
+            
+            const rawMessageText = textInputField.value.trim();
+            if (!rawMessageText) return; // Ignore blank entries
+            console.log('[send] submit:', {activeConversationId, connected: socket && socket.connected});
+
+            // If socket is connected, use it; otherwise POST to fallback endpoint
+            if (socket && socket.connected) {
+                socket.emit('send_live_msg', {
+                    conversation_id: activeConversationId,
+                    message: rawMessageText
+                });
+            } else {
+                console.log('[send] using HTTP fallback');
+                fetch('/messages/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ conversation_id: activeConversationId, message: rawMessageText })
+                }).then(r => r.json()).then(json => {
+                    if (json && json.ok && json.payload) {
+                        const data = json.payload;
+                        const bubbleClass = (data.sender_id == currentLoggedInUserId) ? 'outgoing' : 'incoming';
+                        const dynamicMessageMarkup = `\n                            <div class="message-bubble ${bubbleClass}">\n                                <p>${data.message}</p>\n                                <span class="message-time">${data.time}</span>\n                            </div>\n                        `;
+                        if (chatStreamWindow) {
+                            chatStreamWindow.insertAdjacentHTML('beforeend', dynamicMessageMarkup);
+                            scrollChatToBottom();
+                        }
+                    } else {
+                        console.warn('[send] fallback failed', json);
+                    }
+                }).catch(err => console.error('[send] fallback error', err));
+            }
+
+            textInputField.value = ''; // Flush input container
+            if (sendBtn) sendBtn.disabled = true;
+        });
+    }
+
+    // 🚀 FLOW STEP C: Intercept incoming real-time broadcasts coming down from Python
+    socket.on('receive_live_msg', function(data) {
+        // Remove empty chat placeholder notice if it exists on screen
+        const emptyNotice = document.getElementById('empty-chat-notice');
+        if (emptyNotice) {
+            emptyNotice.remove();
+        }
+
+        // Evaluate if message data sender property matches current local runtime session variable
+        const isMe = (data.sender_id == currentLoggedInUserId);
+        const bubbleClass = isMe ? "outgoing" : "incoming";
+
+        // Construct HTML markup string mapping perfectly to your layout design guidelines
+        const dynamicMessageMarkup = `
+            <div class="message-bubble ${bubbleClass}">
+                <p>${data.message}</p>
+                <span class="message-time">${data.time}</span>
+            </div>
+        `;
+        
+        // Inject new text chunk bubble right inside the bottom bounds of the wrapper row container
+        if (chatStreamWindow) {
+            chatStreamWindow.insertAdjacentHTML('beforeend', dynamicMessageMarkup);
+            
+            // Slide viewer viewport tracker straight down to display current text bubble line instantly
+            scrollChatToBottom();
+        }
+    });
+}
+</script>
+<script>
+// Search contacts/messages and update sidebar
+let searchTimeout = null;
+
+// search clear button behaviour
+const searchClear = document.getElementById('message-search-clear');
+if(searchInput && searchClear){
+  searchInput.addEventListener('input', function(e){
+    searchClear.style.display = e.target.value.trim() ? 'block' : 'none';
+  });
+  searchClear.addEventListener('click', function(){
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    doSearch('');
+  });
+}
+
+// enable send button only when textarea has content
+if(textInputField && sendBtn){
+  textInputField.addEventListener('input', function(){
+    sendBtn.disabled = !textInputField.value.trim();
+  });
+}
+function renderContacts(list){
+  const container = document.querySelector('.message-contact-list');
+  if(!container) return;
+  if(!list || list.length === 0){
+    container.innerHTML = '<p style="padding: 20px; text-align: center; color: #a0aec0; font-size: 0.9rem;">No contacts found.</p>';
+    return;
+  }
+  container.innerHTML = '';
+  list.forEach(item => {
+    const a = document.createElement('a');
+    if(item.conversation_id !== null && item.conversation_id !== undefined){
+      a.href = '/messages/' + item.conversation_id;
+    } else if(item.user_id !== null && item.user_id !== undefined){
+      a.href = '/messages/start/' + item.user_id;
+    } else {
+      a.href = '#';
+    }
+    a.className = 'message-contact' + (item.conversation_id == activeConversationId ? ' active' : '');
+    a.innerHTML = `
+      <div class="message-contact-info">
+        <span class="message-contact-name">${item.name}</span>
+        <span class="message-contact-text">${item.last_message || 'Click to start chatting...'}</span>
+      </div>
+      <span class="message-contact-time">${item.last_message_time || ''}</span>
+    `;
+    container.appendChild(a);
+  });
+}
+
+function doSearch(q){
+  fetch('/messages/search?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => renderContacts(data))
+    .catch(() => {});
+}
+
+if(searchInput){
+  searchInput.addEventListener('input', function(e){
+    clearTimeout(searchTimeout);
+    const v = e.target.value.trim();
+    searchTimeout = setTimeout(() => doSearch(v), 250);
+  });
+}
+</script>
+{% endblock %}

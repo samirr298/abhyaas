@@ -36,6 +36,9 @@
         {% if session.get('role') == 'admin' %}
         <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Admin</a>
         {% endif %}
+        {% if session.get('role') != 'admin' %}
+        <a href="{{ url_for('messages.conversations') }}">Message</a>
+        {% endif%}
         <a href="{{ url_for('auth.profile') }}">Profile</a>
         
       </nav>
