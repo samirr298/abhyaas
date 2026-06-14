@@ -12,6 +12,30 @@
   </div>
 </section>
 
+<section class="card attendance-status-card" style="margin-top:20px;">
+  <div class="section-header">
+    <div>
+      <p class="section-kicker">Attendance status</p>
+      <h3>Today's attendance</h3>
+    </div>
+    <div>
+      <a class="secondary-btn" href="{{ url_for('attend.mark_attendance') }}">View full attendance</a>
+    </div>
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:18px; border-top:1px solid #e2e8f0;">
+    <div>
+      <h4 style="margin:0; font-size:1.5rem;">{{ attendance_status }}</h4>
+      <p style="margin:8px 0 0; color:#475569;">Date: {{ attendance_date_display }}</p>
+    </div>
+    <div>
+      <span style="display:inline-flex; align-items:center; gap:8px; background:#eef2ff; color:#2563eb; padding:10px 16px; border-radius:999px; font-weight:700;">
+        <span style="width:10px; height:10px; border-radius:50%; background:{{ 'green' if attendance_status == 'Present' else ('red' if attendance_status == 'Absent' else '#64748b') }}"></span>
+        {{ attendance_status }}
+      </span>
+    </div>
+  </div>
+</section>
+
 <section class="card today-task-preview">
   <div class="section-header">
     <div>
