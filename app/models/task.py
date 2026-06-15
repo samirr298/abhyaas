@@ -8,7 +8,16 @@ class Task(BaseModel):
             INSERT INTO tasks (title, description, created_by, due_date, completed_by_students, attached_filename, subject)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        return cls.execute_write(sql, [title, description, created_by, due_date, '', attached_filename, subject])
+        connection = cls.get_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(sql, [title, description, created_by, due_date, '', attached_filename, subject])
+                task_id = cursor.lastrowid
+            connection.commit()
+            return task_id
+        finally:
+            if connection is not None:
+                connection.close()
 
     @classmethod
     def get_teacher_tasks(cls, teacher_id):
