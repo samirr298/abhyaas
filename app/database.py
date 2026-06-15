@@ -144,5 +144,25 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
+                        connection.close()
+        def create_notification_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE IF NOT EXISTS notifications (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    user_id INT NOT NULL,
+                                    task_id INT NOT NULL,
+                                    title VARCHAR(255) NOT NULL,
+                                    subject VARCHAR(255) NOT NULL,
+                                    is_read TINYINT(1) NOT NULL DEFAULT 0,
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                    CONSTRAINT fk_notification_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+                                );''')
+                                connection.commit()
+                finally:
+                        pass
                         connection.close() 
 # Connection debug message removed during cleanup
