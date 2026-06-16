@@ -1,0 +1,67 @@
+{% extends 'base_app.html' %}
+
+{% block title %}Abhyas - Quiz Generator{% endblock %}
+
+{% block page_heading %}Generate Practice Quiz{% endblock %}
+
+{% block content %}
+<div class="card" style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #003366; margin-bottom: 5px;">Study Material</h2>
+        <p style="color: #666; margin-top: 0;">Paste your notes or text below to automatically generate a multiple-choice practice quiz.</p>
+    </div>
+
+    {% if not quiz_data %}
+        <form action="{{ url_for('tasks.generate_quiz') }}" method="POST">
+            <div style="margin-bottom: 15px;">
+                <label for="source_text" style="display: block; font-weight: bold; margin-bottom: 5px;">Source Text:</label>
+                <textarea id="source_text" name="source_text" rows="12" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;" placeholder="Paste at least 50 words of text here..." required></textarea>
+                
+                {% if error_msg %}
+                    <p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error_msg }}</p>
+                {% endif %}
+            </div>
+            
+            <button type="submit" style="background-color: #003366; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Generate Quiz</button>
+        </form>
+
+    {% else %}
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; color: #28a745;">Quiz Generated Successfully!</h3>
+            <p>Please attempt the questions below.</p>
+        </div>
+
+        <form action="{{ url_for('tasks.submit_quiz') }}" method="POST">
+            {% for question in quiz_data %}
+                <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">{{ loop.index }}. {{ question.question_text }}</p>
+                    
+                    <div style="margin-bottom: 5px;">
+                        <input type="radio" id="q{{ loop.index }}_a" name="question_{{ loop.index }}" value="A" required>
+                        <label for="q{{ loop.index }}_a">{{ question.option_a }}</label>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <input type="radio" id="q{{ loop.index }}_b" name="question_{{ loop.index }}" value="B">
+                        <label for="q{{ loop.index }}_b">{{ question.option_b }}</label>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <input type="radio" id="q{{ loop.index }}_c" name="question_{{ loop.index }}" value="C">
+                        <label for="q{{ loop.index }}_c">{{ question.option_c }}</label>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <input type="radio" id="q{{ loop.index }}_d" name="question_{{ loop.index }}" value="D">
+                        <label for="q{{ loop.index }}_d">{{ question.option_d }}</label>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <input type="hidden" name="original_text" value="{{ original_text }}">
+            
+            <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Submit Answers</button>
+            <a href="{{ url_for('tasks.quiz_generator_page') }}" style="margin-left: 10px; color: #003366; text-decoration: none;">Cancel and start over</a>
+        </form>
+    {% endif %}
+
+</div>
+{% endblock %}
