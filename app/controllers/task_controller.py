@@ -4,6 +4,8 @@ from datetime import datetime
 from flask import request, redirect, url_for, jsonify
 from app.controllers.base_controller import BaseController
 from app.models.base_model import BaseModel
+from app.models.task import Task
+from app.models.notification import Notification
 import math
 class TaskController(BaseController):
 
@@ -64,13 +66,16 @@ class TaskController(BaseController):
                         pass
 
                 # Insert the fresh assignment details into the main ledger
-                sql = """
-                    INSERT INTO tasks (title, description, created_by, due_date, completed_by_students, attached_filename, subject) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                status = BaseModel.execute_write(sql, [task_title, description, current_teacher_id, due_date, '', filename, subject])
-                
-                if status:
+                task_id = Task.create_task(
+                    task_title,
+                    description,
+                    current_teacher_id,
+                    due_date,
+                    filename,
+                    subject,
+                )
+                if task_id:
+                    Notification.create_task_notifications(task_id, task_title, subject)
                     return redirect(url_for('tasks.teacher_task'))
 
             # --- ACTION B: SAVE STUDENT FEEDBACK SECURELY (ONCE PER TASK) ---
@@ -129,8 +134,7 @@ class TaskController(BaseController):
         teacher_id = self.session.get('user_id')
         
         # Pull all active assignments created by this teacher account
-        fetch_tasks_sql = "SELECT * FROM tasks WHERE created_by = %s ORDER BY created_at DESC"
-        all_tasks = BaseModel.fetch_all(fetch_tasks_sql, [teacher_id]) or []
+        all_tasks = Task.get_teacher_tasks(teacher_id)
         
         # Pull all student submissions (both reviewed and pending, sorted cleanly)
         fetch_submissions_sql = """
@@ -337,6 +341,11 @@ class TaskController(BaseController):
                         # Debug print removed
                         pass
 
+        # mark notification read when student arrives from a notification link
+        notification_id = request.args.get('notification_id')
+        if notification_id:
+            Notification.mark_as_read(notification_id, current_student_id)
+
         # GET: render task details
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"
         task = BaseModel.fetch_one(fetch_task_sql, [task_id])
@@ -356,3 +365,13 @@ class TaskController(BaseController):
             feedback=feedback_items,
             now=datetime.now()
         )
+
+    def notifications(self):
+        user_id = self.session.get('user_id')
+        notifications = Notification.get_for_user(user_id)
+        return self.render('users/notifications.html', notifications=notifications)
+
+    def mark_all_notifications(self):
+        user_id = self.session.get('user_id')
+        Notification.mark_all_read(user_id)
+        return redirect(url_for('tasks.notifications'))

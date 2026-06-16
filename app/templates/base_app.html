@@ -19,9 +19,11 @@
       <nav class="sidebar-nav">
         {% if session.get('role') == 'student' %}
           <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
-          <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
+          <a class="{% if request.endpoint == 'tasks.student_task' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
+          <a class="{% if request.endpoint == 'leave.apply_leave' %}active{% endif %}" href="{{ url_for('leave.apply_leave') }}">Leave Request</a>
         {% elif session.get('role') == 'teacher' %}
-          <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'auth.teacher_dashboard' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'leave.teacher_leave_requests' %}active{% endif %}" href="{{ url_for('leave.teacher_leave_requests') }}">Leave Requests</a>
         {% elif session.get('role') == 'admin' %}
           <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Dashboard</a>
         {% else %}
@@ -43,6 +45,9 @@
         {% if session.get('role') == 'admin' %}
         <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Admin</a>
         {% endif %}
+        {% if session.get('role') != 'admin' %}
+        <a href="{{ url_for('messages.conversations') }}">Message</a>
+        {% endif%}
         <a href="{{ url_for('auth.profile') }}">Profile</a>
         
       </nav>
@@ -58,7 +63,36 @@
             <strong>{{ session.get('username') or 'User' }}</strong>
             <span>{{ session.get('email') or '' }}</span>
           </div>
-          <div class="notif">🔔</div>
+          <div class="notif-wrapper">
+            <button type="button" id="notifBtn" class="notif-btn" aria-label="Toggle notifications">
+              <span class="bell-icon">🔔</span>
+              {% if notification_unread_count and notification_unread_count > 0 %}
+              <span class="notif-badge">{{ notification_unread_count }}</span>
+              {% endif %}
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-dropdown-header">
+                <strong>Notifications</strong>
+                {% if notification_list %}
+                <form action="{{ url_for('tasks.mark_all_notifications') }}" method="POST" class="mark-all-form">
+                  <button type="submit" class="mark-all-btn">Mark all read</button>
+                </form>
+                {% endif %}
+              </div>
+              <div class="notif-list">
+                {% if notification_list %}
+                  {% for item in notification_list %}
+                  <a href="{{ url_for('tasks.view_task', task_id=item.task_id) }}?notification_id={{ item.id }}" class="notif-item {% if item.is_read == 0 %}unread{% endif %}">
+                    <div class="notif-item-title">{{ item.title }}</div>
+                    <div class="notif-item-meta">{{ item.subject or 'General' }} · {{ item.created_at.strftime('%d %b %Y %I:%M %p') if item.created_at else '' }}</div>
+                  </a>
+                  {% endfor %}
+                {% else %}
+                  <div class="notif-empty">No new notifications.</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
           <a class="avatar avatar-link" href="{{ url_for('auth.profile') }}" aria-label="Profile">
             {% if session.get('profile_pic') %}
               <img src="{{ url_for('static', filename='images/profile_pics/' ~ session.get('profile_pic')) }}" alt="Profile picture">

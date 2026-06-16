@@ -1,0 +1,46 @@
+{% extends 'base_app.html' %}
+
+{% block title %}Notifications{% endblock %}
+{% block page_heading %}Your Notifications{% endblock %}
+
+{% block content %}
+<div class="notifications-page">
+  <div class="notifications-card card">
+    <div class="notifications-header">
+      <div>
+        <p class="section-kicker">Recent updates</p>
+        <h3>Task notifications</h3>
+      </div>
+      {% if notifications %}
+      <form action="{{ url_for('tasks.mark_all_notifications') }}" method="POST">
+        <button type="submit" class="mark-all-btn">Mark all read</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="notification-list">
+      {% if notifications %}
+        {% for notification in notifications %}
+        <a href="{{ url_for('tasks.view_task', task_id=notification.task_id) }}?notification_id={{ notification.id }}"
+           class="notification-item {% if notification.is_read == 0 %}unread{% endif %}">
+          <div class="notification-body">
+            <strong>{{ notification.title }}</strong>
+            <span>{{ notification.subject or 'General' }}</span>
+          </div>
+          <div class="notification-meta">
+            <small>{{ notification.created_at.strftime('%d %b %Y %I:%M %p') if notification.created_at else '' }}</small>
+            {% if notification.is_read == 0 %}
+              <span class="notification-status">Unread</span>
+            {% else %}
+              <span class="notification-status" style="background:#ecfdf5;color:#166534;">Read</span>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="notif-empty">No notifications yet. New tasks will appear here.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
