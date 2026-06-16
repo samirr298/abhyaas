@@ -20,7 +20,7 @@
         {% if session.get('role') == 'student' %}
           <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
           <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
-          <a class="{% if request.endpoint == 'tasks.quiz_generator_page' %}active{% endif %}" href="{{ url_for('tasks.quiz_generator_page') }}">Generate Quiz</a>
+          <a class="{% if request.endpoint == 'quiz.quiz_generator_page' %}active{% endif %}" href="{{ url_for('quiz.quiz_generator_page') }}">Generate Quiz</a>
         {% elif session.get('role') == 'teacher' %}
           <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
         {% elif session.get('role') == 'admin' %}

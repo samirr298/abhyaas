@@ -60,4 +60,9 @@ def create_app():
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
 
+    # register quiz blueprint
+    from app.routes.quiz_route import QuizRoutes
+    quiz_routes = QuizRoutes()
+    app.register_blueprint(quiz_routes.register())
+
     return app
