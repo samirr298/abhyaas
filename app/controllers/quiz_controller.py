@@ -52,4 +52,39 @@ class QuizController:
         return render_template('tasks/quiz_generator.html', quiz_data=quiz_data, original_text=source_text)
 
     def submit_quiz(self):
-        pass
+        # 1. Grab the hidden original text and re-parse it to get the correct answers
+        original_text = request.form.get('original_text', '')
+        sentences = re.split(r'(?<=[.!?]) +', original_text)
+        valid_sentences = [s for s in sentences if len(s.split()) > 7] 
+        
+        score = 0
+        results = []
+        
+        # 2. Loop through the 3 questions and grade them
+        for i in range(3):
+            if i < len(valid_sentences):
+                # Re-find the target word
+                sentence = valid_sentences[i]
+                words = sentence.split()
+                target_word = max(words, key=len).strip('.,!?()')
+                
+                # In our generator, Option A was always the correct one
+                correct_choice = "A"
+                
+                # Grab what radio button the user clicked (e.g., 'question_1')
+                user_choice = request.form.get(f'question_{i+1}')
+                
+                is_correct = (user_choice == correct_choice)
+                if is_correct:
+                    score += 1
+                    
+                results.append({
+                    "question_num": i + 1,
+                    "user_choice": user_choice,
+                    "correct_choice": correct_choice,
+                    "is_correct": is_correct,
+                    "answer_text": target_word
+                })
+
+        # 3. Render State 3 with the final grades!
+        return render_template('tasks/quiz_generator.html', results=results, score=score, total=3)
