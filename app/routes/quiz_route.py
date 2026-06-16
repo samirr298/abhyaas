@@ -11,11 +11,17 @@ class QuizRoutes:
         self.bp.route("/student/quiz-generator", methods=["GET"])(
             login_required(self.controller.quiz_generator_page)
         )
-        self.bp.route("/student/generate-quiz", methods=["POST"])(
-            login_required(self.controller.generate_quiz)
+        
+        self.bp.route("/student/start-quiz", methods=["POST"])(
+            login_required(self.controller.start_quiz_session)
         )
-        self.bp.route("/student/submit-quiz", methods=["POST"])(
-            login_required(self.controller.submit_quiz)
+        
+        self.bp.route("/student/next-question", methods=["GET"])(
+            login_required(self.controller.generate_next_question)
+        )
+        
+        self.bp.route("/student/check-status", methods=["GET"])(
+            login_required(self.controller.get_quiz_status)
         )
         
         return self.bp

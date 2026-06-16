@@ -60,7 +60,7 @@
     </form>
     
     {% else %}
-    <form action="{{ url_for('quiz.generate_quiz') }}" method="POST">
+    <form action="{{ url_for('quiz.start_quiz_session') }}" method="POST">
         <div style="margin-bottom: 15px;">
             <label for="source_text" style="display: block; font-weight: bold; margin-bottom: 5px;">Source Text:</label>
             <textarea id="source_text" name="source_text" rows="12" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;" placeholder="Paste at least 50 words of text here..." required></textarea>
