@@ -2,12 +2,14 @@ import os
 from datetime import timedelta
 # Added missing imports: request, abort, render_template
 from flask import Flask, session, request, abort, render_template, flash, redirect, url_for
+from flask_socketio import SocketIO
 import config
 from .database import Database
 from flask_mail import Mail
 from app.models.notification import Notification
 
 mail = Mail()
+socketio = SocketIO(cors_allowed_origins="*")
 
 def create_app():
     app = Flask(__name__)
@@ -21,9 +23,14 @@ def create_app():
     Database.create_submission_table()
     Database.create_feedback_table()
     Database.create_notification_table()
+    Database.create_leave_request_table()
+    
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY
+    
+    # Initialize SocketIO with the app
+    socketio.init_app(app)
 
     # configuring mail
     app.config.from_object(config)
