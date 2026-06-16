@@ -181,7 +181,28 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
-                        connection.close()                
+                        connection.close()
+
+        def create_leave_request_table():
+                connection =  Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE IF NOT EXISTS leave_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    leave_date DATE NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
+    is_read BOOLEAN DEFAULT FALSE,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_leave_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);''')
+                                connection.commit()
+                finally:
+                        pass
+                        connection.close()
 
 
 # Connection debug message removed during cleanup
