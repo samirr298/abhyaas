@@ -22,6 +22,7 @@ def create_app():
     Database.create_feedback_table()
     Database.create_conversation_table()
     Database.create_message_table()
+    Database.create_leave_request_table()
 
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
@@ -59,6 +60,10 @@ def create_app():
     from app.routes.fee_route import FeeRoutes
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
+
+    from app.routes.leave_route import LeaveRoutes
+    leave_routes = LeaveRoutes()
+    app.register_blueprint(leave_routes.register())
 
     # message routes are provided as a module-level blueprint
     from app.routes.message_route import message_bp
