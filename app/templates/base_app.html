@@ -52,13 +52,12 @@
             <span>{{ session.get('email') or '' }}</span>
           </div>
           <div class="notif-wrapper">
-            <input type="checkbox" id="notifToggleCheckbox" class="notif-toggle-input">
-            <label class="notif-btn" for="notifToggleCheckbox" aria-label="Open notifications">
+            <button type="button" id="notifBtn" class="notif-btn" aria-label="Toggle notifications">
               <span class="bell-icon">🔔</span>
               {% if notification_unread_count and notification_unread_count > 0 %}
               <span class="notif-badge">{{ notification_unread_count }}</span>
               {% endif %}
-            </label>
+            </button>
             <div class="notif-dropdown" id="notifDropdown">
               <div class="notif-dropdown-header">
                 <strong>Notifications</strong>
