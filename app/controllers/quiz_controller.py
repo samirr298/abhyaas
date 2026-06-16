@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 import os
 import json
 from dotenv import load_dotenv
@@ -10,108 +10,58 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 class QuizController:
     def quiz_generator_page(self):
-        # State 1: Just loads the empty form
         return render_template('tasks/quiz_generator.html', quiz_data=None)
 
-    def generate_quiz(self):
+    def start_quiz_session(self):
+        # 1. Initialize the session state
         source_text = request.form.get('source_text', '').strip()
+        num_questions = int(request.form.get('num_questions', 3))
         
-        # Validation: Check if text is < 50 words
-        word_count = len(source_text.split())
-        if word_count < 50:
-            error_msg = f"Please enter more text. You provided {word_count} words, but we need at least 50."
-            return render_template('tasks/quiz_generator.html', quiz_data=None, error_msg=error_msg)
+        session['quiz_state'] = {
+            'source_text': source_text,
+            'total_questions': num_questions,
+            'generated_questions': [],
+            'status': 'generating'
+        }
+        return render_template('tasks/quiz_interactive.html')
+
+    def generate_next_question(self):
+        state = session.get('quiz_state')
+        if not state or len(state['generated_questions']) >= state['total_questions']:
+            return jsonify({'status': 'complete'})
+
+        idx = len(state['generated_questions']) + 1
+        prompt = f"Create ONLY question #{idx} based on this text: {state['source_text']}. Return valid JSON."
 
         try:
-            requested_num = int(request.form.get('num_questions', 3))
-        except ValueError:
-            requested_num = 3
-
-        # Craft the prompt telling Gemini to act as a strict examiner returning JSON
-        prompt = f"""
-        You are an expert educator. Create a multiple-choice practice quiz based strictly on the following study material.
-        
-        CRITICAL RULES:
-        1. Do NOT just copy and paste direct sentences. Rephrase the concepts creatively into clear, challenging questions.
-        2. Generate exactly {requested_num} questions.
-        3. Return the response as a valid JSON array of objects. Do not wrap it in markdown code blocks like ```json.
-        
-        Each object in the array MUST have exactly these keys:
-        - "id": a number starting from 1
-        - "question_text": the rephrased question string
-        - "option_a": first choice
-        - "option_b": second choice
-        - "option_c": third choice
-        - "option_d": fourth choice
-        - "correct_answer": the exact string text of the correct option
-        
-        Study Material:
-        {source_text}
-        """
-
-        try:
-            # First attempt: Try the newest 2.5 Flash model
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=prompt,
-                    config={'response_mime_type': 'application/json'}
-                )
-            except Exception as e_25:
-                # If 2.5 fails (likely due to traffic), automatically fallback to 1.5 Flash
-                print(f"⚠️ 2.5 Flash busy ({e_25}). Falling back to 1.5 Flash...")
-                response = client.models.generate_content(
-                    model='gemini-1.5-flash',
-                    contents=prompt,
-                    config={'response_mime_type': 'application/json'}
-                )
+            response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt, config={'response_mime_type': 'application/json'})
+            q_data = json.loads(response.text.strip())
             
-            # Clean up and parse the JSON payload from the AI
-            clean_json_str = response.text.strip().lstrip('```json').rstrip('```').strip()
-            quiz_data = json.loads(clean_json_str)
+            # Identify model
+            model_name = "Gemini 2.5 Flash" if "2.5" in response.model_version else "Gemini 1.5 Flash"
             
-            # Determine which model succeeded based on the response model attribute
-            model_used = "Gemini 2.5 Flash" if "2.5" in response.model_version else "Gemini 1.5 Flash"
+            # Attach model name to the question data
+            q_data['model'] = model_name
             
-            return render_template('tasks/quiz_generator.html', 
-                                   quiz_data=quiz_data, 
-                                   original_text=source_text,
-                                   generated_by=model_used)
+            state['generated_questions'].append(q_data)
+            if len(state['generated_questions']) >= state['total_questions']:
+                state['status'] = 'complete'
+            session['quiz_state'] = state
             
+            return jsonify({'status': 'success', 'question': q_data})
         except Exception as e:
-            # If BOTH models fail, show a professional, user-friendly error
-            error_msg = "Our AI servers are currently experiencing unusually high traffic. Please wait a few seconds and try generating your quiz again!"
-            
-            # Keep the real error in the terminal so you can still debug it
-            print(f"❌ Total AI Failure: {str(e)}") 
-            
-            return render_template('tasks/quiz_generator.html', quiz_data=None, error_msg=error_msg)
+            # Check if it's a Rate Limit error (429)
+            error_str = str(e)
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                print("⚠️ Rate limit hit! Waiting 60 seconds...")
+                # Tell the frontend to wait 60 seconds
+                return jsonify({'status': 'wait', 'retry_after': 60})
+            return jsonify({'status': 'error', 'message': error_str})
 
-    def submit_quiz(self):
-        try:
-            num_questions = int(request.form.get('num_questions', 3))
-        except ValueError:
-            num_questions = 3
-            
-        score = 0
-        results = []
-        
-        # Grade the questions dynamically from the hidden form data
-        for i in range(num_questions):
-            question_num = i + 1
-            user_choice = request.form.get(f'question_{question_num}')
-            correct_answer = request.form.get(f'correct_answer_{question_num}')
-            
-            is_correct = (user_choice == correct_answer)
-            if is_correct:
-                score += 1
-                
-            results.append({
-                "question_num": question_num,
-                "user_choice": user_choice,
-                "correct_choice": correct_answer,
-                "is_correct": is_correct,
-                "answer_text": correct_answer
-            })
-
-        return render_template('tasks/quiz_generator.html', results=results, score=score, total=num_questions)
+    def get_quiz_status(self):
+        state = session.get('quiz_state', {})
+        return jsonify({
+            'count': len(state.get('generated_questions', [])),
+            'total': state.get('total_questions'),
+            'status': state.get('status')
+        })
