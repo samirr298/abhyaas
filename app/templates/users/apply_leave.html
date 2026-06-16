@@ -4,118 +4,125 @@
 {% block page_heading %}Leave Application{% endblock %}
 
 {% block content %}
-<div class="leave-container">
-  <!-- Leave Request Form Section -->
-  <div class="card leave-form-card">
-    <div class="card-header">
-      <h2>Submit a Leave Request</h2>
-      <p class="card-subtitle">Fill in the details below to request leave</p>
-    </div>
-
-    <form method="POST" action="#" class="leave-form">
-      <div class="form-group">
-        <label for="leave_date" class="form-label">Leave Date <span class="required">*</span></label>
-        <input 
-          type="date" 
-          id="leave_date" 
-          name="leave_date" 
-          class="form-input" 
-          required
-          min="{{ today_date }}"
-          title="You cannot apply for a date that has already passed">
-        <small class="form-help">Select a date from today onwards</small>
-      </div>
-
-      <div class="form-group">
-        <label for="leave_reason" class="form-label">Reason for Leave <span class="required">*</span></label>
-        <textarea 
-          id="leave_reason" 
-          name="leave_reason" 
-          class="form-textarea" 
-          rows="5" 
-          placeholder="Please provide a detailed reason for your leave request..."
-          required
-          minlength="10"
-          maxlength="500"></textarea>
-        <small class="form-help">Minimum 10 characters, Maximum 500 characters</small>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn-primary">Submit Leave Request</button>
-        <button type="reset" class="btn-secondary">Clear Form</button>
-      </div>
-    </form>
+<div class="leave-page">
+  <div class="page-intro">
+    <p class="page-overline">Leave Request</p>
+    <h2>Submit a leave application</h2>
+    <p class="page-copy">Fill in the form below to request leave. Track your pending and approved requests instantly.</p>
   </div>
 
-  <!-- Leave History Section -->
-  <div class="card leave-history-card">
-    <div class="card-header">
-      <h2>Your Leave Requests</h2>
-      <p class="card-subtitle">View all your submitted leave applications</p>
-    </div>
+  <div class="dashboard-grid">
+    <section class="panel panel-form">
+      <div class="panel-header">
+        <div>
+          <p class="panel-label">New Application</p>
+          <h3>Request leave</h3>
+        </div>
+      </div>
 
-    <!-- Filter Section -->
-    <div class="leave-filters">
-      <form method="GET" action="#" class="filter-form">
-        <label for="status_filter" class="filter-label">Filter by Status:</label>
-        <select name="status_filter" id="status_filter" class="filter-select">
-          <option value="" {% if status_filter == '' %}selected{% endif %}>All Requests</option>
-          <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-          <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
-          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-        </select>
-        <button type="submit" class="btn-small">Apply Filter</button>
+      <form method="POST" action="{{ url_for('leave.apply_leave') }}" class="leave-form">
+        <div class="field-row">
+          <label for="leave_date">Start Date <span class="required">*</span></label>
+          <input type="date" id="leave_date" name="leave_date" class="form-input" required min="{{ today_date }}">
+        </div>
+
+        <div class="field-row">
+          <label for="end_date">End Date <span class="required">*</span></label>
+          <input type="date" id="end_date" name="end_date" class="form-input" required min="{{ today_date }}">
+        </div>
+
+        <div class="field-row">
+          <label for="leave_type">Leave Type <span class="required">*</span></label>
+          <select id="leave_type" name="leave_type" class="form-input" required>
+            <option value="General">General</option>
+            <option value="Medical">Medical</option>
+            <option value="Personal">Personal</option>
+            <option value="Exam">Exam Preparation</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="leave_reason">Reason for Leave <span class="required">*</span></label>
+          <textarea id="leave_reason" name="leave_reason" rows="5" class="form-textarea" placeholder="Explain why you need leave..." required minlength="10"></textarea>
+          <p class="form-help">Include enough detail to help your teacher understand the need for this request.</p>
+        </div>
+
+        <button type="submit" class="btn-primary">Submit Request</button>
       </form>
-    </div>
+    </section>
 
-    <!-- Notifications Summary -->
-    <div class="leave-notifications">
-      <h3>Notifications</h3>
+    <aside class="panel panel-summary">
+      <div class="summary-grid">
+        <article class="summary-card summary-taken">
+          <span class="summary-text">Approved days</span>
+          <strong>{{ total_taken or 0 }}</strong>
+          <p class="summary-note">Used from your yearly 21-day allowance.</p>
+        </article>
+        <article class="summary-card summary-pending">
+          <span class="summary-text">Pending requests</span>
+          <strong>{{ pending_count or 0 }}</strong>
+          <p class="summary-note">Awaiting teacher review.</p>
+        </article>
+        <article class="summary-card summary-remaining">
+          <span class="summary-text">Remaining days</span>
+          <strong>{{ remaining_days or 0 }}</strong>
+          <p class="summary-note">Days still available for leave.</p>
+        </article>
+      </div>
+
       {% if notifications %}
-        <ul class="notification-list">
+      <div class="notification-panel">
+        <div class="notification-header">Recent updates</div>
+        <div class="notifications-list">
           {% for note in notifications %}
-            <li class="notification-item notification-{{ note.status | lower }}">
-              Leave for {{ note.leave_date }} was {{ note.status | lower }} on {{ note.updated_on }}.
-            </li>
+            <div class="notification-item notification-status-{{ note.status | lower }}">
+              <strong>{{ note.status }}</strong> — {{ note.leave_date }}
+              <div class="notification-meta">Updated at {{ note.updated_on }}</div>
+            </div>
           {% endfor %}
-        </ul>
-      {% else %}
-        <p class="empty-notification">No new notifications</p>
+        </div>
+      </div>
       {% endif %}
+    </aside>
+  </div>
+
+  <section class="panel panel-history">
+    <div class="panel-header panel-header-space">
+      <div>
+        <p class="panel-label">History</p>
+        <h3>Previous leave requests</h3>
+      </div>
     </div>
 
-    <!-- Leave Requests Table -->
     {% if leave_requests %}
-    <div class="leave-table-wrapper">
-      <table class="leave-table">
+    <div class="history-table-wrapper">
+      <table class="history-table">
         <thead>
           <tr>
-            <th>Leave Date</th>
-            <th>Reason</th>
+            <th>Dates</th>
+            <th>Type</th>
+            <th>Duration</th>
             <th>Status</th>
-            <th>Submitted On</th>
+            <th>Submitted</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for request in leave_requests %}
-          <tr class="leave-row leave-row-{{ request.status | lower }}">
-            <td class="leave-date">{{ request.leave_date }}</td>
-            <td class="leave-reason">{{ request.reason }}</td>
-            <td class="leave-status">
-              <span class="status-badge status-{{ request.status | lower }}">
-                {{ request.status | upper }}
-              </span>
-            </td>
-            <td class="leave-submitted">{{ request.submitted_on }}</td>
-            <td class="leave-actions">
+          <tr>
+            <td>{{ request.date_range }}</td>
+            <td>{{ request.leave_type or 'General' }}</td>
+            <td>{{ request.duration_days }} day{% if request.duration_days != 1 %}s{% endif %}</td>
+            <td><span class="status-badge status-{{ request.status | lower }}">{{ request.status }}</span></td>
+            <td>{{ request.submitted_on }}</td>
+            <td>
               {% if request.status | lower == 'pending' %}
-              <form method="POST" action="#" style="display: inline;">
+              <form method="POST" action="{{ url_for('leave.apply_leave') }}" class="cancel-form">
                 <input type="hidden" name="request_id" value="{{ request.id }}">
-                <button type="submit" name="action" value="cancel" class="btn-cancel-leave" title="Cancel this leave request">Cancel</button>
+                <button type="submit" name="action" value="cancel" class="btn-secondary">Cancel</button>
               </form>
               {% else %}
-              <span class="action-text">No action</span>
+              <span class="action-text">No action available</span>
               {% endif %}
             </td>
           </tr>
@@ -125,352 +132,359 @@
     </div>
     {% else %}
     <div class="empty-state">
-      <p>You haven't submitted any leave requests yet.</p>
-      <p class="empty-state-hint">Fill out the form above to request leave.</p>
+      <p>No leave requests have been submitted yet.</p>
+      <p class="empty-state-hint">Use the form above to request leave and track status here.</p>
     </div>
     {% endif %}
-  </div>
-</div>
+
+    <div class="policy-card">
+      <h3>Leave Policy</h3>
+      <p>Submit leave requests at least 48 hours before your planned absence unless it is an emergency. Approved leave days are limited to 21 per academic year.</p>
+    </div>
+  </section>
 
 <style>
-  .leave-container {
-    max-width: 900px;
-    margin: 0 auto;
+  .leave-page {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
+    padding-bottom: 16px;
   }
 
-  .card-header {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #f0f0f0;
-  }
-
-  .card-header h2 {
-    margin: 0 0 4px 0;
-    font-size: 20px;
-    color: #333;
-  }
-
-  .card-subtitle {
-    margin: 0;
-    font-size: 13px;
-    color: #999;
-  }
-
-  /* Form Styles */
-  .leave-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-label {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 6px;
-    font-size: 14px;
-  }
-
-  .required {
-    color: #dc3545;
-  }
-
-  .form-input,
-  .form-textarea {
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .form-input:focus,
-  .form-textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  }
-
-  .form-input:invalid,
-  .form-textarea:invalid {
-    border-color: #dc3545;
-  }
-
-  .form-textarea {
-    resize: vertical;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-
-  .form-help {
-    font-size: 12px;
-    color: #999;
-    margin-top: 4px;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-small {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background-color: #0056b3;
-  }
-
-  .btn-secondary {
-    background-color: #6c757d;
-    color: white;
-  }
-
-  .btn-secondary:hover {
-    background-color: #545b62;
-  }
-
-  .btn-small {
-    background-color: #007bff;
-    color: white;
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-
-  .btn-small:hover {
-    background-color: #0056b3;
-  }
-
-  /* Filter Styles */
-  .leave-filters {
-    margin-bottom: 16px;
-    padding: 12px;
-    background-color: #f9f9f9;
-    border-radius: 4px;
-  }
-
-  .filter-form {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .filter-label {
-    font-weight: 600;
-    font-size: 13px;
-    color: #666;
-  }
-
-  .filter-select {
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 13px;
-    background-color: white;
-    cursor: pointer;
-  }
-
-  /* Table Styles */
-  .leave-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .leave-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .leave-table thead {
-    background-color: #f5f5f5;
-  }
-
-  .leave-table th {
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #ddd;
-  }
-
-  .leave-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .leave-table tbody tr:hover {
-    background-color: #fafafa;
-  }
-
-  .leave-date {
-    font-weight: 500;
-    color: #333;
-  }
-
-  .leave-reason {
-    max-width: 250px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #666;
-  }
-
-  .leave-status {
-    text-align: center;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    min-width: 70px;
-  }
-
-  .status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-
-  .status-approved {
-    background-color: #d4edda;
-    color: #155724;
-  }
-
-  .status-rejected {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-
-  .leave-submitted {
-    font-size: 12px;
-    color: #999;
-  }
-
-  .leave-actions {
-    text-align: center;
-  }
-
-  .btn-cancel-leave {
-    padding: 6px 10px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-cancel-leave:hover {
-    background-color: #c82333;
-  }
-
-  .action-text {
-    color: #999;
-    font-size: 12px;
-  }
-
-  /* Empty State */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #999;
-  }
-
-  .empty-state p {
-    margin: 8px 0;
-    font-size: 14px;
-  }
-
-  .empty-state-hint {
-    font-size: 12px;
-    color: #bbb;
-  }
-
-  /* Notifications */
-  .notifications-list {
+  .page-intro {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .empty-notification {
-    text-align: center;
-    color: #999;
-    padding: 20px;
-    font-size: 13px;
+  .page-overline {
+    margin: 0;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .page-intro h2 {
+    margin: 0;
+    font-size: 2rem;
+    color: #0f172a;
+  }
+
+  .page-copy {
+    margin: 0;
+    color: #64748b;
+    max-width: 760px;
+    line-height: 1.75;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+    gap: 24px;
+  }
+
+  .panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.05);
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .panel-header-space {
+    border-bottom: none;
+  }
+
+  .panel-label {
+    margin: 0 0 8px 0;
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .panel h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #102a43;
+  }
+
+  .leave-form {
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 10px;
+  }
+
+  .field-row label {
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 1rem;
+  }
+
+  .form-textarea {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .btn-primary {
+    padding: 14px 24px;
+    background: #0f172a;
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    background: #1e293b;
+  }
+
+  .btn-secondary {
+    padding: 12px 18px;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .btn-secondary:hover {
+    background: #eef2ff;
+  }
+
+  .summary-grid {
+    display: grid;
+    gap: 16px;
+    padding: 24px 24px 0;
+  }
+
+  .summary-card {
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .summary-text {
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .summary-card strong {
+    font-size: 2rem;
+    color: #102a43;
+  }
+
+  .summary-note {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .summary-taken {
+    background: #eef2ff;
+  }
+
+  .summary-pending {
+    background: #fffbeb;
+  }
+
+  .summary-remaining {
+    background: #f1f5f9;
+  }
+
+  .notification-panel {
+    border-top: 1px solid #e2e8f0;
+    padding: 22px 24px 24px;
+  }
+
+  .notification-header {
+    margin-bottom: 14px;
+    font-weight: 700;
+    color: #102a43;
+  }
+
+  .notifications-list {
+    display: grid;
+    gap: 12px;
   }
 
   .notification-item {
-    padding: 12px 16px;
-    border-radius: 4px;
-    border-left: 4px solid;
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 
-  .notification-success {
-    background-color: #d4edda;
-    color: #155724;
-    border-left-color: #28a745;
+  .notification-meta {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 6px;
   }
 
-  .notification-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-left-color: #dc3545;
+  .notification-status-approved {
+    background: #dcfce7;
+    color: #166534;
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .filter-form {
-      flex-direction: column;
-      align-items: flex-start;
+  .notification-status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .history-table-wrapper {
+    overflow-x: auto;
+    padding: 24px;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+  }
+
+  .history-table th,
+  .history-table td {
+    text-align: left;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 0.95rem;
+  }
+
+  .history-table thead th {
+    color: #475569;
+    font-weight: 700;
+    background: #f8fafc;
+  }
+
+  .history-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .cancel-form {
+    display: inline-block;
+  }
+
+  .empty-state {
+    padding: 36px;
+    text-align: center;
+    color: #475569;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .empty-state-hint {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+
+  .policy-card {
+    margin: 0 24px 24px;
+    padding: 24px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+  }
+
+  .policy-card h3 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+  }
+
+  .policy-card p {
+    margin: 0;
+    line-height: 1.75;
+    color: rgba(248, 250, 252, 0.9);
+  }
+
+  @media (max-width: 1040px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .panel-header,
+    .leave-form,
+    .summary-grid,
+    .history-table-wrapper,
+    .policy-card {
+      padding: 18px;
     }
 
-    .leave-table {
-      font-size: 12px;
+    .history-table th,
+    .history-table td {
+      padding: 12px;
     }
 
-    .leave-table th,
-    .leave-table td {
-      padding: 8px;
-    }
-
-    .leave-reason {
-      max-width: 150px;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-      width: 100%;
+    .history-table {
+      min-width: 100%;
     }
   }
 </style>

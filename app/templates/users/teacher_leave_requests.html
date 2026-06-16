@@ -7,12 +7,14 @@
 <div class="leave-container">
   <div class="card leave-history-card">
     <div class="card-header">
-      <h2>Student Leave Requests</h2>
-      <p class="card-subtitle">Review and update pending leave requests</p>
+      <div>
+        <h2>Student Leave Requests</h2>
+        <p class="card-subtitle">Review and manage pending student leave applications.</p>
+      </div>
     </div>
 
     <div class="leave-filters">
-      <form method="GET" action="#" class="filter-form">
+      <form method="GET" action="{{ url_for('leave.teacher_leave_requests') }}" class="filter-form">
         <label for="status_filter" class="filter-label">Filter by Status:</label>
         <select name="status_filter" id="status_filter" class="filter-select">
           <option value="" {% if status_filter == '' %}selected{% endif %}>All Requests</option>
@@ -30,7 +32,8 @@
         <thead>
           <tr>
             <th>Student</th>
-            <th>Leave Date</th>
+            <th>Dates</th>
+            <th>Type</th>
             <th>Reason</th>
             <th>Status</th>
             <th>Submitted</th>
@@ -40,14 +43,15 @@
         <tbody>
           {% for request in leave_requests %}
           <tr class="leave-row leave-row-{{ request.status | lower }}">
-            <td>{{ request.student_name }} ({{ request.username }})</td>
-            <td>{{ request.leave_date }}</td>
+            <td>{{ request.student_name }}<span class="sub-text">{{ request.username }}</span></td>
+            <td>{{ request.leave_date }}{% if request.end_date and request.end_date != request.leave_date %} - {{ request.end_date }}{% endif %}</td>
+            <td>{{ request.leave_type or 'General' }}</td>
             <td>{{ request.reason }}</td>
             <td><span class="status-badge status-{{ request.status | lower }}">{{ request.status }}</span></td>
             <td>{{ request.submitted_on }}</td>
             <td>
               {% if request.status | lower == 'pending' %}
-              <form method="POST" action="#" class="approval-actions">
+              <form method="POST" action="{{ url_for('leave.teacher_leave_requests') }}" class="approval-actions">
                 <input type="hidden" name="request_id" value="{{ request.id }}">
                 <button type="submit" name="action" value="approve" class="btn-primary">Approve</button>
                 <button type="submit" name="action" value="reject" class="btn-secondary">Reject</button>
@@ -188,11 +192,8 @@
     background: #f8fafc;
   }
 
-  .leave-row td {
-    white-space: nowrap;
-  }
-
-  .leave-row td:nth-child(3) {
+  .leave-row td:nth-child(3),
+  .leave-row td:nth-child(4) {
     max-width: 280px;
     white-space: normal;
     word-break: break-word;
@@ -257,6 +258,13 @@
     background: #e2e8f0;
   }
 
+  .sub-text {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+
   .action-text {
     color: #64748b;
     font-size: 0.92rem;
@@ -300,7 +308,8 @@
       min-width: 100%;
     }
 
-    .leave-row td:nth-child(3) {
+    .leave-row td:nth-child(3),
+    .leave-row td:nth-child(4) {
       max-width: none;
     }
   }

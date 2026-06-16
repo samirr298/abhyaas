@@ -192,6 +192,8 @@ class Database:
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     leave_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    leave_type VARCHAR(50) NOT NULL DEFAULT 'General',
     reason TEXT NOT NULL,
     status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
     is_read BOOLEAN DEFAULT FALSE,
@@ -199,6 +201,17 @@ class Database:
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_leave_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );''')
+                                # If the table already exists from an older schema, add missing columns safely.
+                                cursor.execute("SHOW COLUMNS FROM leave_requests LIKE 'end_date'")
+                                if cursor.rowcount == 0:
+                                        cursor.execute("ALTER TABLE leave_requests ADD COLUMN end_date DATE NULL AFTER leave_date")
+                                        cursor.execute("UPDATE leave_requests SET end_date = leave_date WHERE end_date IS NULL")
+                                        cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN end_date DATE NOT NULL")
+                                cursor.execute("SHOW COLUMNS FROM leave_requests LIKE 'leave_type'")
+                                if cursor.rowcount == 0:
+                                        cursor.execute("ALTER TABLE leave_requests ADD COLUMN leave_type VARCHAR(50) NULL DEFAULT 'General' AFTER end_date")
+                                        cursor.execute("UPDATE leave_requests SET leave_type = 'General' WHERE leave_type IS NULL")
+                                        cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN leave_type VARCHAR(50) NOT NULL DEFAULT 'General'")
                                 connection.commit()
                 finally:
                         pass

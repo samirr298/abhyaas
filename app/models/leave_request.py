@@ -3,12 +3,12 @@ from app.models.base_model import BaseModel
 
 class LeaveRequest(BaseModel):
     @staticmethod
-    def create(user_id, leave_date, reason):
+    def create(user_id, leave_date, end_date, leave_type, reason):
         sql = """
-            INSERT INTO leave_requests (user_id, leave_date, reason, status, is_read)
-            VALUES (%s, %s, %s, 'Pending', FALSE)
+            INSERT INTO leave_requests (user_id, leave_date, end_date, leave_type, reason, status, is_read)
+            VALUES (%s, %s, %s, %s, %s, 'Pending', FALSE)
         """
-        return LeaveRequest.execute_write(sql, [user_id, leave_date, reason])
+        return LeaveRequest.execute_write(sql, [user_id, leave_date, end_date, leave_type, reason])
 
     @staticmethod
     def get_by_user(user_id, status_filter=None):
@@ -16,6 +16,8 @@ class LeaveRequest(BaseModel):
             SELECT
                 id,
                 leave_date,
+                end_date,
+                leave_type,
                 reason,
                 status,
                 DATE_FORMAT(submitted_at, '%%Y-%%m-%%d %%H:%%i') AS submitted_on,
@@ -41,6 +43,8 @@ class LeaveRequest(BaseModel):
                 u.name AS student_name,
                 u.username,
                 l.leave_date,
+                l.end_date,
+                l.leave_type,
                 l.reason,
                 l.status,
                 DATE_FORMAT(l.submitted_at, '%%Y-%%m-%%d %%H:%%i') AS submitted_on,
