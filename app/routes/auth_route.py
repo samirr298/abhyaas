@@ -56,7 +56,6 @@ class AuthRoutes:
         self.bp.route("/admin/fees/update", methods=["POST"], endpoint="update_fee_status")(
             self.fee_controller.update_fee_status
         )
-        # New screen for individual student to see their own fees
         self.bp.route("/student/fees", methods=["GET"], endpoint="student_fees")(
             login_required(self.fee_controller.student_fees)
         )
