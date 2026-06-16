@@ -10,60 +10,60 @@
         <h2 style="color: #003366; margin-bottom: 5px;">Study Material</h2>
         <p style="color: #666; margin-top: 0;">Paste your notes or text below to automatically generate a multiple-choice practice quiz.</p>
     </div>
-
+    
     {% if results %}
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid #003366;">
-            <h3 style="margin-top: 0; color: #003366;">Quiz Results: {{ score }} / {{ total }}</h3>
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid #003366;">
+        <h3 style="margin-top: 0; color: #003366;">Quiz Results: {{ score }} / {{ total }}</h3>
+    </div>
+    
+    {% for result in results %}
+    <div style="margin-bottom: 15px; padding: 15px; border-radius: 4px; border: 1px solid {% if result.is_correct %}#c3e6cb{% else %}#f5c6cb{% endif %}; background-color: {% if result.is_correct %}#d4edda{% else %}#f8d7da{% endif %};">
+        <p style="margin: 0; color: #333;">
+            <strong>Question {{ result.question_num }}:</strong> You answered {{ result.user_choice }}. 
+            {% if result.is_correct %}
+            <span style="color: #155724; font-weight: bold;">(Correct!)</span>
+            {% else %}
+            <span style="color: #721c24; font-weight: bold;">(Incorrect. The correct answer was {{ result.correct_choice }}: {{ result.answer_text }})</span>
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
+    
+    <a href="{{ url_for('quiz.quiz_generator_page') }}" style="display: inline-block; margin-top: 15px; background-color: #003366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Generate Another Quiz</a>
+    
+    {% elif quiz_data %}
+    <div style="background-color: #e2e3e5; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #383d41;">Quiz Generated Successfully!</h3>
+        <p style="margin-bottom: 0;">Please attempt the questions below.</p>
+    </div>
+    
+    <form action="{{ url_for('quiz.submit_quiz') }}" method="POST">
+        {% for question in quiz_data %}
+        <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+            <p style="font-weight: bold; margin-bottom: 10px;">{{ loop.index }}. {{ question.question_text }}</p>
+            
+            <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_a" name="question_{{ loop.index }}" value="{{ question.option_a }}" required> <label for="q{{ loop.index }}_a">{{ question.option_a }}</label></div>
+            <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_b" name="question_{{ loop.index }}" value="{{ question.option_b }}"> <label for="q{{ loop.index }}_b">{{ question.option_b }}</label></div>
+            <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_c" name="question_{{ loop.index }}" value="{{ question.option_c }}"> <label for="q{{ loop.index }}_c">{{ question.option_c }}</label></div>
+            <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_d" name="question_{{ loop.index }}" value="{{ question.option_d }}"> <label for="q{{ loop.index }}_d">{{ question.option_d }}</label></div>
         </div>
-        
-        {% for result in results %}
-            <div style="margin-bottom: 15px; padding: 15px; border-radius: 4px; border: 1px solid {% if result.is_correct %}#c3e6cb{% else %}#f5c6cb{% endif %}; background-color: {% if result.is_correct %}#d4edda{% else %}#f8d7da{% endif %};">
-                <p style="margin: 0; color: #333;">
-                    <strong>Question {{ result.question_num }}:</strong> You answered {{ result.user_choice }}. 
-                    {% if result.is_correct %}
-                        <span style="color: #155724; font-weight: bold;">(Correct!)</span>
-                    {% else %}
-                        <span style="color: #721c24; font-weight: bold;">(Incorrect. The correct answer was {{ result.correct_choice }}: {{ result.answer_text }})</span>
-                    {% endif %}
-                </p>
-            </div>
         {% endfor %}
         
-        <a href="{{ url_for('quiz.quiz_generator_page') }}" style="display: inline-block; margin-top: 15px; background-color: #003366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Generate Another Quiz</a>
-
-    {% elif quiz_data %}
-        <div style="background-color: #e2e3e5; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-            <h3 style="margin-top: 0; color: #383d41;">Quiz Generated Successfully!</h3>
-            <p style="margin-bottom: 0;">Please attempt the questions below.</p>
-        </div>
-
-        <form action="{{ url_for('quiz.submit_quiz') }}" method="POST">
-            {% for question in quiz_data %}
-                <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                    <p style="font-weight: bold; margin-bottom: 10px;">{{ loop.index }}. {{ question.question_text }}</p>
-                    
-                    <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_a" name="question_{{ loop.index }}" value="A" required> <label for="q{{ loop.index }}_a">{{ question.option_a }}</label></div>
-                    <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_b" name="question_{{ loop.index }}" value="B"> <label for="q{{ loop.index }}_b">{{ question.option_b }}</label></div>
-                    <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_c" name="question_{{ loop.index }}" value="C"> <label for="q{{ loop.index }}_c">{{ question.option_c }}</label></div>
-                    <div style="margin-bottom: 5px;"><input type="radio" id="q{{ loop.index }}_d" name="question_{{ loop.index }}" value="D"> <label for="q{{ loop.index }}_d">{{ question.option_d }}</label></div>
-                </div>
-            {% endfor %}
-            
-            <input type="hidden" name="original_text" value="{{ original_text }}">
-            <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Submit Answers</button>
-            <a href="{{ url_for('quiz.quiz_generator_page') }}" style="margin-left: 10px; color: #003366; text-decoration: none;">Cancel</a>
-        </form>
-
+        <input type="hidden" name="original_text" value="{{ original_text }}">
+        <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Submit Answers</button>
+        <a href="{{ url_for('quiz.quiz_generator_page') }}" style="margin-left: 10px; color: #003366; text-decoration: none;">Cancel</a>
+    </form>
+    
     {% else %}
-        <form action="{{ url_for('quiz.generate_quiz') }}" method="POST">
-            <div style="margin-bottom: 15px;">
-                <label for="source_text" style="display: block; font-weight: bold; margin-bottom: 5px;">Source Text:</label>
-                <textarea id="source_text" name="source_text" rows="12" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;" placeholder="Paste at least 50 words of text here..." required></textarea>
-                {% if error_msg %}<p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error_msg }}</p>{% endif %}
-            </div>
-            <button type="submit" style="background-color: #003366; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Generate Quiz</button>
-        </form>
+    <form action="{{ url_for('quiz.generate_quiz') }}" method="POST">
+        <div style="margin-bottom: 15px;">
+            <label for="source_text" style="display: block; font-weight: bold; margin-bottom: 5px;">Source Text:</label>
+            <textarea id="source_text" name="source_text" rows="12" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;" placeholder="Paste at least 50 words of text here..." required></textarea>
+            {% if error_msg %}<p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error_msg }}</p>{% endif %}
+        </div>
+        <button type="submit" style="background-color: #003366; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Generate Quiz</button>
+    </form>
     {% endif %}
-
+    
 </div>
 {% endblock %}

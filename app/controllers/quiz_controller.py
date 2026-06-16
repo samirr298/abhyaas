@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 import re
+import random
 
 class QuizController:
     def quiz_generator_page(self):
@@ -17,11 +18,9 @@ class QuizController:
             return render_template('tasks/quiz_generator.html', quiz_data=None, error_msg=error_msg)
 
         # 3. GENERATION (User Story 2 & 3): Simple Python text parser
-        # We split the text into sentences
         sentences = re.split(r'(?<=[.!?]) +', source_text)
         valid_sentences = [s for s in sentences if len(s.split()) > 7] 
         
-        # If the text is weird and doesn't have 3 good sentences
         if len(valid_sentences) < 3:
             error_msg = "Please provide text with clearer, distinct sentences to generate a quiz."
             return render_template('tasks/quiz_generator.html', quiz_data=None, error_msg=error_msg)
@@ -37,15 +36,18 @@ class QuizController:
             target_word = max(words, key=len).strip('.,!?()')
             question_text = sentence.replace(target_word, "________", 1)
             
-            # You can upgrade this later to shuffle answers or use an AI library!
+            # Create a list of our 4 options and shuffle them!
+            options = [target_word, "Concept", "Theory", "Application"]
+            random.shuffle(options)
+            
             quiz_data.append({
                 "id": i + 1,
                 "question_text": question_text,
-                "option_a": target_word, 
-                "option_b": "Concept",
-                "option_c": "Theory",
-                "option_d": "Application",
-                "correct_answer": "A"
+                "option_a": options[0], 
+                "option_b": options[1],
+                "option_c": options[2],
+                "option_d": options[3],
+                "correct_answer": target_word # Track the actual word
             })
 
         # 4. State 2: Render the page with the generated questions!
@@ -68,20 +70,18 @@ class QuizController:
                 words = sentence.split()
                 target_word = max(words, key=len).strip('.,!?()')
                 
-                # In our generator, Option A was always the correct one
-                correct_choice = "A"
-                
-                # Grab what radio button the user clicked (e.g., 'question_1')
+                # Grab the ACTUAL WORD the user clicked from the form
                 user_choice = request.form.get(f'question_{i+1}')
                 
-                is_correct = (user_choice == correct_choice)
+                # Check if the word they clicked matches the target word
+                is_correct = (user_choice == target_word)
                 if is_correct:
                     score += 1
                     
                 results.append({
                     "question_num": i + 1,
                     "user_choice": user_choice,
-                    "correct_choice": correct_choice,
+                    "correct_choice": target_word, # The correct choice is now the word itself
                     "is_correct": is_correct,
                     "answer_text": target_word
                 })
