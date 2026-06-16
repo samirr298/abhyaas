@@ -59,13 +59,29 @@
       <form method="GET" action="#" class="filter-form">
         <label for="status_filter" class="filter-label">Filter by Status:</label>
         <select name="status_filter" id="status_filter" class="filter-select">
-          <option value="">All Requests</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+          <option value="" {% if status_filter == '' %}selected{% endif %}>All Requests</option>
+          <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
         </select>
         <button type="submit" class="btn-small">Apply Filter</button>
       </form>
+    </div>
+
+    <!-- Notifications Summary -->
+    <div class="leave-notifications">
+      <h3>Notifications</h3>
+      {% if notifications %}
+        <ul class="notification-list">
+          {% for note in notifications %}
+            <li class="notification-item notification-{{ note.status | lower }}">
+              Leave for {{ note.leave_date }} was {{ note.status | lower }} on {{ note.updated_on }}.
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-notification">No new notifications</p>
+      {% endif %}
     </div>
 
     <!-- Leave Requests Table -->
@@ -113,17 +129,6 @@
       <p class="empty-state-hint">Fill out the form above to request leave.</p>
     </div>
     {% endif %}
-  </div>
-
-  <!-- Notifications Section (for future integration) -->
-  <div class="card notifications-card">
-    <div class="card-header">
-      <h3>Notifications</h3>
-    </div>
-    <div id="notifications-container" class="notifications-list">
-      <!-- Notifications will appear here -->
-      <p class="empty-notification">No new notifications</p>
-    </div>
   </div>
 </div>
 
