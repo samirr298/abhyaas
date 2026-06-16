@@ -21,14 +21,23 @@ class QuizController:
         sentences = re.split(r'(?<=[.!?]) +', source_text)
         valid_sentences = [s for s in sentences if len(s.split()) > 7] 
         
-        if len(valid_sentences) < 3:
+        # Grab the requested number, default to 3
+        try:
+            requested_num = int(request.form.get('num_questions', 3))
+        except ValueError:
+            requested_num = 3
+            
+        # Ensure we don't try to generate more questions than sentences
+        num_questions = min(requested_num, len(valid_sentences))
+        
+        if num_questions < 1:
             error_msg = "Please provide text with clearer, distinct sentences to generate a quiz."
             return render_template('tasks/quiz_generator.html', quiz_data=None, error_msg=error_msg)
 
         quiz_data = []
         
-        # Create 3 questions by blanking out the longest word in a sentence
-        for i in range(3):
+        # Create questions dynamically
+        for i in range(num_questions):
             sentence = valid_sentences[i]
             words = sentence.split()
             
@@ -59,11 +68,17 @@ class QuizController:
         sentences = re.split(r'(?<=[.!?]) +', original_text)
         valid_sentences = [s for s in sentences if len(s.split()) > 7] 
         
+        # Grab the number of questions to grade
+        try:
+            num_questions = int(request.form.get('num_questions', 3))
+        except ValueError:
+            num_questions = 3
+            
         score = 0
         results = []
         
-        # 2. Loop through the 3 questions and grade them
-        for i in range(3):
+        # 2. Loop through the dynamic number of questions and grade them
+        for i in range(num_questions):
             if i < len(valid_sentences):
                 # Re-find the target word
                 sentence = valid_sentences[i]
@@ -87,4 +102,4 @@ class QuizController:
                 })
 
         # 3. Render State 3 with the final grades!
-        return render_template('tasks/quiz_generator.html', results=results, score=score, total=3)
+        return render_template('tasks/quiz_generator.html', results=results, score=score, total=num_questions)
