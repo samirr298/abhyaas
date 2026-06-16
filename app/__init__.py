@@ -74,12 +74,6 @@ def create_app():
     task_routes = TaskRoutes()
     app.register_blueprint(task_routes.register())
 
-<<<<<<< HEAD
-    # register fees blueprint
-    from app.routes.fee_route import FeeRoutes
-    fee_routes = FeeRoutes()
-    app.register_blueprint(fee_routes.register())
-=======
     from app.routes.fee_route import FeeRoutes
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
@@ -95,6 +89,5 @@ def create_app():
     # Register SocketIO Event Listeners
     from app.routes.chat_socket import init_chat_sockets
     init_chat_sockets(socketio)
->>>>>>> merge/all_done
 
     return app
