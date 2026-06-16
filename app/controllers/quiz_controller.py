@@ -70,7 +70,13 @@ class QuizController:
             clean_json_str = response.text.strip().lstrip('```json').rstrip('```').strip()
             quiz_data = json.loads(clean_json_str)
             
-            return render_template('tasks/quiz_generator.html', quiz_data=quiz_data, original_text=source_text)
+            # Determine which model succeeded based on the response model attribute
+            model_used = "Gemini 2.5 Flash" if "2.5" in response.model_version else "Gemini 1.5 Flash"
+            
+            return render_template('tasks/quiz_generator.html', 
+                                   quiz_data=quiz_data, 
+                                   original_text=source_text,
+                                   generated_by=model_used)
             
         except Exception as e:
             # If BOTH models fail, show a professional, user-friendly error
