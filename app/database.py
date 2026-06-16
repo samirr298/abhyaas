@@ -145,77 +145,24 @@ class Database:
                 finally:
                         pass
                         connection.close()
-        def create_conversation_table():
+        def create_notification_table():
                 connection =  Database.db()
                 try:
                         with connection.cursor() as cursor:
                                 cursor.execute(
-                               '''CREATE TABLE If not exists conversations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT NOT NULL,
-    teacher_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_conv_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_conv_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_private_chat (student_id, teacher_id)
-);''')
+                               '''CREATE TABLE IF NOT EXISTS notifications (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    user_id INT NOT NULL,
+                                    task_id INT NOT NULL,
+                                    title VARCHAR(255) NOT NULL,
+                                    subject VARCHAR(255) NOT NULL,
+                                    is_read TINYINT(1) NOT NULL DEFAULT 0,
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                    CONSTRAINT fk_notification_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+                                );''')
                                 connection.commit()
                 finally:
                         pass
-                        connection.close()
-        def create_message_table():
-                connection =  Database.db()
-                try:
-                        with connection.cursor() as cursor:
-                                cursor.execute(
-                               '''CREATE TABLE if not exists messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    conversation_id INT NOT NULL,
-    sender_id INT NOT NULL,
-    message_text TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_msg_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-    CONSTRAINT fk_msg_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
-);''')
-                                connection.commit()
-                finally:
-                        pass
-                        connection.close()
-
-        def create_leave_request_table():
-                connection =  Database.db()
-                try:
-                        with connection.cursor() as cursor:
-                                cursor.execute(
-                               '''CREATE TABLE IF NOT EXISTS leave_requests (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    leave_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    leave_type VARCHAR(50) NOT NULL DEFAULT 'General',
-    reason TEXT NOT NULL,
-    status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
-    is_read BOOLEAN DEFAULT FALSE,
-    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_leave_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);''')
-                                # If the table already exists from an older schema, add missing columns safely.
-                                cursor.execute("SHOW COLUMNS FROM leave_requests LIKE 'end_date'")
-                                if cursor.rowcount == 0:
-                                        cursor.execute("ALTER TABLE leave_requests ADD COLUMN end_date DATE NULL AFTER leave_date")
-                                        cursor.execute("UPDATE leave_requests SET end_date = leave_date WHERE end_date IS NULL")
-                                        cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN end_date DATE NOT NULL")
-                                cursor.execute("SHOW COLUMNS FROM leave_requests LIKE 'leave_type'")
-                                if cursor.rowcount == 0:
-                                        cursor.execute("ALTER TABLE leave_requests ADD COLUMN leave_type VARCHAR(50) NULL DEFAULT 'General' AFTER end_date")
-                                        cursor.execute("UPDATE leave_requests SET leave_type = 'General' WHERE leave_type IS NULL")
-                                        cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN leave_type VARCHAR(50) NOT NULL DEFAULT 'General'")
-                                connection.commit()
-                finally:
-                        pass
-                        connection.close()
-
-
+                        connection.close() 
 # Connection debug message removed during cleanup

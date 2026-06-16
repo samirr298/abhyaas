@@ -195,4 +195,20 @@ document.addEventListener('DOMContentLoaded', function () {
   attachUsernameChecks();
   attachProfileUsernameEditor();
 
+  // Notification bell dropdown toggle
+  var notifBtn = document.getElementById('notifBtn');
+  var notifDropdown = document.getElementById('notifDropdown');
+  if (notifBtn && notifDropdown) {
+    notifBtn.addEventListener('click', function (event) {
+      event.stopPropagation();
+      notifDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!notifDropdown.contains(event.target) && event.target !== notifBtn) {
+        notifDropdown.classList.remove('open');
+      }
+    });
+  }
+
 });

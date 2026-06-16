@@ -61,6 +61,11 @@ class Users(BaseModel):
         return Users.fetch_one(sql, [username])
 
     @staticmethod
+    def get_all_students():
+        sql = "SELECT id FROM users WHERE role = 'student'"
+        return Users.fetch_all(sql) or []
+
+    @staticmethod
     def get_all_users():
         sql = "SELECT id, name, username, email, role FROM users ORDER BY created_at DESC"
         return Users.fetch_all(sql) or []
