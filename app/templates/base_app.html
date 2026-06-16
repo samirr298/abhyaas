@@ -19,9 +19,11 @@
       <nav class="sidebar-nav">
         {% if session.get('role') == 'student' %}
           <a class="{% if request.endpoint == 'auth.student_dashboard' %}active{% endif %}" href="{{ url_for('auth.student_dashboard') }}">Dashboard</a>
-          <a class="{% if request.endpoint == 'auth.student' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
+          <a class="{% if request.endpoint == 'tasks.student_task' %}active{% endif %}" href="{{ url_for('tasks.student_task') }}">Student Task</a>
+          <a class="{% if request.endpoint == 'leave.apply_leave' %}active{% endif %}" href="{{ url_for('leave.apply_leave') }}">Leave Request</a>
         {% elif session.get('role') == 'teacher' %}
-          <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'auth.teacher_dashboard' %}active{% endif %}" href="{{ url_for('auth.teacher_dashboard') }}">Dashboard</a>
+          <a class="{% if request.endpoint == 'leave.teacher_leave_requests' %}active{% endif %}" href="{{ url_for('leave.teacher_leave_requests') }}">Leave Requests</a>
         {% elif session.get('role') == 'admin' %}
           <a class="{% if request.endpoint == 'auth.admin' %}active{% endif %}" href="{{ url_for('auth.admin_dashboard') }}">Dashboard</a>
         {% else %}
