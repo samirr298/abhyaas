@@ -54,6 +54,10 @@ def create_app():
             'notification_list': [],
         }
 
+    @app.route('/ai-assistant')
+    def ai_assistant():
+        return render_template('ai_assistant.html')
+
     #initialising mail
     mail.init_app(app)
 
