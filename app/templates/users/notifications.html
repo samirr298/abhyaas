@@ -30,9 +30,9 @@
           <div class="notification-meta">
             <small>{{ notification.created_at.strftime('%d %b %Y %I:%M %p') if notification.created_at else '' }}</small>
             {% if notification.is_read == 0 %}
-              <span class="notification-status">Unread</span>
+              <span class="notification-status unread">Unread</span>
             {% else %}
-              <span class="notification-status" style="background:#ecfdf5;color:#166534;">Read</span>
+              <span class="notification-status read">Read</span>
             {% endif %}
           </div>
         </a>

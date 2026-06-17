@@ -2,6 +2,9 @@
 
 {% block title %}Apply for Leave{% endblock %}
 {% block page_heading %}Leave Application{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leave.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="leave-page">
@@ -143,14 +146,6 @@
     </div>
   </section>
 
-<style>
-  .leave-page {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    padding-bottom: 16px;
-  }
-
   .page-intro {
     display: flex;
     flex-direction: column;
@@ -159,7 +154,7 @@
 
   .page-overline {
     margin: 0;
-    color: #475569;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.14em;
     font-size: 0.8rem;
@@ -169,12 +164,12 @@
   .page-intro h2 {
     margin: 0;
     font-size: 2rem;
-    color: #0f172a;
+    color: var(--text);
   }
 
   .page-copy {
     margin: 0;
-    color: #64748b;
+    color: var(--text-muted);
     max-width: 760px;
     line-height: 1.75;
   }
@@ -186,8 +181,8 @@
   }
 
   .panel {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 24px;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.05);
   }
@@ -197,7 +192,7 @@
     justify-content: space-between;
     align-items: flex-start;
     padding: 24px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border);
   }
 
   .panel-header-space {
@@ -206,7 +201,7 @@
 
   .panel-label {
     margin: 0 0 8px 0;
-    color: #475569;
+    color: var(--text-muted);
     font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -216,7 +211,7 @@
   .panel h3 {
     margin: 0;
     font-size: 1.35rem;
-    color: #102a43;
+    color: var(--text);
   }
 
   .leave-form {
@@ -232,17 +227,17 @@
 
   .field-row label {
     font-weight: 700;
-    color: #334155;
+    color: var(--text);
   }
 
   .form-input,
   .form-textarea {
     width: 100%;
     padding: 14px 16px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border);
     border-radius: 16px;
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--surface-strong);
+    color: var(--text);
     font-size: 1rem;
   }
 
@@ -262,24 +257,24 @@
 
   .btn-primary {
     padding: 14px 24px;
-    background: #0f172a;
-    color: #fff;
+    background: var(--primary);
+    color: var(--text-inverted);
   }
 
   .btn-primary:hover {
     transform: translateY(-1px);
-    background: #1e293b;
+    background: var(--primary-hover);
   }
 
   .btn-secondary {
     padding: 12px 18px;
-    background: #f8fafc;
-    color: #334155;
-    border: 1px solid #cbd5e1;
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
   .btn-secondary:hover {
-    background: #eef2ff;
+    background: var(--surface);
   }
 
   .summary-grid {
@@ -289,7 +284,7 @@
   }
 
   .summary-card {
-    background: #f8fafc;
+    background: var(--surface-strong);
     border-radius: 20px;
     padding: 22px;
     display: flex;
@@ -298,7 +293,7 @@
   }
 
   .summary-text {
-    color: #475569;
+    color: var(--text-muted);
     font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -307,12 +302,12 @@
 
   .summary-card strong {
     font-size: 2rem;
-    color: #102a43;
+    color: var(--text);
   }
 
   .summary-note {
     margin: 0;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.94rem;
     line-height: 1.5;
   }
@@ -330,14 +325,14 @@
   }
 
   .notification-panel {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border);
     padding: 22px 24px 24px;
   }
 
   .notification-header {
     margin-bottom: 14px;
     font-weight: 700;
-    color: #102a43;
+    color: var(--text);
   }
 
   .notifications-list {
@@ -353,19 +348,19 @@
   }
 
   .notification-meta {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.85rem;
     margin-top: 6px;
   }
 
   .notification-status-approved {
-    background: #dcfce7;
-    color: #166534;
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
   }
 
   .notification-status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(248, 113, 113, 0.14);
+    color: #b91c1c;
   }
 
   .history-table-wrapper {
@@ -383,19 +378,19 @@
   .history-table td {
     text-align: left;
     padding: 16px 18px;
-    border-bottom: 1px solid #e2e8f0;
-    color: #334155;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
     font-size: 0.95rem;
   }
 
   .history-table thead th {
-    color: #475569;
+    color: var(--text-muted);
     font-weight: 700;
-    background: #f8fafc;
+    background: var(--surface-strong);
   }
 
   .history-table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--surface-strong);
   }
 
   .status-badge {
@@ -409,18 +404,18 @@
   }
 
   .status-pending {
-    background: #fef3c7;
-    color: #92400e;
+    background: rgba(245, 158, 11, 0.16);
+    color: #b77905;
   }
 
   .status-approved {
-    background: #dcfce7;
-    color: #166534;
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
   }
 
   .status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(248, 113, 113, 0.14);
+    color: #b91c1c;
   }
 
   .cancel-form {
@@ -430,7 +425,7 @@
   .empty-state {
     padding: 36px;
     text-align: center;
-    color: #475569;
+    color: var(--text-muted);
   }
 
   .empty-state p {
@@ -440,7 +435,7 @@
 
   .empty-state-hint {
     margin-top: 10px;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.95rem;
   }
 
@@ -448,8 +443,8 @@
     margin: 0 24px 24px;
     padding: 24px;
     border-radius: 22px;
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    color: #f8fafc;
+    background: var(--primary);
+    color: var(--text-inverted);
   }
 
   .policy-card h3 {
@@ -487,5 +482,4 @@
       min-width: 100%;
     }
   }
-</style>
 {% endblock %}

@@ -5,7 +5,7 @@
 
 {% block content %}
 <section class="card fees-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <div class="row-flex">
         <div>
             <h2>Student Fees Management</h2>
             <p>View and manage student fee payment status</p>
@@ -19,8 +19,8 @@
 <!-- Filter Section -->
 <section class="card fees-filter">
     <form method="get" action="{{ url_for('auth.fees_management') }}">
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <label for="filter" style="font-weight: 600;">Filter by Status:</label>
+        <div class="row-flex">
+            <label for="filter" class="label-strong">Filter by Status:</label>
             <select name="filter" id="filter">
                 <option value="">All Students</option>
                 <option value="unpaid" {% if current_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
@@ -64,9 +64,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display: inline;">
+                    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
                         <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <div style="display: flex; gap: 6px;">
+                        <div class="action-row">
                             {% if student['fee_status'] == 'unpaid' %}
                             <button type="submit" name="fee_status" value="paid" class="action-btn mark-paid">Mark as Paid</button>
                             {% else %}
@@ -80,8 +80,8 @@
         </tbody>
     </table>
     {% else %}
-    <div style="text-align: center; padding: 40px;">
-        <p style="font-size: 16px; color: #666;">
+    <div class="empty-state">
+        <p class="muted-note">
             {% if current_filter %}
                 No students found with status: <strong>{{ current_filter | upper }}</strong>
             {% else %}
@@ -134,6 +134,11 @@
     .fees-table tbody tr:hover {
         background-color: #fafafa;
     }
+
+    .row-flex{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .label-strong{font-weight:600}
+    .action-row{display:flex;gap:6px}
+    .empty-state{text-align:center;padding:40px}
 
     .status-badge {
         display: inline-block;
