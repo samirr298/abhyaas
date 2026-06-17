@@ -38,7 +38,8 @@ class QuizController:
             'total_questions': num_questions,
             'generated_questions': [],
             'status': 'generating',
-            'time_limit_per_question': total_seconds if enable_timer else None
+            'time_limit_per_question': total_seconds if enable_timer else None,
+            'hide_answers': request.form.get('hide_answers') == 'true'
         }
         return render_template('tasks/quiz_interactive.html')
 

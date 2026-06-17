@@ -48,9 +48,11 @@
     let generatedQuestions = [];
     let currentViewIndex = 0;
     let isGenerating = true;
+    let isQuizFinished = false;
 
-    // Timer Variables (Reads directly from Flask session)
+    // Config Variables (Reads directly from Flask session)
     let timeLimit = {{ session.get('quiz_state', {}).get('time_limit_per_question') or 'null' }};
+    let hideAnswers = {{ 'true' if session.get('quiz_state', {}).get('hide_answers') else 'false' }};
     let timerInterval = null;
     let timeRemaining = timeLimit;
 
@@ -107,6 +109,11 @@
         currentViewIndex = index;
         const q = generatedQuestions[index];
         
+        // Record when the user started looking at the question
+        if (!q.user_selected && !q.startTime) {
+            q.startTime = Date.now();
+        }
+        
         // Highlight active nav button
         document.querySelectorAll('[id^="nav-btn-"]').forEach(btn => {
             btn.style.backgroundColor = "white";
@@ -139,19 +146,26 @@
             let btnStyle = "text-align: left; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; font-size: 1em;";
             let disabledAttr = "";
 
-            // If the user has ALREADY answered this question, apply the grading colors!
+            // If the user has ALREADY answered this question, apply colors!
             if (q.user_selected) {
                 disabledAttr = "disabled"; // Lock the button
                 
-                if (opt.value === q.correct_answer) {
-                    // This is the correct answer (Make it Green)
-                    btnStyle = "text-align: left; padding: 10px; border: 1px solid #c3e6cb; border-radius: 4px; background: #d4edda; font-size: 1em;";
-                } else if (opt.value === q.user_selected && q.user_selected !== q.correct_answer) {
-                    // This is the wrong answer the user clicked (Make it Red)
-                    btnStyle = "text-align: left; padding: 10px; border: 1px solid #f5c6cb; border-radius: 4px; background: #f8d7da; font-size: 1em;";
+                if (hideAnswers && !isQuizFinished) {
+                    // HIDDEN MODE: Show a neutral blue color for their selection
+                    if (opt.value === q.user_selected) {
+                        btnStyle = "text-align: left; padding: 10px; border: 1px solid #b8daff; border-radius: 4px; background: #cce5ff; font-size: 1em;";
+                    } else {
+                        btnStyle = "text-align: left; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #e9ecef; font-size: 1em; opacity: 0.6;";
+                    }
                 } else {
-                    // Other unselected, wrong answers (Fade them out)
-                    btnStyle = "text-align: left; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #e9ecef; font-size: 1em; opacity: 0.6;";
+                    // REVEAL MODE: Show Green and Red
+                    if (opt.value === q.correct_answer) {
+                        btnStyle = "text-align: left; padding: 10px; border: 1px solid #c3e6cb; border-radius: 4px; background: #d4edda; font-size: 1em;";
+                    } else if (opt.value === q.user_selected && q.user_selected !== q.correct_answer) {
+                        btnStyle = "text-align: left; padding: 10px; border: 1px solid #f5c6cb; border-radius: 4px; background: #f8d7da; font-size: 1em;";
+                    } else {
+                        btnStyle = "text-align: left; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #e9ecef; font-size: 1em; opacity: 0.6;";
+                    }
                 }
             }
 
@@ -163,15 +177,24 @@
         // Handle Feedback Box
         const feedback = document.getElementById('feedback-box');
         if (q.user_selected) {
-            feedback.style.display = "block";
-            if (q.user_selected === q.correct_answer) {
-                feedback.style.backgroundColor = "#d4edda";
-                feedback.style.color = "#155724";
-                feedback.innerHTML = "✅ Correct!";
+            if (hideAnswers && !isQuizFinished) {
+                feedback.style.display = "block";
+                feedback.style.backgroundColor = "#cce5ff";
+                feedback.style.color = "#004085";
+                feedback.innerHTML = `✅ Answer recorded. (Grade hidden until end)`;
             } else {
-                feedback.style.backgroundColor = "#f8d7da";
-                feedback.style.color = "#721c24";
-                feedback.innerHTML = `❌ Incorrect. The correct answer is: <strong>${q.correct_answer}</strong>`;
+                feedback.style.display = "block";
+                const timeTakenStr = q.timeTaken !== undefined ? `<br><span style="font-size: 0.9em; font-weight: normal; margin-top: 5px; display: inline-block;">⏱️ Time taken: ${q.timeTaken} seconds</span>` : '';
+                
+                if (q.user_selected === q.correct_answer) {
+                    feedback.style.backgroundColor = "#d4edda";
+                    feedback.style.color = "#155724";
+                    feedback.innerHTML = `✅ Correct! ${timeTakenStr}`;
+                } else {
+                    feedback.style.backgroundColor = "#f8d7da";
+                    feedback.style.color = "#721c24";
+                    feedback.innerHTML = `❌ Incorrect. The correct answer is: <strong>${q.correct_answer}</strong> ${timeTakenStr}`;
+                }
             }
         } else {
             feedback.style.display = "none"; // Hide if not answered yet
@@ -189,10 +212,20 @@
         // 1. Save the user's choice to our array
         generatedQuestions[currentViewIndex].user_selected = selected;
 
+        // 2. Calculate and save time taken
+        if (generatedQuestions[currentViewIndex].startTime && !generatedQuestions[currentViewIndex].timeTaken) {
+            generatedQuestions[currentViewIndex].timeTaken = Math.floor((Date.now() - generatedQuestions[currentViewIndex].startTime) / 1000);
+        }
+
         clearInterval(timerInterval); // Stop the clock!
+
+        // 3. Unlock answers if the whole quiz is completed
+        let totalAnswered = generatedQuestions.filter(question => question.user_selected).length;
+        if (totalAnswered === generatedQuestions.length && !isGenerating) {
+            isQuizFinished = true; // Flips the switch to reveal all grades!
+        }
         
-        // 2. Re-render the question. 
-        // Because we saved the choice above, showQuestion() will now automatically paint it green/red!
+        // 4. Re-render the question. 
         showQuestion(currentViewIndex);
     }
 
@@ -241,7 +274,7 @@
         let s = seconds % 60;
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
-    
+
 </script>
 
 
