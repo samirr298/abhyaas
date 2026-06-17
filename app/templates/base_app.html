@@ -63,6 +63,7 @@
             <strong>{{ session.get('username') or 'User' }}</strong>
             <span>{{ session.get('email') or '' }}</span>
           </div>
+          <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme">🌙</button>
           <div class="notif-wrapper">
             <button type="button" id="notifBtn" class="notif-btn" aria-label="Toggle notifications">
               <span class="bell-icon">🔔</span>
