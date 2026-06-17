@@ -24,7 +24,8 @@ def create_app():
     Database.create_feedback_table()
     Database.create_notification_table()
     Database.create_leave_request_table()
-    
+    Database.create_conversation_table()
+    Database.create_message_table()
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY
