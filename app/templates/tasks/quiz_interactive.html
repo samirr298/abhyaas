@@ -33,7 +33,33 @@
         
         <div style="margin-top: 25px; display: flex; justify-content: space-between;">
             <button id="btn-prev" onclick="navigate(-1)" style="background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: none;">&larr; Previous</button>
-            <button id="btn-next" onclick="navigate(1)" style="background-color: #003366; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: none;">Next &rarr;</button>
+            <div>
+                <button id="btn-next" onclick="navigate(1)" style="background-color: #003366; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; display: none;">Next &rarr;</button>
+                <button id="btn-finish" onclick="finishTest()" style="background-color: #28a745; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; display: none; font-weight: bold;">Finish Test ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-container" style="display: none; padding: 10px;">
+        <div style="background-color: #e2e3e5; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px solid #d6d8db;">
+            <h2 style="margin-top: 0; color: #383d41; font-size: 2em;">Quiz Complete!</h2>
+            <div style="display: flex; justify-content: center; gap: 40px; margin-top: 15px;">
+                <div>
+                    <p style="margin: 0; color: #666; font-size: 0.9em; text-transform: uppercase;">Final Score</p>
+                    <p id="final-score" style="margin: 5px 0 0 0; font-size: 2.5em; font-weight: bold; color: #003366;">--/--</p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #666; font-size: 0.9em; text-transform: uppercase;">Total Time</p>
+                    <p id="final-time" style="margin: 5px 0 0 0; font-size: 2.5em; font-weight: bold; color: #d9534f;">--:--</p>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color: #003366; border-bottom: 2px solid #eee; padding-bottom: 10px;">Performance Breakdown</h3>
+        <div id="stats-breakdown" style="margin-top: 15px;"></div>
+        
+        <div style="margin-top: 25px; text-align: center;">
+            <button onclick="reviewAnswers()" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;">🔍 Review Answers</button>
         </div>
     </div>
     
@@ -49,10 +75,15 @@
     let currentViewIndex = 0;
     let isGenerating = true;
     let isQuizFinished = false;
+    let isQuizSubmitted = false; // New flag for the Scoreboard
 
-    // Config Variables (Reads directly from Flask session)
-    let timeLimit = {{ session.get('quiz_state', {}).get('time_limit_per_question') or 'null' }};
-    let hideAnswers = {{ 'true' if session.get('quiz_state', {}).get('hide_answers') else 'false' }};
+    // Config Variables (Wrapped in strings so VS Code doesn't panic)
+    let timeLimitStr = "{{ session.get('quiz_state', {}).get('time_limit_per_question') or 'null' }}";
+    let timeLimit = timeLimitStr !== 'null' ? parseInt(timeLimitStr) : null;
+    
+    let hideAnswersStr = "{{ 'true' if session.get('quiz_state', {}).get('hide_answers') else 'false' }}";
+    let hideAnswers = hideAnswersStr === "true";
+
     let timerInterval = null;
     let timeRemaining = timeLimit;
 
@@ -150,7 +181,7 @@
             if (q.user_selected) {
                 disabledAttr = "disabled"; // Lock the button
                 
-                if (hideAnswers && !isQuizFinished) {
+                if (hideAnswers && !isQuizSubmitted) {
                     // HIDDEN MODE: Show a neutral blue color for their selection
                     if (opt.value === q.user_selected) {
                         btnStyle = "text-align: left; padding: 10px; border: 1px solid #b8daff; border-radius: 4px; background: #cce5ff; font-size: 1em;";
@@ -177,7 +208,7 @@
         // Handle Feedback Box
         const feedback = document.getElementById('feedback-box');
         if (q.user_selected) {
-            if (hideAnswers && !isQuizFinished) {
+            if (hideAnswers && !isQuizSubmitted) {
                 feedback.style.display = "block";
                 feedback.style.backgroundColor = "#cce5ff";
                 feedback.style.color = "#004085";
@@ -202,7 +233,14 @@
         
         // Handle Prev/Next button visibility
         document.getElementById('btn-prev').style.display = index > 0 ? "inline-block" : "none";
-        document.getElementById('btn-next').style.display = index < (generatedQuestions.length - 1) ? "inline-block" : "none";
+        
+        if (isQuizFinished && index === generatedQuestions.length - 1) {
+            document.getElementById('btn-next').style.display = "none";
+            document.getElementById('btn-finish').style.display = "inline-block";
+        } else {
+            document.getElementById('btn-next').style.display = index < (generatedQuestions.length - 1) ? "inline-block" : "none";
+            document.getElementById('btn-finish').style.display = "none";
+        }
 
         startTimer(); 
     }
@@ -275,6 +313,58 @@
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
+
+    // --- SCOREBOARD LOGIC ---
+    function finishTest() {
+        isQuizSubmitted = true;
+        clearInterval(timerInterval); // Stop any running clocks
+        
+        // Hide the active quiz UI
+        document.getElementById('question-container').style.display = "none";
+        document.getElementById('nav-buttons').style.display = "none";
+        document.getElementById('status-text').style.display = "none";
+
+        // Calculate final stats
+        let score = 0;
+        let totalTime = 0;
+        let statsHtml = "";
+
+        generatedQuestions.forEach((q, i) => {
+            let isCorrect = q.user_selected === q.correct_answer;
+            if (isCorrect) score++;
+            
+            let t = q.timeTaken || 0;
+            totalTime += t;
+
+            let icon = isCorrect ? "✅" : "❌";
+            let bgColor = isCorrect ? "#d4edda" : "#f8d7da";
+            let textColor = isCorrect ? "#155724" : "#721c24";
+
+            statsHtml += `
+                <div style="background-color: ${bgColor}; color: ${textColor}; padding: 12px 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.1em;"><strong>Question ${i + 1}:</strong> ${icon} ${isCorrect ? 'Correct' : 'Incorrect'}</span>
+                    <span style="font-weight: bold; background: rgba(255,255,255,0.5); padding: 4px 8px; border-radius: 4px;">⏱️ ${t}s</span>
+                </div>
+            `;
+        });
+
+        // Inject the math into the HTML
+        document.getElementById('final-score').innerText = `${score} / ${generatedQuestions.length}`;
+        document.getElementById('final-time').innerText = formatTime(totalTime);
+        document.getElementById('stats-breakdown').innerHTML = statsHtml;
+        
+        // Reveal the scoreboard
+        document.getElementById('results-container').style.display = "block";
+    }
+
+    function reviewAnswers() {
+        // Go back to the first question, but now isQuizSubmitted is true, so answers are revealed!
+        document.getElementById('results-container').style.display = "none";
+        document.getElementById('nav-buttons').style.display = "flex";
+        document.getElementById('question-container').style.display = "block";
+        document.getElementById('btn-finish').style.display = "none";
+        showQuestion(0);
+    }
 </script>
 
 
