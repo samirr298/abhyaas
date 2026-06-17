@@ -17,7 +17,7 @@
         {% set ann = annoucementshistory %}
     {% endif %}
 
-    <article class="announcement-card" style="margin-bottom: 16px;">
+    <article class="announcement-card">
         <div class="announcement-image one"></div>
         <div class="announcement-content">
             <div class="meta-row">
@@ -30,7 +30,7 @@
             <div class="card-footer">
                 <span class="small-meta">Author: {{ ann['author_name'] }}</span>
                 {% if session.get('role') == 'teacher' and ann['author_id'] == session.get('user_id') %}
-                <form method="post" action="{{ url_for('announce.announcement_delete', announcement_id=ann['id']) }}" style="display:inline-block; margin-left: 12px;">
+                <form method="post" action="{{ url_for('announce.announcement_delete', announcement_id=ann['id']) }}" class="inline-form">
                     <button type="submit" class="btn btn-danger">Delete Announcement</button>
                 </form>
                 {% endif %}

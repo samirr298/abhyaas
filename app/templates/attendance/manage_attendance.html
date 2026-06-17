@@ -42,7 +42,7 @@
             {% endif %}
           </td>
           <td>
-            <form method="post" action="{{ url_for('attend.manage_attendance') }}" style="display:inline-flex; gap:8px;">
+            <form method="post" action="{{ url_for('attend.manage_attendance') }}" class="inline-form action-row">
               <input type="hidden" name="student_id" value="{{ student['student_id'] }}">
               <button type="submit" name="status" value="present" class="btn btn-primary">Present</button>
               <button type="submit" name="status" value="absent" class="btn btn-outline">Absent</button>

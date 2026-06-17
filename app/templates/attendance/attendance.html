@@ -7,11 +7,6 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    .hidden {
-    display: none !important;
-  }
-</style>
 <div class="attendance-page">
     <section class="attendance-hero card">
         <div class="attendance-hero-copy">
@@ -31,13 +26,13 @@
         </div>
 
         <div class="attendance-hero-actions">
-            {% if attendance_status != 'Present' %}
-            <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-hero-actions">
-                 <input type="hidden" name="status" value="present">
-                 <button type="submit">Mark Present</button>
-            </form>
+              {% if attendance_status != 'Present' %}
+              <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-hero-actions">
+                  <input type="hidden" name="status" value="present">
+                  <button type="submit" class="attendance-mark-btn">Mark Present</button>
+              </form>
             {% else %}
-            <button class="btn-disabled" disabled style="cursor: not-allowed; opacity: 0.6;">Already Present</button>
+              <button class="btn-disabled" disabled>Already Present</button>
             {% endif %}
         </div>
     </section>
@@ -68,7 +63,7 @@
                 <p class="attendance-eyebrow">History</p>
                 <h3 class="history-title">Attendance history</h3>
                 <p class="attendance-copy">Showing {{ selected_month_name }} {{ selected_year }}. Newest records appear first.</p>
-                 <input class="search" id="search" placeholder="Search Attendance date or Day" style="margin-top: 10px;">
+                 <input class="search" id="search" placeholder="Search Attendance date or Day">
             </div>
 
             <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="month-filter">
@@ -130,7 +125,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" style="text-align: center; color: #9ca3af; padding: 24px;">
+                        <td colspan="4" class="table-empty-cell">
                             No historical attendance records found.
                         </td>
                     </tr>
@@ -139,30 +134,30 @@
             </table>
         </div>
 
-        <div class="pagination-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+        <div class="pagination-footer">
             <div>
                 {% if current_page > 1 %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year) }}" class="btn-pagination">
                        &larr; Previous
                     </a>
                 {% else %}
-                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                    <span class="btn-pagination disabled">
                         &larr; Previous
                     </span>
                 {% endif %}
             </div>
 
-            <div class="page-indicator" style="font-size: 0.875rem; color: #4b5563;">
+            <div class="page-indicator">
                 Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong>
             </div>
 
             <div>
                 {% if current_page < total_pages %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
+                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year) }}" class="btn-pagination">
                        Next &rarr;
                     </a>
                 {% else %}
-                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
+                    <span class="btn-pagination disabled">
                         Next &rarr;
                     </span>
                 {% endif %}
