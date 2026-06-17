@@ -112,7 +112,7 @@ Announcements | Abhyas
         <div>
             <h2>Latest Announcements</h2>
             <p>Stay updated with the latest news from the institution.</p>
-             <input class="search" id="search" placeholder="Search Announcement" style="margin-top: 5px;">
+             <input class="search announcement-search" id="search" placeholder="Search Announcement">
         </div>
         <div class="toolbar-actions">
             <div class="chip-group" aria-label="Announcement filters">
@@ -160,11 +160,11 @@ Announcements | Abhyas
             <div class="field">
                 <span>Announcement Details</span>
                 <textarea name="description" rows="5" placeholder="Write the full announcement here..."
-                    style="width:100%;padding:12px 14px;border:1px solid #e6e9ef;border-radius:8px;resize:vertical;"
+                    class="form-textarea"
                     required></textarea>
             </div>
 
-            <div class="hero-actions" style="margin-top:16px;">
+            <div class="hero-actions">
                 <button type="submit" class="btn btn-primary">Save Announcement</button>
                 <button type="reset" class="btn btn-outline">Clear</button>
             </div>
@@ -176,7 +176,7 @@ Announcements | Abhyas
     <section class="announcement-list" aria-label="Announcement list">
         {% for records in annoucementshistory %}
         {% if show == 'all' %} 
-        <article class="announcement-card" style="margin-bottom: 16px;">
+        <article class="announcement-card">
             {% set image_variant = 'one' if loop.index0 % 3 == 0 else 'two' if loop.index0 % 3 == 1 else 'three' %}
             <div class="announcement-image {{ image_variant }}"></div>
             <div class="announcement-content">
@@ -188,7 +188,7 @@ Announcements | Abhyas
                 <p>{{ records['summary'] }}</p>
                 <div class="card-footer">
                     <span class="small-meta">Author: {{ records['author_name'] }}</span>
-                    <a href="/announcement/view/{{ records['id'] }}" class="read-more" style="text-decoration: none;">
+                    <a href="/announcement/view/{{ records['id'] }}" class="read-more">
                         Read more &rarr;
                     </a>
                 </div>
