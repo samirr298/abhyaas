@@ -67,6 +67,43 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function setTheme(theme) {
+    var root = document.documentElement;
+    var current = theme === 'dark' ? 'dark' : 'light';
+    root.classList.toggle('theme-dark', current === 'dark');
+    var btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+      btn.textContent = current === 'dark' ? '☀️' : '🌙';
+      btn.setAttribute('aria-label', current === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+    try {
+      localStorage.setItem('abhyaas-theme', current);
+    } catch (e) {
+      // ignore storage failures
+    }
+  }
+
+  function initTheme() {
+    var stored = null;
+    try {
+      stored = localStorage.getItem('abhyaas-theme');
+    } catch (e) {
+      stored = null;
+    }
+    var initial = stored || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(initial);
+  }
+
+  initTheme();
+
+  var themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', function () {
+      var active = document.documentElement.classList.contains('theme-dark');
+      setTheme(active ? 'light' : 'dark');
+    });
+  }
+
   attachFormValidation('#login-form');
   attachFormValidation('#register-form');
   attachFormValidation('#forgot-form');
