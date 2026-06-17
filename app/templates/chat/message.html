@@ -14,10 +14,10 @@
       <div class="message-sidebar-header">
         <h2>Contacts</h2>
         <p class="message-sidebar-subtitle">Recent conversations</p>
-        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-          <div style="position:relative;flex:1">
-            <input id="message-search-input" placeholder="Search people or messages..." style="width:100%;padding:10px 36px 10px 12px;border-radius:10px;border:1px solid #e6e9ef;" />
-            <button id="message-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#64748b;cursor:pointer;font-weight:700;padding:6px;display:none">×</button>
+        <div class="search-row">
+          <div class="search-container">
+            <input id="message-search-input" class="search" placeholder="Search people or messages..." />
+            <button id="message-search-clear" class="search-clear">×</button>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@
           {% else %}
             <a href="#" class="message-contact">
           {% endif %}
-            <div style="display:flex;gap:12px;align-items:center;min-width:0">
+            <div class="contact-row">
               <div class="avatar" title="{{ teacher.name }}">{{ teacher.name.split(' ')[0][:1] }}{{ (teacher.name.split(' ')[1][:1] if teacher.name.split(' ')|length > 1 else '') }}</div>
               <div class="message-contact-info">
                 <span class="message-contact-name">{{ teacher['name'] }}</span>
@@ -41,7 +41,7 @@
             <span class="message-contact-time">{{ teacher.last_message_time or '' }}</span>
           </a>
         {% else %}
-          <p style="padding: 20px; text-align: center; color: #a0aec0; font-size: 0.9rem;">No contacts found.</p>
+          <p class="muted empty-note">No contacts found.</p>
         {% endfor %}
       </div>
     </aside>
@@ -62,15 +62,15 @@
               <span class="message-time">{{ msg.msg_time }}</span>
             </div>
           {% else %}
-            <p id="empty-chat-notice" style="text-align: center; color: #a0aec0; margin-top: 40px; font-size: 0.95rem;">
+            <p id="empty-chat-notice" class="muted empty-note">
               This is the beginning of your message history with {{ partner_name }}.
             </p>
           {% endfor %}
         {% else %}
-          <div style="text-align: center; color: #a0aec0; margin-top: 80px;">
-            <img src="/static/img/chat-illustration.png" alt="No conversation" style="max-width:220px;opacity:0.85;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto" onerror="this.style.display='none'" />
-            <p style="font-size: 1.15rem; margin-bottom: 6px;">No Conversation Selected</p>
-            <p style="font-size: 0.9rem;">Search for a person or click a contact on the left to start chatting.</p>
+          <div class="empty-chat-placeholder">
+            <img src="/static/img/chat-illustration.png" alt="No conversation" class="empty-illustration" onerror="this.style.display='none'" />
+            <p class="empty-title">No Conversation Selected</p>
+            <p class="muted">Search for a person or click a contact on the left to start chatting.</p>
           </div>
         {% endif %}
       </div>
@@ -226,7 +226,7 @@ function renderContacts(list){
   const container = document.querySelector('.message-contact-list');
   if(!container) return;
   if(!list || list.length === 0){
-    container.innerHTML = '<p style="padding: 20px; text-align: center; color: #a0aec0; font-size: 0.9rem;">No contacts found.</p>';
+    container.innerHTML = '<p class="muted empty-note">No contacts found.</p>';
     return;
   }
   container.innerHTML = '';
