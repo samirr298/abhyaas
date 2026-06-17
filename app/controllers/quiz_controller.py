@@ -17,11 +17,28 @@ class QuizController:
         source_text = request.form.get('source_text', '').strip()
         num_questions = int(request.form.get('num_questions', 3))
         
+        # Read the new timer configurations
+        enable_timer = request.form.get('enable_timer') == 'true'
+        total_seconds = 0
+        
+        if enable_timer:
+            minutes = int(request.form.get('timer_min', 0))
+            seconds = int(request.form.get('timer_sec', 30))
+            # Convert everything into total seconds for easier JavaScript tracking
+            total_seconds = (minutes * 60) + seconds
+            
+            # Enforce your boundaries (30 seconds to 5 minutes)
+            if total_seconds < 30:
+                total_seconds = 30
+            elif total_seconds > 300:
+                total_seconds = 300
+
         session['quiz_state'] = {
             'source_text': source_text,
             'total_questions': num_questions,
             'generated_questions': [],
-            'status': 'generating'
+            'status': 'generating',
+            'time_limit_per_question': total_seconds if enable_timer else None
         }
         return render_template('tasks/quiz_interactive.html')
 
@@ -30,8 +47,24 @@ class QuizController:
         if not state or len(state['generated_questions']) >= state['total_questions']:
             return jsonify({'status': 'complete'})
 
+        # Generate ONLY the next question index with STRICT JSON rules
         idx = len(state['generated_questions']) + 1
-        prompt = f"Create ONLY question #{idx} based on this text: {state['source_text']}. Return valid JSON."
+        prompt = f"""
+        Create ONLY multiple-choice question #{idx} based on the text below.
+        Return ONLY a SINGLE JSON object (do not put it inside an array).
+        You MUST use exactly these keys:
+        {{
+            "id": {idx},
+            "question_text": "the actual question here",
+            "option_a": "first choice",
+            "option_b": "second choice",
+            "option_c": "third choice",
+            "option_d": "fourth choice",
+            "correct_answer": "exact string text of the correct choice"
+        }}
+        
+        Text: {state['source_text']}
+        """
 
         try:
             response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt, config={'response_mime_type': 'application/json'})
@@ -63,5 +96,6 @@ class QuizController:
         return jsonify({
             'count': len(state.get('generated_questions', [])),
             'total': state.get('total_questions'),
-            'status': state.get('status')
+            'status': state.get('status'),
+            'time_limit': state.get('time_limit_per_question') # Send timer value to UI
         })
