@@ -62,11 +62,17 @@ class Database:
                                         user_id INT NOT NULL,
                                         attendance_date DATE NOT NULL,          
                                         marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                        status ENUM('present', 'absent', 'not_marked') NOT NULL DEFAULT 'not_marked',
+                                        status ENUM('present', 'absent', 'leave', 'not_marked') NOT NULL DEFAULT 'not_marked',
                                         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                                         );
                                 """
                         )
+                        try:
+                                cursor.execute("SHOW COLUMNS FROM attendance LIKE 'status'")
+                                if cursor.fetchone():
+                                        cursor.execute("ALTER TABLE attendance MODIFY COLUMN status ENUM('present', 'absent', 'leave', 'not_marked') NOT NULL DEFAULT 'not_marked'")
+                        except Exception:
+                                pass
                         
                         connection.commit()
                 finally:
@@ -194,7 +200,7 @@ class Database:
                                                 end_date DATE NOT NULL,
                                                 leave_type VARCHAR(50) NOT NULL DEFAULT 'General',
                                                 reason TEXT NOT NULL,
-                                                status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+                                                                                                status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
                                                 is_read TINYINT(1) DEFAULT 0,
                                                 submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -216,6 +222,9 @@ class Database:
                                         
                                         if 'leave_type' not in columns:
                                                 cursor.execute("ALTER TABLE leave_requests ADD COLUMN leave_type VARCHAR(50) DEFAULT 'General'")
+                                                connection.commit()
+                                        if 'status' in columns:
+                                                cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'")
                                                 connection.commit()
                 finally:
                         connection.close()
