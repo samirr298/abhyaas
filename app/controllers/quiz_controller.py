@@ -3,6 +3,7 @@ import os
 import json
 from dotenv import load_dotenv
 from google import genai
+from app.database import Database # NEW: Import the database connection
 
 # Load environment variables and initialize Gemini
 load_dotenv()
@@ -100,3 +101,64 @@ class QuizController:
             'status': state.get('status'),
             'time_limit': state.get('time_limit_per_question') # Send timer value to UI
         })
+
+    def save_quiz_history(self):
+        # 1. Ensure the user is logged in
+        user_id = session.get('user_id') or session.get('id') 
+        if not user_id:
+            return jsonify({'status': 'error', 'message': 'User not logged in'}), 401
+
+        # 2. Grab the data sent from the browser
+        data = request.get_json()
+        score = data.get('score')
+        total_questions = data.get('total')
+        time_taken = data.get('timeTaken')
+        qa_data = json.dumps(data.get('qaData')) # Convert array to string
+
+        # 3. Save to MySQL Database
+        connection = Database.db()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    INSERT INTO quiz_history (student_id, score, total_questions, time_taken, qa_data) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                cursor.execute(sql, (user_id, score, total_questions, time_taken, qa_data))
+                connection.commit()
+        except Exception as e:
+            print(f"Database error: {e}")
+            return jsonify({'status': 'error', 'message': 'Database error'}), 500
+        finally:
+            connection.close()
+
+        return jsonify({'status': 'success'})
+    
+    def get_quiz_history(self):
+        user_id = session.get('user_id') or session.get('id')
+        if not user_id:
+            return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
+
+        connection = Database.db()
+        try:
+            with connection.cursor() as cursor:
+                # Fetch history and format the date beautifully
+                sql = """
+                    SELECT score, total_questions, time_taken, qa_data, DATE_FORMAT(created_at, '%%b %%d, %%Y at %%h:%%i %%p') as formatted_date
+                    FROM quiz_history
+                    WHERE student_id = %s
+                    ORDER BY created_at DESC
+                """
+                cursor.execute(sql, (user_id,))
+                history_records = cursor.fetchall()
+
+                # Convert the saved JSON text back into a real Python dictionary
+                for record in history_records:
+                    if isinstance(record['qa_data'], str):
+                        record['qa_data'] = json.loads(record['qa_data'])
+
+                return jsonify({'status': 'success', 'history': history_records})
+        except Exception as e:
+            print(f"Database error: {e}")
+            return jsonify({'status': 'error', 'message': 'Failed to fetch history'}), 500
+        finally:
+            connection.close()

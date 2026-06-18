@@ -148,14 +148,16 @@
             } 
             // NEW: Handle the 'wait' status from the server
             else if (data.status === 'wait') {
-                document.getElementById('status-text').innerHTML = `⏳ Rate limit reached. Waiting ${data.retry_after}s...`;
+                document.getElementById('status-text').innerHTML = `⚠️ API Limit Reached. Waiting ${data.retry_after}s... <button onclick="forceFinish()" style="background-color: #ffc107; color: #333; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">Save & Finish Now</button>`;
                 setTimeout(fetchNextQuestion, data.retry_after * 1000);
             } 
             else {
+                document.getElementById('status-text').innerHTML = `⚠️ Network Error. Retrying... <button onclick="forceFinish()" style="background-color: #ffc107; color: #333; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">Save & Finish Now</button>`;
                 console.warn("Traffic error, retrying...", data.message);
                 setTimeout(fetchNextQuestion, 2000); 
             }
         } catch (error) {
+            document.getElementById('status-text').innerHTML = `⚠️ Network Error. Retrying... <button onclick="forceFinish()" style="background-color: #ffc107; color: #333; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">Save & Finish Now</button>`;
             console.error("Fetch failed", error);
             setTimeout(fetchNextQuestion, 2000); 
         }
@@ -357,7 +359,24 @@
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-
+    function forceFinish() {
+        // Filter out any questions the user hasn't locked in yet so they aren't penalized
+        let answeredQuestions = generatedQuestions.filter(q => q.user_selected);
+        
+        if (answeredQuestions.length === 0) {
+            alert("You haven't locked in any answers yet! Please answer at least one question before saving.");
+            return;
+        }
+        
+        // Overwrite the global array so the scoreboard and database only score what they finished
+        generatedQuestions = answeredQuestions;
+        isGenerating = false;
+        isQuizFinished = true;
+        
+        // Trigger the standard finish logic
+        finishTest();
+    }
+    
     // --- SCOREBOARD LOGIC ---
     function finishTest() {
         isQuizSubmitted = true;
@@ -399,6 +418,31 @@
         
         // Reveal the scoreboard
         document.getElementById('results-container').style.display = "block";
+
+        // --- NEW: Send to Python Backend Database ---
+        if (generatedQuestions.length > 0) {
+            fetch("{{ url_for('quiz.save_quiz_history') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    score: score,
+                    total: generatedQuestions.length,
+                    timeTaken: totalTime,
+                    qaData: generatedQuestions
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    console.log("Quiz saved to database successfully!");
+                } else {
+                    console.error("Failed to save quiz:", data.message);
+                }
+            })
+            .catch(error => console.error("Error saving quiz:", error));
+        }
 
         // --- NEW: Render the Charts ---
         let labels = [];

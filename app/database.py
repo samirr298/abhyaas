@@ -153,4 +153,24 @@ class Database:
                 finally:
                         pass
                         connection.close() 
+
+        def create_quiz_history_table():
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                                '''CREATE TABLE IF NOT EXISTS quiz_history (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    student_id INT NOT NULL,
+                                    score INT NOT NULL,
+                                    total_questions INT NOT NULL,
+                                    time_taken INT NOT NULL,
+                                    qa_data LONGTEXT NOT NULL, 
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_quiz_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+                                );''')
+                                connection.commit()
+                finally:
+                        connection.close()
+                        
 # Connection debug message removed during cleanup

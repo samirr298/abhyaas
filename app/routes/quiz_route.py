@@ -24,4 +24,12 @@ class QuizRoutes:
             login_required(self.controller.get_quiz_status)
         )
         
+        self.bp.route("/student/save-quiz-history", methods=["POST"])(
+            login_required(self.controller.save_quiz_history)
+        )
+        
+        self.bp.route("/student/get-quiz-history", methods=["GET"])(
+            login_required(self.controller.get_quiz_history)
+        )
+
         return self.bp
