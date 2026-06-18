@@ -1,10 +1,11 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from flask import render_template, session, request, redirect, url_for, flash
 
 from app.auth import login_required, role_required
 from app.controllers.task_controller import TaskController
 from app.models.announcement import Announcement
 from app.models.attendance import Attendance
+from app.models.notification import Notification
 from app.models.task import Task
 from app.models.user import Users
 
@@ -68,10 +69,30 @@ class RoleController:
     def student_dashboard(self):
         latest_announcements = Announcement.get_latest_announcements(3)
         today_tasks = Task.get_today_tasks(session.get('user_id')) or []
+        pending_tasks = [task for task in today_tasks if (task.get('submission_status') or '') != 'Reviewed']
+        notifications = Notification.get_for_user(session.get('user_id')) or []
+        deadline_reminders = [item for item in notifications if item.get('notification_type') == 'deadline_reminder']
         today = date.today()
         record = Attendance.get_today_record(session.get('user_id'), today)
         attendance_status = record['status'].capitalize() if record else 'Not Marked'
         attendance_date_display = today.strftime('%A, %d %B %Y')
+
+        total_tasks_count = len(today_tasks)
+        completed_count = sum(1 for task in today_tasks if (task.get('submission_status') or '') == 'Reviewed')
+        upcoming_deadlines = 0
+        for task in today_tasks:
+            due_value = task.get('due_date')
+            if not due_value:
+                continue
+            due_date = due_value.date() if hasattr(due_value, 'date') else due_value
+            if due_date >= today:
+                upcoming_deadlines += 1
+
+        attendance_start = today - timedelta(days=30)
+        present_days = Attendance.get_status_count(session.get('user_id'), 'present', attendance_start, today + timedelta(days=1))
+        absent_days = Attendance.get_status_count(session.get('user_id'), 'absent', attendance_start, today + timedelta(days=1))
+        marked_days = present_days + absent_days
+        attendance_rate = round((present_days / marked_days) * 100, 1) if marked_days else 0
 
         return render_template(
             'users/student_dashboard.html',
@@ -81,7 +102,14 @@ class RoleController:
             tasks=[],
             feedback=[],
             today_tasks=today_tasks,
+            pending_tasks=pending_tasks,
+            deadline_reminders=deadline_reminders,
             attendance_status=attendance_status,
             attendance_date_display=attendance_date_display,
+            attendance_rate=attendance_rate,
+            total_tasks_count=total_tasks_count,
+            completed_count=completed_count,
+            pending_count=len(pending_tasks),
+            upcoming_deadlines=upcoming_deadlines,
             now=datetime.now(),
         )
