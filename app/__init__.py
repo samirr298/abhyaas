@@ -44,6 +44,8 @@ def create_app():
     @app.context_processor
     def inject_notifications():
         if session.get('user_id'):
+            if session.get('role') == 'student':
+                Notification.sync_deadline_reminders(session['user_id'])
             unread_count = Notification.get_unread_count(session['user_id'])
             notifications = Notification.get_for_user(session['user_id'])
             return {
