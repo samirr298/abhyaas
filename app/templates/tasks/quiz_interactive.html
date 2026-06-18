@@ -118,7 +118,7 @@
         fetchNextQuestion();
     };
 
-    // The Updated Background Worker Function with Rate Limit Handling
+    // The Updated Background Worker Function (Batch Fetch)
     async function fetchNextQuestion() {
         try {
             const response = await fetch("{{ url_for('quiz.generate_next_question') }}");
@@ -131,22 +131,25 @@
                 return;
             }
 
-            if (data.status === 'success') {
-                generatedQuestions.push(data.question);
-                let qIndex = generatedQuestions.length - 1;
+            // NEW: Handle receiving the whole batch at once!
+            if (data.status === 'success_batch') {
+                data.questions.forEach((q) => {
+                    generatedQuestions.push(q);
+                    let qIndex = generatedQuestions.length - 1;
+                    
+                    let navContainer = document.getElementById('nav-buttons');
+                    navContainer.innerHTML += `<button id="nav-btn-${qIndex}" onclick="showQuestion(${qIndex})" style="padding: 8px 12px; border: 1px solid #003366; background-color: white; color: #003366; border-radius: 4px; cursor: pointer; font-weight: bold;">Q${qIndex + 1}</button>`;
+                });
                 
-                let navContainer = document.getElementById('nav-buttons');
-                navContainer.innerHTML += `<button id="nav-btn-${qIndex}" onclick="showQuestion(${qIndex})" style="padding: 8px 12px; border: 1px solid #003366; background-color: white; color: #003366; border-radius: 4px; cursor: pointer; font-weight: bold;">Q${qIndex + 1}</button>`;
-                
-                if (generatedQuestions.length === 1) {
-                    showQuestion(0);
-                    document.getElementById('question-container').style.display = "block";
-                }
+                // Show the very first question immediately
+                showQuestion(0);
+                document.getElementById('question-container').style.display = "block";
 
-                document.getElementById('status-text').innerHTML = `⏳ Generating question ${generatedQuestions.length + 1} in the background...`;
-                fetchNextQuestion();
+                // Mark generation as entirely finished
+                isGenerating = false;
+                document.getElementById('status-text').innerHTML = "✅ All questions generated instantly!";
+                document.getElementById('status-text').style.color = "#28a745";
             } 
-            // NEW: Handle the 'wait' status from the server
             else if (data.status === 'wait') {
                 document.getElementById('status-text').innerHTML = `⚠️ API Limit Reached. Waiting ${data.retry_after}s... <button onclick="forceFinish()" style="background-color: #ffc107; color: #333; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">Save & Finish Now</button>`;
                 setTimeout(fetchNextQuestion, data.retry_after * 1000);
@@ -376,7 +379,7 @@
         // Trigger the standard finish logic
         finishTest();
     }
-    
+
     // --- SCOREBOARD LOGIC ---
     function finishTest() {
         isQuizSubmitted = true;
@@ -499,6 +502,41 @@
         document.getElementById('btn-finish').style.display = "none";
         showQuestion(0);
     }
+
+    // --- NEW: Bulletproof Auto-Save (Modern Keepalive Fetch) ---
+    document.addEventListener("visibilitychange", function() {
+        // 'hidden' triggers when they switch tabs, close the tab, or navigate away
+        if (document.visibilityState === 'hidden' && !isQuizSubmitted && generatedQuestions.length > 0) {
+            
+            let answeredQuestions = generatedQuestions.filter(q => q.user_selected);
+            
+            if (answeredQuestions.length > 0) {
+                let currentScore = 0;
+                let currentTotalTime = 0;
+                
+                answeredQuestions.forEach(q => {
+                    if (q.user_selected === q.correct_answer) currentScore++;
+                    currentTotalTime += (q.timeTaken || 0);
+                });
+
+                // The 'keepalive: true' flag is the magic word that forces the 
+                // browser to finish this request even if the tab is closing.
+                fetch("{{ url_for('quiz.save_quiz_history') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        score: currentScore,
+                        total: answeredQuestions.length,
+                        timeTaken: currentTotalTime,
+                        qaData: answeredQuestions
+                    }),
+                    keepalive: true 
+                }).catch(err => console.log("Auto-save fired."));
+            }
+        }
+    });
 </script>
 
 
