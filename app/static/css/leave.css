@@ -243,7 +243,7 @@
   overflow-x: auto;
   padding: 24px;
 }
-
+/* Leave table, history table */
 .leave-table,
 .history-table {
   width: 100%;
@@ -284,6 +284,107 @@
   white-space: normal;
   word-break: break-word;
 }
+/* Hide details inside card by default; reveal when .expanded is present */
+.card-details{display:none;padding-top:6px;border-top:1px dashed var(--border);margin-top:6px}
+.leave-card-item.expanded .card-details{display:block}
+
+/* Popover for inline Approve/Reject */
+.leave-action-popover{background:var(--surface);border:1px solid var(--border);box-shadow:0 12px 30px rgba(2,6,23,0.12);padding:8px;border-radius:10px;display:flex;flex-direction:column;gap:8px;min-width:160px}
+.leave-action-popover .popover-form{display:flex;gap:8px;justify-content:space-between}
+.leave-action-popover .btn-primary{padding:8px 12px}
+.leave-action-popover .btn-secondary{padding:8px 12px}
+
+.leave-table,
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px; /* give more room so columns don't collapse into tiny pills */
+}
+
+.leave-table th,
+.leave-table td,
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.95rem;
+  vertical-align: top; /* keep rows aligned at top when reason wraps */
+  background: transparent;
+  border-radius: 0; /* avoid pill-like appearance */
+}
+
+/* Column width adjustments to keep Student column compact */
+.leave-table td:nth-child(1), .leave-table th:nth-child(1) {
+  width: 220px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leave-table td:nth-child(2), .leave-table th:nth-child(2) { width: 160px; max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.leave-table td:nth-child(3), .leave-table th:nth-child(3) { width: 120px; max-width:120px; }
+.leave-table td:nth-child(5), .leave-table th:nth-child(5) { width: 120px; max-width:120px; }
+.leave-table td:nth-child(6), .leave-table th:nth-child(6) { width: 160px; max-width:160px; }
+.leave-table td:nth-child(7), .leave-table th:nth-child(7) { width: 120px; max-width:120px; }
+
+.student-cell{display:flex;flex-direction:column;gap:6px}
+.student-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub-text{font-size:0.85rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.leave-table thead,
+.history-table thead {
+  background: var(--surface-strong);
+}
+
+.leave-table th,
+.history-table th {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.leave-table tbody tr:hover,
+.history-table tbody tr:hover {
+  background: var(--surface-strong);
+}
+
+/* Give Type column a fixed-ish width to avoid stretching */
+.leave-row td:nth-child(3) {
+  width: 140px;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Reason column: clamp long messages to 3 lines and hide overflow for tidy rows */
+.reason-text{
+  max-width: 720px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+/* On very narrow screens allow reason to expand within scrollable table */
+@media (max-width: 800px) {
+  .leave-table, .history-table { min-width: 700px; }
+  .reason-text { -webkit-line-clamp: 2; }
+}
+
+/* Modal for viewing full leave reason */
+.reason-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2200;align-items:center;justify-content:center;padding:20px}
+.reason-modal-overlay.open{display:flex}
+.reason-modal{background:var(--surface);color:var(--text);max-width:720px;width:100%;border-radius:12px;padding:20px;box-shadow:0 20px 50px rgba(2,6,23,0.3);}
+.reason-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.reason-modal-title{font-weight:800;font-size:1.05rem}
+.reason-modal-close{background:transparent;border:none;font-size:18px;cursor:pointer}
+.reason-modal-body{max-height:60vh;overflow:auto;white-space:pre-wrap;line-height:1.5}
 
 .status-badge {
   display: inline-flex;
@@ -464,5 +565,20 @@
 .leave-row td:nth-child(4) {
   max-width: 280px;
   white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
   word-break: break-word;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .leave-container { padding: 8px 16px; }
+}
+
+@media (max-width: 640px) {
+  .page-intro h2 { font-size: 1.5rem; }
+  .panel-header { padding: 16px; flex-direction: column; gap: 10px; }
+  .summary-grid { padding: 16px 16px 0; }
+  .leave-table-wrapper { padding: 10px; }
+  .btn-primary, .btn-secondary { width: 100%; text-align: center; }
 }

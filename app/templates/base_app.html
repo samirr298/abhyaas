@@ -56,9 +56,15 @@
     <div class="app-main">
       <header class="app-topbar">
         <div class="topbar-left">
-         
+          <button id="navToggleBtn" class="mobile-nav-btn" aria-label="Open navigation">☰</button>
         </div>
         <div class="topbar-right">
+          <button id="topbarOverflowBtn" class="mobile-overflow-btn" aria-label="More">⋯</button>
+          <div id="topbarOverflowMenu" class="mobile-overflow-menu hidden" role="menu" aria-hidden="true">
+            <button type="button" id="overflowThemeToggle" class="overflow-item">Toggle theme</button>
+            <button type="button" id="overflowNotifBtn" class="overflow-item">Notifications</button>
+            <a href="{{ url_for('auth.profile') }}" class="overflow-item">Profile</a>
+          </div>
           <div class="profile-summary" aria-label="Current profile information">
             <strong>{{ session.get('username') or 'User' }}</strong>
             <span>{{ session.get('email') or '' }}</span>
@@ -125,6 +131,7 @@
       </main>
     </div>
   </div>
+  <div id="mobileNavOverlay" class="mobile-nav-overlay hidden"></div>
   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 

@@ -52,6 +52,9 @@
           <h2>{{ partner_name if partner_name else "Select a contact" }}</h2>
           <p class="message-panel-subtitle">Your conversation history appears here.</p>
         </div>
+        <div class="mobile-controls">
+          <button id="contactsToggleBtn" class="mobile-nav-btn" aria-label="Show contacts">☰</button>
+        </div>
       </div>
 
       <div class="message-thread" id="chat-history-stream">
@@ -267,3 +270,11 @@ if(searchInput){
 }
 </script>
 {% endblock %}
+
+<script>
+// Hide global nav hamburger on the Messages page to avoid duplicate toggles
+document.addEventListener('DOMContentLoaded', function () {
+  var globalNav = document.getElementById('navToggleBtn');
+  if (globalNav) globalNav.style.display = 'none';
+});
+</script>

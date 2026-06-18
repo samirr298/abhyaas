@@ -248,4 +248,180 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Topbar overflow menu (mobile)
+  var overflowBtn = document.getElementById('topbarOverflowBtn');
+  var overflowMenu = document.getElementById('topbarOverflowMenu');
+  var overflowTheme = document.getElementById('overflowThemeToggle');
+  var overflowNotif = document.getElementById('overflowNotifBtn');
+  function closeOverflow() {
+    if (overflowMenu) { overflowMenu.classList.remove('open'); overflowMenu.setAttribute('aria-hidden','true'); }
+  }
+  function openOverflow() {
+    if (overflowMenu) { overflowMenu.classList.add('open'); overflowMenu.setAttribute('aria-hidden','false'); }
+  }
+  if (overflowBtn && overflowMenu) {
+    overflowBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (overflowMenu.classList.contains('open')) closeOverflow(); else openOverflow();
+    });
+  }
+  // Wire overflow theme toggle to existing theme button behavior
+  if (overflowTheme) {
+    overflowTheme.addEventListener('click', function () {
+      var btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.click();
+      closeOverflow();
+    });
+  }
+  if (overflowNotif) {
+    overflowNotif.addEventListener('click', function () {
+      var btn = document.getElementById('notifBtn');
+      if (btn) btn.click();
+      closeOverflow();
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (overflowMenu && !overflowMenu.contains(e.target) && e.target !== overflowBtn) closeOverflow();
+  });
+
+  // Leave reason modal: open full reason text in modal when teacher clicks 'View'
+  var reasonModalOverlay = null;
+  function ensureReasonModal() {
+    if (reasonModalOverlay) return reasonModalOverlay;
+    reasonModalOverlay = document.createElement('div');
+    reasonModalOverlay.className = 'reason-modal-overlay';
+    reasonModalOverlay.innerHTML = '\n      <div class="reason-modal" role="dialog" aria-modal="true">\n        <div class="reason-modal-header">\n          <div>\n            <div class="reason-modal-title">Leave reason</div>\n            <div class="reason-modal-meta" style="font-size:0.9rem;color:var(--text-muted)"></div>\n          </div>\n          <button class="reason-modal-close" aria-label="Close">×</button>\n        </div>\n        <div class="reason-modal-body" id="reasonModalBody"></div>\n      </div>\n    ';
+    document.body.appendChild(reasonModalOverlay);
+    reasonModalOverlay.querySelector('.reason-modal-close').addEventListener('click', function () { reasonModalOverlay.classList.remove('open'); });
+    reasonModalOverlay.addEventListener('click', function (ev) { if (ev.target === reasonModalOverlay) reasonModalOverlay.classList.remove('open'); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && reasonModalOverlay.classList.contains('open')) reasonModalOverlay.classList.remove('open'); });
+    return reasonModalOverlay;
+  }
+
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target.closest && ev.target.closest('.view-reason');
+    if (!btn) return;
+    ev.preventDefault();
+    var text = btn.getAttribute('data-reason') || '';
+    var requestId = btn.getAttribute('data-request-id') || '';
+    var student = btn.getAttribute('data-student') || '';
+    var submitted = btn.getAttribute('data-submitted') || '';
+    var status = btn.getAttribute('data-status') || '';
+    var dateRange = btn.getAttribute('data-date') || '';
+    var leaveType = btn.getAttribute('data-type') || '';
+    var modal = ensureReasonModal();
+    var body = modal.querySelector('#reasonModalBody');
+    if (body) body.textContent = text;
+    // populate header details
+    var titleEl = modal.querySelector('.reason-modal-title');
+    if (titleEl) titleEl.textContent = student ? (student + " — " + status) : 'Leave reason';
+    var metaEl = modal.querySelector('.reason-modal-meta');
+    if (metaEl) metaEl.textContent = submitted ? ('Submitted: ' + submitted) : '';
+    // append date and type information to meta
+    if (dateRange) {
+      metaEl.textContent += (metaEl.textContent ? ' • ' : '') + 'Dates: ' + dateRange;
+    }
+    if (leaveType) {
+      metaEl.textContent += (metaEl.textContent ? ' • ' : '') + 'Type: ' + leaveType;
+    }
+    modal.classList.add('open');
+
+    // If the request is pending, show a small inline popover next to the clicked button
+    if (String(status).toLowerCase() === 'pending') {
+      showActionPopover(btn, requestId);
+    }
+  });
+
+  // Mobile sidebar toggle
+  var navToggle = document.getElementById('navToggleBtn');
+  var appShell = document.querySelector('.app-shell');
+  var mobileOverlay = document.getElementById('mobileNavOverlay');
+  function closeSidebar() {
+    if (appShell) appShell.classList.remove('sidebar-open');
+    if (mobileOverlay) mobileOverlay.classList.remove('open');
+  }
+  function openSidebar() {
+    if (appShell) appShell.classList.add('sidebar-open');
+    if (mobileOverlay) mobileOverlay.classList.add('open');
+  }
+  if (navToggle && appShell) {
+    navToggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (appShell.classList.contains('sidebar-open')) closeSidebar(); else openSidebar();
+    });
+  }
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', function () { closeSidebar(); });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeSidebar();
+  });
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+
+  // Inline action popover for Approve/Reject
+  var actionPopover = null;
+  function removeActionPopover() {
+    if (!actionPopover) return;
+    actionPopover.remove();
+    actionPopover = null;
+    document.removeEventListener('click', onDocClickForPopover);
+  }
+
+  function onDocClickForPopover(e) {
+    if (!actionPopover) return;
+    if (e.target.closest && e.target.closest('.leave-action-popover')) return;
+    if (e.target.closest && e.target.closest('.view-reason')) return;
+    removeActionPopover();
+  }
+
+  function showActionPopover(anchorBtn, requestId) {
+    removeActionPopover();
+    actionPopover = document.createElement('div');
+    actionPopover.className = 'leave-action-popover';
+    // forms post to the same endpoint as teacher view
+    var path = window.location.pathname;
+    actionPopover.innerHTML = '\n      <form method="POST" action="' + path + '" class="popover-form">\n        <input type="hidden" name="request_id" value="' + (requestId || '') + '">\n        <input type="hidden" name="action" value="approve">\n        <button type="submit" class="btn-primary">Approve</button>\n      </form>\n      <form method="POST" action="' + path + '" class="popover-form">\n        <input type="hidden" name="request_id" value="' + (requestId || '') + '">\n        <input type="hidden" name="action" value="reject">\n        <button type="submit" class="btn-secondary">Reject</button>\n      </form>\n    ';
+    document.body.appendChild(actionPopover);
+
+    // position popover near anchor button
+    var rect = anchorBtn.getBoundingClientRect();
+    var left = rect.right + 8 + window.scrollX;
+    var top = rect.top + window.scrollY;
+    // if popover would overflow right edge, position to left
+    var popRectApproxWidth = 220;
+    if (left + popRectApproxWidth > window.scrollX + window.innerWidth) {
+      left = rect.left - popRectApproxWidth - 8 + window.scrollX;
+    }
+    actionPopover.style.position = 'absolute';
+    actionPopover.style.left = left + 'px';
+    actionPopover.style.top = top + 'px';
+    actionPopover.style.zIndex = 2400;
+
+    // close popover when clicking outside
+    setTimeout(function () { document.addEventListener('click', onDocClickForPopover); }, 0);
+  }
+
+  // Message contacts toggle (mobile): show/hide the message sidebar
+  var contactsToggle = document.getElementById('contactsToggleBtn');
+  function closeMessageSidebar() {
+    if (appShell) appShell.classList.remove('message-sidebar-open');
+    if (mobileOverlay) mobileOverlay.classList.remove('open');
+  }
+  function openMessageSidebar() {
+    if (appShell) appShell.classList.add('message-sidebar-open');
+    if (mobileOverlay) mobileOverlay.classList.add('open');
+  }
+  if (contactsToggle) {
+    contactsToggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (appShell.classList.contains('message-sidebar-open')) closeMessageSidebar(); else openMessageSidebar();
+    });
+  }
+  // Ensure overlay closes message sidebar too
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', function () { closeSidebar(); closeMessageSidebar(); });
+  }
+
 });

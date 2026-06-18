@@ -67,7 +67,7 @@
 }
 
 .ai-message-bubble {
-  max-width: min(100%, 820px);
+  max-width: 85%;
   padding: 18px 20px;
   border-radius: 20px;
   background: var(--surface-strong);
@@ -133,7 +133,14 @@
 }
 
 @media (max-width: 900px) {
-  .ai-message-bubble {
-    max-width: 100%;
-  }
+  .ai-message-bubble { max-width: 95%; }
+  .ai-page { padding: 16px; }
+  .ai-header h2 { font-size: 1.6rem; }
+}
+
+@media (max-width: 600px) {
+  .ai-chat-panel { padding: 16px; border-radius: 16px; }
+  .ai-message-bubble { padding: 12px 16px; font-size: 0.95rem; }
+  .ai-input-field { min-height: 70px; }
+  .ai-form-row .btn-primary { width: 100%; }
 }
