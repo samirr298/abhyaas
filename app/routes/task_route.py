@@ -20,6 +20,12 @@ class TaskRoutes:
         self.bp.route("/delete-task/<int:task_id>", methods=["GET", "POST"])(
             login_required(TaskController().task_delete)
         )
+        self.bp.route("/task/<int:task_id>/bookmark", methods=["POST"])(
+            login_required(TaskController().toggle_bookmark)
+        )
+        self.bp.route("/bookmarks", methods=["GET"])(
+            login_required(TaskController().bookmarks)
+        )
         self.bp.route('/notifications', methods=['GET'])(
             login_required(TaskController().notifications)
         )
