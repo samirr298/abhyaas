@@ -89,21 +89,28 @@
               style="color: #3b82f6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
               {{ task.subject or 'General' }}
             </strong>
-            {% if submission_map[task.id|int] == 'Reviewed' %}
-            <div style="display: flex; gap: 6px;">
-              <span class="tag reviewed"
-                style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
-              <span class="tag feedback"
-                style="background: #f1f5f9; border-radius: 20px; font-size: 0.75rem;">
-                <a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569; padding: 4px 10px; display: inline-block;">
-                  See Feedback
-                </a>
-              </span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline">
+                <button type="submit" class="bookmark-btn {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}is-bookmarked{% endif %}" aria-label="{% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}Remove bookmark{% else %}Save bookmark{% endif %}">
+                  {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}★{% else %}☆{% endif %}
+                </button>
+              </form>
+              {% if submission_map[task.id|int] == 'Reviewed' %}
+              <div style="display: flex; gap: 6px;">
+                <span class="tag reviewed"
+                  style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
+                <span class="tag feedback"
+                  style="background: #f1f5f9; border-radius: 20px; font-size: 0.75rem;">
+                  <a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569; padding: 4px 10px; display: inline-block;">
+                    See Feedback
+                  </a>
+                </span>
+              </div>
+              {% else %}
+              <span class="tag submitted"
+                style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
+              {% endif %}
             </div>
-            {% else %}
-            <span class="tag submitted"
-              style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
-            {% endif %}
           </div>
 
           <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
@@ -151,10 +158,17 @@
         {% if (task.id|int) not in submission_map %}
         <article class="assignment-card"
           style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;">
-          <strong class="task-subject"
-            style="color: #ef4444; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-            {{ task.subject or 'General' }}
-          </strong>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <strong class="task-subject"
+              style="color: #ef4444; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+              {{ task.subject or 'General' }}
+            </strong>
+            <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline">
+              <button type="submit" class="bookmark-btn {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}is-bookmarked{% endif %}" aria-label="{% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}Remove bookmark{% else %}Save bookmark{% endif %}">
+                {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}★{% else %}☆{% endif %}
+              </button>
+            </form>
+          </div>
           <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
           <p class="assign-desc" style="margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{ task.description }}</p>
 

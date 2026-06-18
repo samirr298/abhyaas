@@ -15,6 +15,13 @@
       <div style="color:var(--text-muted);">{{ task.subject or 'General' }} • Due: {{ task.due_date.strftime('%A, %d %b %Y %I:%M %p') }}</div>
     </div>
     <div style="text-align:right;">
+      {% if session.get('role') == 'student' %}
+      <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline" style="margin-bottom:10px; justify-content:flex-end;">
+        <button type="submit" class="bookmark-btn {% if is_bookmarked %}is-bookmarked{% endif %}" aria-label="{% if is_bookmarked %}Remove bookmark{% else %}Save bookmark{% endif %}">
+          {% if is_bookmarked %}★{% else %}☆{% endif %}
+        </button>
+      </form>
+      {% endif %}
         {% if session.get('role') == 'teacher' %} 
       <a href="{{ url_for('tasks.teacher_task') }}" class="secondary-btn">Back to tasks</a>
         {%else%}
