@@ -87,6 +87,10 @@ body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 .app-topbar{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;background:transparent;flex-wrap:wrap}
 .topbar-left{flex:1 1 320px;min-width:0}
 .search{width:min(100%,420px);padding:10px 12px;border-radius:10px;border:1px solid #e6e9ef}
+.dashboard-search-form{display:flex;align-items:center;gap:10px;width:min(100%,520px)}
+.dashboard-search-form input{flex:1;min-width:0;padding:11px 14px;border-radius:14px;border:1px solid #e5eaf2;background:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.04)}
+.dashboard-search-form input:focus{outline:none;border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,0.12)}
+.dashboard-search-form button{border:none;padding:11px 16px;border-radius:14px;background:#071a2a;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(7,26,42,0.18)}
 .topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
 .profile-summary{display:flex;flex-direction:column;align-items:flex-end;max-width:220px;min-width:0}
 .profile-summary strong{font-size:.92rem;color:#183153;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -731,6 +735,224 @@ body.password-page {
   .student-announcement-foot{
     flex-direction:column;
   }
+}
+
+/* Teacher dashboard redesign */
+.teacher-dashboard-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(260px,0.85fr);
+  gap:24px;
+  align-items:stretch;
+  padding:28px;
+  border:1px solid #e5eaf2;
+  background:linear-gradient(135deg,#ffffff 0%,#f5f8ff 100%);
+}
+.teacher-hero-copy h2{
+  margin:8px 0 10px;
+  font-size:2rem;
+  line-height:1.12;
+  color:#0f172a;
+}
+.teacher-hero-text{
+  max-width:58ch;
+  color:#546274;
+  line-height:1.7;
+}
+.teacher-hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+.teacher-hero-status{
+  padding:20px;
+  border-radius:20px;
+  background:linear-gradient(180deg,#071a2a 0%,#0f2740 100%);
+  color:#e5f0ff;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:16px;
+  box-shadow:0 22px 44px rgba(7,26,42,0.18);
+}
+.teacher-status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  width:max-content;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.09);
+  font-weight:700;
+}
+.teacher-status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,0.18);
+}
+.teacher-hero-date{font-size:.95rem;color:rgba(229,240,255,0.82)}
+.teacher-hero-score{display:flex;flex-direction:column;gap:2px}
+.teacher-hero-score strong{font-size:2.4rem;line-height:1}
+.teacher-hero-score span{color:rgba(229,240,255,0.78);font-size:.88rem}
+.teacher-metrics-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin:18px 0;
+}
+.teacher-metric-card{
+  background:#fff;
+  border:1px solid #e5eaf2;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(2,6,23,0.04);
+}
+.teacher-metric-card p{margin-top:12px;color:#667085;font-size:.94rem;line-height:1.6}
+.teacher-metric-accent{background:linear-gradient(135deg,#fff 0%,#f8fbff 100%)}
+.teacher-metric-dark{background:linear-gradient(135deg,#071a2a 0%,#0d243a 100%);color:#e4edf8;border-color:#071a2a}
+.teacher-metric-dark p{color:rgba(228,237,248,0.74)}
+.teacher-dashboard-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.65fr) minmax(300px,0.95fr);
+  gap:20px;
+  align-items:start;
+}
+.teacher-dashboard-main,
+.teacher-panel{
+  border:1px solid #e5eaf2;
+}
+.teacher-dashboard-main{padding:22px}
+.teacher-section-header.compact{margin-bottom:14px}
+.teacher-actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.teacher-search-chip{
+  display:inline-flex;
+  margin:0 0 14px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:#eff6ff;
+  color:#1d4ed8;
+  font-size:.86rem;
+  font-weight:700;
+}
+.teacher-task-list,
+.teacher-announcement-list,
+.teacher-submission-list{
+  display:grid;
+  gap:14px;
+}
+.teacher-task-item,
+.teacher-announcement-item,
+.teacher-submission-item{
+  border-radius:18px;
+  border:1px solid #e5eaf2;
+  background:#fff;
+  box-shadow:0 8px 20px rgba(2,6,23,0.03);
+}
+.teacher-task-item{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  padding:16px;
+}
+.teacher-task-item.is-overdue{background:#fff1f2;border-color:#fecdd3}
+.teacher-task-item.is-due-today{background:#eff6ff;border-color:#bfdbfe}
+.teacher-task-main{
+  display:flex;
+  gap:14px;
+  min-width:0;
+  flex:1;
+}
+.teacher-task-icon{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  background:#eff6ff;
+  color:#1d4ed8;
+  font-weight:800;
+}
+.teacher-task-copy{min-width:0}
+.teacher-task-subject{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:6px}
+.teacher-task-copy h4{margin:0 0 8px;font-size:1rem}
+.teacher-task-copy h4 a{color:#0f172a;text-decoration:none}
+.teacher-task-copy p{color:#546274;line-height:1.6;font-size:.92rem}
+.teacher-task-meta{
+  min-width:148px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:8px;
+  text-align:right;
+}
+.teacher-task-due,.teacher-task-complete{font-size:.84rem;color:#64748b}
+.teacher-announcement-item,
+.teacher-submission-item{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:14px 15px;
+}
+.teacher-announcement-head,
+.teacher-announcement-foot,
+.teacher-submission-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.teacher-announcement-head span,
+.teacher-announcement-foot small,
+.teacher-announcement-item p,
+.teacher-submission-item p,
+.teacher-submission-item small,
+.empty-state-card p{color:#667085}
+.teacher-announcement-item p,
+.teacher-submission-item p{line-height:1.6;font-size:.92rem;margin:0}
+.teacher-announcement-foot a{color:#2563eb;text-decoration:none;font-weight:700;font-size:.86rem}
+.teacher-submission-item.is-reviewed{background:#f0fdf4;border-color:#bbf7d0}
+.teacher-submission-item.is-pending{background:#fffaf0;border-color:#fde68a}
+.teacher-submission-item strong,
+.teacher-announcement-item h4,
+.teacher-announcement-item h4 a{margin:0;color:#0f172a;text-decoration:none}
+.teacher-panel{padding:20px}
+.teacher-section-header{margin-bottom:0}
+
+@media (max-width: 1080px){
+  .teacher-dashboard-hero,
+  .teacher-dashboard-grid{
+    grid-template-columns:1fr;
+  }
+  .teacher-metrics-grid{
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width: 700px){
+  .teacher-dashboard-hero,
+  .teacher-dashboard-main,
+  .teacher-panel{
+    padding:18px;
+  }
+  .teacher-task-item{
+    flex-direction:column;
+  }
+  .teacher-task-meta{
+    align-items:flex-start;
+    text-align:left;
+    min-width:0;
+  }
+  .teacher-announcement-head,
+  .teacher-announcement-foot,
+  .teacher-submission-head{
+    flex-direction:column;
+  }
+  .dashboard-search-form{width:100%}
+  .dashboard-search-form button{width:auto}
 }
 .profile-picture img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
 
