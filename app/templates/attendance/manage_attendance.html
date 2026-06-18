@@ -82,6 +82,8 @@
                 <span class="attendance-chip present">Present</span>
               {% elif student['status'] == 'absent' %}
                 <span class="attendance-chip absent">Absent</span>
+              {% elif student['status'] == 'leave' %}
+                <span class="attendance-chip leave">Leave</span>
               {% else %}
                 <span class="attendance-chip not-marked">Not marked</span>
               {% endif %}

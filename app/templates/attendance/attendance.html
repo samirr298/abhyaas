@@ -15,13 +15,28 @@
       <p>Review your monthly history, check your current rate, and mark today present from one place.</p>
     </div>
 
-    <!-- <form class="attendance-search-form" method="GET" action="{{ url_for('attend.mark_attendance') }}">
-      <input type="search" name="q" value="{{ search_query }}" placeholder="Search records..." aria-label="Search attendance records">
-      <input type="hidden" name="month" value="{{ selected_month }}">
-      <input type="hidden" name="year" value="{{ selected_year }}">
-      <button type="submit">Search</button>
-    </form> -->
+    <div class="attendance-hero-actions">
+      <div class="attendance-status-row">
+        <span class="attendance-status-pill {% if attendance_status == 'Present' %}present{% elif attendance_status == 'Leave' %}leave{% else %}not-marked{% endif %}">
+          <span class="attendance-status-dot"></span>
+          {{ attendance_status }}
+        </span>
+        <span class="attendance-status-meta">Date shown: {{ date }}</span>
+      </div>
+
+      {% if attendance_status not in ['Present', 'Leave'] %}
+      <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-mark-form">
+        <input type="hidden" name="status" value="present">
+        <button type="submit" class="attendance-mark-btn">Mark Present</button>
+      </form>
+      {% else %}
+      <button class="attendance-mark-btn" disabled>Already Updated</button>
+      {% endif %}
+    </div>
+
   </section>
+
+
 
   <section class="attendance-stats-grid">
     <article class="attendance-stat-card attendance-stat-accent">
@@ -30,7 +45,7 @@
         <strong>{{ present_count }}</strong>
       </div>
       <p>{{ total_days }} days tracked in {{ selected_month_name }} {{ selected_year }}</p>
-      <div class="attendance-stat-bar"><span style="width: {{ current_rate }}%;"></span></div>
+      <div class="attendance-stat-bar"><span class="attendance-stat-fill" data-width="{{ current_rate|int }}"></span></div>
     </article>
 
     <article class="attendance-stat-card">
@@ -99,12 +114,14 @@
             <td data-label="Status">
               {% if row['status'] == 'present' %}
                 <span class="attendance-chip present">Present</span>
+              {% elif row['status'] == 'leave' %}
+                <span class="attendance-chip leave">Leave</span>
               {% else %}
                 <span class="attendance-chip absent">Absent</span>
               {% endif %}
             </td>
             <td data-label="Marked at">
-              {% if row['status'] == 'present' and row['marked_at'] %}
+              {% if row['status'] in ['present', 'leave'] and row['marked_at'] %}
                 {{ row['marked_at'].strftime('%I:%M %p') }}
               {% else %}
                 --
@@ -141,4 +158,12 @@
     {% endif %}
   </section>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.attendance-stat-fill').forEach((element) => {
+    const width = element.getAttribute('data-width') || '0';
+    element.style.width = `${width}%`;
+  });
+});
+</script>
 {% endblock %}

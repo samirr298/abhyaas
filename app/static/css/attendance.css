@@ -41,6 +41,7 @@
 .status-chip{display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700}
 .status-chip.present{background:#ecfdf5;color:#047857}
 .status-chip.absent{background:#fff1f2;color:#be123c}
+.status-chip.leave{background:#fef3c7;color:#92400e}
 .status-chip.not-marked{background:#eff6ff;color:#1d4ed8}
 
 /* New attendance dashboard layout */
@@ -66,6 +67,22 @@
 .attendance-stat-dark .attendance-stat-head span,.attendance-stat-dark .attendance-stat-head strong{color:#fff}
 .attendance-stat-bar{margin-top:14px;height:10px;background:#e9eff7;border-radius:999px;overflow:hidden}
 .attendance-stat-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#f59e0b 0%,#2563eb 100%)}
+.attendance-status-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.attendance-status-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid transparent}
+.attendance-status-pill.present{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+.attendance-status-pill.absent{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+.attendance-status-pill.leave{background:#fef3c7;color:#92400e;border-color:#fde68a}
+.attendance-status-pill.not-marked{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.attendance-status-dot{width:10px;height:10px;border-radius:999px;background:currentColor}
+.attendance-status-meta{font-size:13px;color:#64748b}
+.attendance-mark-form{display:flex;align-items:center}
+.attendance-mark-btn{border:none;border-radius:14px;padding:14px 20px;background:linear-gradient(135deg,#07293f 0%,#0a5679 100%);color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 10px 20px rgba(7,41,63,0.16)}
+.attendance-mark-btn:disabled{cursor:not-allowed;opacity:0.6;box-shadow:none}
+.attendance-search-row{padding:16px 18px}
+.attendance-search-form{display:flex;align-items:center;gap:10px;width:100%}
+.attendance-search-form input{flex:1;min-width:0;padding:11px 14px;border-radius:999px;border:1px solid #e5eaf2;background:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.04)}
+.attendance-search-form input:focus{outline:none;border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,0.12)}
+.attendance-search-form button{border:none;padding:11px 16px;border-radius:999px;background:#07293f;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(7,41,63,0.16)}
 .attendance-history-card{padding:20px;border:1px solid #e6e9ef;background:#fff;box-shadow:0 10px 30px rgba(2,6,23,0.04)}
 .attendance-history-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}
 .attendance-history-header h3{font-size:20px;margin:0 0 6px;color:#0b2540}
@@ -89,6 +106,7 @@
 .attendance-chip{display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700}
 .attendance-chip.present{background:#ecfdf5;color:#047857}
 .attendance-chip.absent{background:#fff1f2;color:#be123c}
+.attendance-chip.leave{background:#fef3c7;color:#92400e}
 .attendance-chip.not-marked{background:#eff6ff;color:#1d4ed8}
 .attendance-action-form{display:flex;gap:8px;flex-wrap:wrap}
 .attendance-mini-btn{border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}
