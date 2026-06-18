@@ -63,6 +63,22 @@
         </div>
 
         <h3 style="color: #003366; border-bottom: 2px solid #eee; padding-bottom: 10px;">Performance Breakdown</h3>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; margin-bottom: 25px;">
+            <div style="flex: 1; min-width: 250px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h4 style="margin-top: 0; color: #555;">Accuracy</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+            <div style="flex: 2; min-width: 300px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h4 style="margin-top: 0; color: #555;">Time Per Question (Seconds)</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div id="stats-breakdown" style="margin-top: 15px;"></div>
         
         <div style="margin-top: 25px; text-align: center;">
@@ -75,6 +91,8 @@
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     // State variables
@@ -381,6 +399,52 @@
         
         // Reveal the scoreboard
         document.getElementById('results-container').style.display = "block";
+
+        // --- NEW: Render the Charts ---
+        let labels = [];
+        let timeData = [];
+        let bgColors = [];
+        let incorrectCount = generatedQuestions.length - score;
+
+        generatedQuestions.forEach((q, i) => {
+            labels.push(`Q${i + 1}`);
+            timeData.push(q.timeTaken || 0);
+            bgColors.push((q.user_selected === q.correct_answer) ? '#28a745' : '#dc3545'); // Green/Red
+        });
+
+        // 1. Doughnut Chart (Accuracy)
+        new Chart(document.getElementById('scoreChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Correct', 'Incorrect'],
+                datasets: [{
+                    data: [score, incorrectCount],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 2. Bar Chart (Time per Question)
+        new Chart(document.getElementById('timeChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Time Taken (Seconds)',
+                    data: timeData,
+                    backgroundColor: bgColors,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
     }
 
     function reviewAnswers() {
