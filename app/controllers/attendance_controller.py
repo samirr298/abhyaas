@@ -45,6 +45,7 @@ class AttendanceController(BaseController):
         page = max(request.args.get('page', default=1, type=int), 1)
         selected_month = request.args.get('month', default=today.month, type=int)
         selected_year = request.args.get('year', default=today.year, type=int)
+        search_query = (request.args.get('q') or '').strip().lower()
 
         if selected_month < 1 or selected_month > 12:
             selected_month = today.month
@@ -59,23 +60,49 @@ class AttendanceController(BaseController):
             next_month_start = date(selected_year, selected_month + 1, 1)
 
         per_page = 10
-        history_records = Attendance.get_paginated_history(
-            userid,
-            page,
-            per_page,
-            selected_month_start,
-            next_month_start
-        )
         total_rows = Attendance.get_total_history_count(
             userid,
             selected_month_start,
             next_month_start
         )
+        if search_query:
+            history_records = Attendance.get_paginated_history(
+                userid,
+                1,
+                max(total_rows, 1),
+                selected_month_start,
+                next_month_start
+            )
+        else:
+            history_records = Attendance.get_paginated_history(
+                userid,
+                page,
+                per_page,
+                selected_month_start,
+                next_month_start
+            )
         total_pages = math.ceil(total_rows / per_page) if total_rows > 0 else 1
 
         present_count = Attendance.get_status_count(userid, 'present', selected_month_start, next_month_start)
         absent_count = Attendance.get_status_count(userid, 'absent', selected_month_start, next_month_start)
         total_days = present_count + absent_count
+        current_rate = round((present_count / total_days) * 100, 1) if total_days else 0
+        threshold_label = 'Above threshold (90%)' if current_rate >= 90 else 'Below threshold (90%)'
+
+        if search_query:
+            filtered_history = []
+            for row in history_records:
+                row_date = row.get('attendance_date')
+                row_text = ' '.join([
+                    str(row_date or ''),
+                    (row.get('status') or ''),
+                    row_date.strftime('%A') if row_date else '',
+                ]).lower()
+                if search_query in row_text:
+                    filtered_history.append(row)
+            history_records = filtered_history
+            total_pages = 1
+            page = 1
 
         month_options = [
             {
@@ -113,13 +140,17 @@ class AttendanceController(BaseController):
             selected_month_name=calendar.month_name[selected_month],
             month_options=month_options,
             year_options=year_options,
-            selected_month_label=f"{calendar.month_name[selected_month]} {selected_year}"
+            selected_month_label=f"{calendar.month_name[selected_month]} {selected_year}",
+            current_rate=current_rate,
+            threshold_label=threshold_label,
+            search_query=search_query,
         )
 
     @login_required
     @role_required('teacher')
     def manage_attendance(self):
         today = date.today()
+        search_query = (request.args.get('q') or '').strip().lower()
 
         if request.method == 'POST':
             student_id = request.form.get('student_id')
@@ -132,6 +163,20 @@ class AttendanceController(BaseController):
             return redirect(url_for('attend.manage_attendance'))
 
         student_list = Attendance.get_students_attendance_for_date(today)
+        if search_query:
+            student_list = [
+                student for student in student_list
+                if search_query in (student.get('name') or '').lower()
+                or search_query in (student.get('username') or '').lower()
+                or search_query in (student.get('email') or '').lower()
+                or search_query in (student.get('status') or '').lower()
+            ]
+
+        present_count = sum(1 for student in student_list if student.get('status') == 'present')
+        absent_count = sum(1 for student in student_list if student.get('status') == 'absent')
+        not_marked_count = sum(1 for student in student_list if student.get('status') == 'not_marked')
+        total_students = len(student_list)
+        current_rate = round((present_count / total_students) * 100, 1) if total_students else 0
 
         return self.render('attendance/manage_attendance.html',
             username=self.session.get('username'),
@@ -139,4 +184,11 @@ class AttendanceController(BaseController):
             role=self.session.get('role'),
             date=today,
             students=student_list,
+            present_count=present_count,
+            absent_count=absent_count,
+            not_marked_count=not_marked_count,
+            total_students=total_students,
+            current_rate=current_rate,
+            threshold_label='Above threshold (90%)' if current_rate >= 90 else 'Below threshold (90%)',
+            search_query=search_query,
         )
