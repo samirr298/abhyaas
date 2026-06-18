@@ -25,10 +25,21 @@
            class="notification-item {% if notification.is_read == 0 %}unread{% endif %}">
           <div class="notification-body">
             <strong>{{ notification.title }}</strong>
-            <span>{{ notification.subject or 'General' }}</span>
+            <span>
+              {% if notification.notification_type == 'deadline_reminder' and notification.due_date %}
+                Deadline reminder for {{ notification.title }}
+              {% else %}
+                {{ notification.subject or 'General' }}
+              {% endif %}
+            </span>
           </div>
           <div class="notification-meta">
-            <small>{{ notification.created_at.strftime('%d %b %Y %I:%M %p') if notification.created_at else '' }}</small>
+            <small>
+              {% if notification.notification_type == 'deadline_reminder' and notification.due_date %}
+                Due {{ notification.due_date.strftime('%d %b %Y') }} ·
+              {% endif %}
+              {{ notification.created_at.strftime('%d %b %Y %I:%M %p') if notification.created_at else '' }}
+            </small>
             {% if notification.is_read == 0 %}
               <span class="notification-status">Unread</span>
             {% else %}
