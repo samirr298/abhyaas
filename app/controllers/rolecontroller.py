@@ -7,7 +7,7 @@ from app.models.base_model import BaseModel
 from app.models.announcement import Announcement
 from app.models.attendance import Attendance
 from app.models.notification import Notification
-from app.models.task import Task
+from app.models.task import Task, TaskBookmark
 from app.models.user import Users
 
 
@@ -147,6 +147,7 @@ class RoleController:
     def student_dashboard(self):
         latest_announcements = Announcement.get_latest_announcements(3)
         today_tasks = Task.get_today_tasks(session.get('user_id')) or []
+        bookmarked_task_ids = TaskBookmark.get_bookmarked_task_ids(session.get('user_id'))
         pending_tasks = [task for task in today_tasks if (task.get('submission_status') or '') != 'Reviewed']
         notifications = Notification.get_for_user(session.get('user_id')) or []
         deadline_reminders = [item for item in notifications if item.get('notification_type') == 'deadline_reminder']
@@ -180,6 +181,7 @@ class RoleController:
             tasks=[],
             feedback=[],
             today_tasks=today_tasks,
+            bookmarked_task_ids=bookmarked_task_ids,
             pending_tasks=pending_tasks,
             deadline_reminders=deadline_reminders,
             attendance_status=attendance_status,

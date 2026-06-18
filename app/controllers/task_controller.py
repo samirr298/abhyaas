@@ -1,11 +1,12 @@
 import os
 import time
 from datetime import datetime
-from flask import request, redirect, url_for, jsonify
+from flask import request, redirect, url_for, jsonify, flash
 from app.controllers.base_controller import BaseController
 from app.models.base_model import BaseModel
-from app.models.task import Task
+from app.models.task import Task, TaskBookmark
 from app.models.notification import Notification
+from app.auth import login_required, role_required
 import math
 class TaskController(BaseController):
 
@@ -237,6 +238,7 @@ class TaskController(BaseController):
         # render task feed (get)
         # ========================================================
         current_student_id = self.session.get('user_id')
+        bookmarked_task_ids = TaskBookmark.get_bookmarked_task_ids(current_student_id)
         
         # Pull all global classroom assignments
         fetch_all_tasks_sql = "SELECT * FROM tasks ORDER BY due_date ASC"
@@ -284,6 +286,7 @@ class TaskController(BaseController):
             'tasks/student_task.html', 
             tasks=all_tasks, 
             student_id=str(current_student_id),
+            bookmarked_task_ids=bookmarked_task_ids,
             submission_map=submission_map,
             total_tasks_count=total_tasks_count,
             completion_count=completion_count,
@@ -363,7 +366,38 @@ class TaskController(BaseController):
             task=task,
             submission=student_sub,
             feedback=feedback_items,
+            is_bookmarked=TaskBookmark.is_bookmarked(current_student_id, task_id),
             now=datetime.now()
+        )
+
+    @login_required
+    @role_required('student')
+    def toggle_bookmark(self, task_id):
+        task = BaseModel.fetch_one("SELECT id FROM tasks WHERE id = %s LIMIT 1", [task_id])
+        if not task:
+            return jsonify({"success": False, "message": "Task not found"}), 404
+
+        current_student_id = self.session.get('user_id')
+        is_bookmarked = TaskBookmark.toggle(current_student_id, task_id)
+
+        message = 'Task bookmarked.' if is_bookmarked else 'Bookmark removed.'
+        flash(message, 'success')
+
+        referrer = request.referrer or url_for('tasks.student_task')
+        return redirect(referrer)
+
+    @login_required
+    @role_required('student')
+    def bookmarks(self):
+        current_student_id = self.session.get('user_id')
+        bookmarks = TaskBookmark.get_bookmarks_for_user(current_student_id)
+        bookmarked_task_ids = {int(item['id']) for item in bookmarks if item.get('id') is not None}
+
+        return self.render(
+            'tasks/bookmarks.html',
+            bookmarks=bookmarks,
+            bookmarked_task_ids=bookmarked_task_ids,
+            now=datetime.now(),
         )
 
     def notifications(self):
