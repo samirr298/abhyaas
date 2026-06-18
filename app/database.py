@@ -166,11 +166,15 @@ class Database:
                                     task_id INT NOT NULL,
                                     title VARCHAR(255) NOT NULL,
                                     subject VARCHAR(255) NOT NULL,
+                                    notification_type VARCHAR(50) NOT NULL DEFAULT 'task_created',
                                     is_read TINYINT(1) NOT NULL DEFAULT 0,
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                                     CONSTRAINT fk_notification_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
                                 );''')
+                                cursor.execute("SHOW COLUMNS FROM notifications LIKE 'notification_type'")
+                                if not cursor.fetchone():
+                                        cursor.execute("ALTER TABLE notifications ADD COLUMN notification_type VARCHAR(50) NOT NULL DEFAULT 'task_created' AFTER subject")
                                 connection.commit()
                 finally:
                         pass
