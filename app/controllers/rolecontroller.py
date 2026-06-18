@@ -3,6 +3,7 @@ from flask import render_template, session, request, redirect, url_for, flash
 
 from app.auth import login_required, role_required
 from app.controllers.task_controller import TaskController
+from app.models.base_model import BaseModel
 from app.models.announcement import Announcement
 from app.models.attendance import Attendance
 from app.models.notification import Notification
@@ -44,22 +45,99 @@ class RoleController:
     @role_required("teacher")
     def teacher_dashboard(self):
         teacher_tasks = Task.get_teacher_tasks(session.get('user_id')) or []
+        latest_announcements = Announcement.get_latest_announcements(3)
+        q = (request.args.get('q') or '').strip().lower()
+
+        if q:
+            teacher_tasks = [
+                task for task in teacher_tasks
+                if q in (task.get('title') or '').lower()
+                or q in (task.get('subject') or '').lower()
+                or q in (task.get('description') or '').lower()
+            ]
+            latest_announcements = [
+                item for item in latest_announcements
+                if q in (item.get('title') or '').lower()
+                or q in (item.get('summary') or '').lower()
+                or q in (item.get('category') or '').lower()
+            ]
+
+        submissions_sql = """
+            SELECT
+                s.id,
+                s.task_id,
+                s.student_id,
+                s.status,
+                s.submitted_at,
+                s.submitted_filename,
+                t.title AS task_title,
+                u.name AS student_name
+            FROM submissions s
+            JOIN tasks t ON t.id = s.task_id
+            JOIN users u ON u.id = s.student_id
+            WHERE t.created_by = %s
+            ORDER BY s.submitted_at DESC
+        """
+        recent_submissions = BaseModel.fetch_all(submissions_sql, [session.get('user_id')]) or []
+        if q:
+            recent_submissions = [
+                item for item in recent_submissions
+                if q in (item.get('task_title') or '').lower()
+                or q in (item.get('student_name') or '').lower()
+            ]
+
         today = date.today()
         record = Attendance.get_today_record(session.get('user_id'), today)
         attendance_status = record['status'].capitalize() if record else 'Not Marked'
         attendance_date_display = today.strftime('%A, %d %B %Y')
 
+        attendance_start = today - timedelta(days=30)
+        present_days = Attendance.get_status_count(session.get('user_id'), 'present', attendance_start, today + timedelta(days=1))
+        absent_days = Attendance.get_status_count(session.get('user_id'), 'absent', attendance_start, today + timedelta(days=1))
+        marked_days = present_days + absent_days
+        attendance_rate = round((present_days / marked_days) * 100, 1) if marked_days else 0
+
+        published_tasks_count = len(teacher_tasks)
+        overdue_tasks_count = 0
+        active_tasks_count = 0
+        for task in teacher_tasks:
+            due_value = task.get('due_date')
+            if not due_value:
+                continue
+            due_date = due_value.date() if hasattr(due_value, 'date') else due_value
+            if due_date < today:
+                overdue_tasks_count += 1
+            else:
+                active_tasks_count += 1
+
+        pending_reviews_count = sum(1 for item in recent_submissions if (item.get('status') or '') != 'Reviewed')
+        reviewed_count = sum(1 for item in recent_submissions if (item.get('status') or '') == 'Reviewed')
+
+        for task in teacher_tasks:
+            completed_by_students = task.get('completed_by_students') or ''
+            task['completed_count'] = len([value for value in completed_by_students.split(',') if value.strip()])
+
         return render_template(
             'users/teacher_dashboard.html',
             class_summary={},
-            tasks=[],
+            tasks=teacher_tasks[:3],
             feedback_queue=[],
-            submissions=[],
+            submissions=recent_submissions[:4],
             teacher_tasks=teacher_tasks,
-            total_submissions=len(teacher_tasks),
+            latest_announcements=latest_announcements,
+            recent_submissions=recent_submissions,
+            total_submissions=len(recent_submissions),
+            published_tasks_count=published_tasks_count,
+            active_tasks_count=active_tasks_count,
+            overdue_tasks_count=overdue_tasks_count,
+            pending_reviews_count=pending_reviews_count,
+            reviewed_count=reviewed_count,
+            attendance_rate=attendance_rate,
             username=session.get('username'),
             attendance_status=attendance_status,
             attendance_date_display=attendance_date_display,
+            search_query=q,
+            now=datetime.now(),
         )
 
   
