@@ -28,8 +28,8 @@ class LeaveRequest(BaseModel):
         params = [user_id]
 
         if status_filter:
-            sql += " AND status = %s"
-            params.append(status_filter.capitalize())
+            sql += " AND LOWER(status) = LOWER(%s)"
+            params.append(status_filter)
 
         sql += " ORDER BY submitted_at DESC"
         return LeaveRequest.fetch_all(sql, params) or []
@@ -56,8 +56,8 @@ class LeaveRequest(BaseModel):
         params = []
 
         if status_filter:
-            sql += " AND l.status = %s"
-            params.append(status_filter.capitalize())
+            sql += " AND LOWER(l.status) = LOWER(%s)"
+            params.append(status_filter)
 
         sql += " ORDER BY FIELD(l.status, 'Pending', 'Approved', 'Rejected'), l.leave_date DESC"
         return LeaveRequest.fetch_all(sql, params) or []
@@ -80,7 +80,7 @@ class LeaveRequest(BaseModel):
 
     @staticmethod
     def delete_pending(user_id, request_id):
-        sql = "DELETE FROM leave_requests WHERE id = %s AND user_id = %s AND status = 'Pending'"
+        sql = "DELETE FROM leave_requests WHERE id = %s AND user_id = %s AND LOWER(status) = 'pending'"
         return LeaveRequest.execute_write(sql, [request_id, user_id])
 
     @staticmethod
@@ -94,12 +94,12 @@ class LeaveRequest(BaseModel):
             FROM leave_requests
             WHERE user_id = %s
               AND is_read = FALSE
-              AND status != 'Pending'
+              AND LOWER(status) != 'pending'
             ORDER BY updated_at DESC
         """
         return LeaveRequest.fetch_all(sql, [user_id]) or []
 
     @staticmethod
     def mark_notifications_read(user_id):
-        sql = "UPDATE leave_requests SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE AND status != 'Pending'"
+        sql = "UPDATE leave_requests SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE AND LOWER(status) != 'pending'"
         return LeaveRequest.execute_write(sql, [user_id])

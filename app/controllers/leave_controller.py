@@ -64,7 +64,7 @@ class LeaveController(BaseController):
         approved_days = 0
         pending_count = 0
         for req in leave_requests:
-            if req.get('status') == 'Pending':
+            if str(req.get('status', '')).lower() == 'pending':
                 pending_count += 1
 
             start_date = req.get('leave_date')
@@ -80,7 +80,7 @@ class LeaveController(BaseController):
             req['date_range'] = f"{start_date.isoformat()} - {end_date.isoformat()}" if start_date != end_date else start_date.isoformat()
             req['duration_days'] = duration_days
 
-            if req.get('status') == 'Approved':
+            if str(req.get('status', '')).lower() == 'approved':
                 approved_days += duration_days
 
         total_allowed_days = 21
@@ -111,8 +111,7 @@ class LeaveController(BaseController):
             if not leave_request:
                 flash('Leave request not found.', 'error')
                 return redirect(url_for('leave.teacher_leave_requests'))
-
-            if leave_request.get('status') != 'Pending':
+            if str(leave_request.get('status', '')).lower() != 'pending':
                 flash('Only pending leave requests can be updated.', 'error')
                 return redirect(url_for('leave.teacher_leave_requests'))
 
