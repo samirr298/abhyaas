@@ -112,22 +112,29 @@ class LeaveController(BaseController):
                 flash('Leave request not found.', 'error')
                 return redirect(url_for('leave.teacher_leave_requests'))
 
-            if leave_request.get('status') != 'Pending':
+            if leave_request.get('status') != 'pending':
                 flash('Only pending leave requests can be updated.', 'error')
                 return redirect(url_for('leave.teacher_leave_requests'))
 
             if action == 'approve':
-                LeaveRequest.update_status(request_id, 'Approved')
+                LeaveRequest.update_status(request_id, 'approved')
+                start_date = leave_request.get('leave_date')
+                end_date = leave_request.get('end_date') or start_date
+                if isinstance(start_date, str):
+                    start_date = date.fromisoformat(start_date)
+                if isinstance(end_date, str):
+                    end_date = date.fromisoformat(end_date)
+                LeaveRequest.apply_leave_to_attendance(leave_request['user_id'], start_date, end_date)
                 flash('Leave request approved.', 'success')
             elif action == 'reject':
-                LeaveRequest.update_status(request_id, 'Rejected')
+                LeaveRequest.update_status(request_id, 'rejected')
                 flash('Leave request rejected.', 'success')
             else:
                 flash('Invalid action. Please try again.', 'error')
 
             return redirect(url_for('leave.teacher_leave_requests'))
 
-        status_filter = (request.args.get('status_filter') or '').strip().lower()
+        status_filter = (request.args.get('status_filter') or 'pending').strip().lower()
         leave_requests = LeaveRequest.get_all_requests(status_filter)
 
         return self.render(

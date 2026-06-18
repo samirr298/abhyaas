@@ -15,7 +15,7 @@ class AttendanceController(BaseController):
         if request.method == 'POST':
             existing = Attendance.get_today_record(userid, today)
             if existing:
-                flash("You are already Present !")
+                flash("Attendance already updated for today.")
                 return redirect(url_for('attend.mark_attendance'))
             else:
                 Attendance.mark_present(userid, today)
@@ -40,7 +40,7 @@ class AttendanceController(BaseController):
         # --- 2. HANDLE GET (Page Load Data Fetching) ---
         # Determine status text for your blue layout badge
         today_record = Attendance.get_today_record(userid, today)
-        status_text = "Present" if today_record else "Not Marked"
+        status_text = today_record['status'].replace('_', ' ').title() if today_record else "Not Marked"
 
         page = max(request.args.get('page', default=1, type=int), 1)
         selected_month = request.args.get('month', default=today.month, type=int)
