@@ -418,6 +418,320 @@ body.password-page {
 /* camera icon overlay */
 .profile-picture{position:relative}
 .profile-picture .camera-icon{position:absolute;right:6px;bottom:6px;background:#0b2540;color:#fff;padding:6px;border-radius:8px;font-size:14px;box-shadow:0 6px 18px rgba(2,6,23,0.18)}
+
+/* Student dashboard redesign */
+.student-dashboard-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(260px,0.85fr);
+  gap:24px;
+  align-items:stretch;
+  padding:28px;
+  border:1px solid #e5eaf2;
+  background:linear-gradient(135deg,#ffffff 0%,#f5f8ff 100%);
+}
+.student-hero-copy h2{
+  margin:8px 0 10px;
+  font-size:2rem;
+  line-height:1.12;
+  color:#0f172a;
+}
+.student-hero-text{
+  max-width:58ch;
+  color:#546274;
+  line-height:1.7;
+}
+.student-hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+.student-hero-status{
+  padding:20px;
+  border-radius:20px;
+  background:linear-gradient(180deg,#071a2a 0%,#0f2740 100%);
+  color:#e5f0ff;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:16px;
+  box-shadow:0 22px 44px rgba(7,26,42,0.18);
+}
+.hero-status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  width:max-content;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.09);
+  font-weight:700;
+}
+.hero-status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,0.18);
+}
+.hero-date{
+  font-size:.95rem;
+  color:rgba(229,240,255,0.82);
+}
+.hero-reminder-count{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.hero-reminder-count strong{
+  font-size:2.4rem;
+  line-height:1;
+}
+.hero-reminder-count span{
+  color:rgba(229,240,255,0.78);
+  font-size:.88rem;
+}
+.student-metrics-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin:18px 0;
+}
+.metric-card{
+  background:#fff;
+  border:1px solid #e5eaf2;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(2,6,23,0.04);
+}
+.metric-card p{
+  margin-top:12px;
+  color:#667085;
+  font-size:.94rem;
+  line-height:1.6;
+}
+.metric-accent{
+  background:linear-gradient(135deg,#fff 0%,#f8fbff 100%);
+}
+.metric-dark{
+  background:linear-gradient(135deg,#071a2a 0%,#0d243a 100%);
+  color:#e4edf8;
+  border-color:#071a2a;
+}
+.metric-dark p{color:rgba(228,237,248,0.74)}
+.metric-topline{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.metric-topline span{
+  font-size:.86rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:inherit;
+  opacity:.78;
+}
+.metric-topline strong{
+  font-size:2rem;
+  line-height:1;
+  color:inherit;
+}
+.metric-bar{
+  margin-top:14px;
+  height:10px;
+  background:#e9eff7;
+  border-radius:999px;
+  overflow:hidden;
+}
+.metric-bar span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#f59e0b 0%,#2563eb 100%);
+}
+.student-dashboard-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.65fr) minmax(300px,0.95fr);
+  gap:20px;
+  align-items:start;
+}
+.student-dashboard-main,
+.student-panel{
+  border:1px solid #e5eaf2;
+}
+.student-dashboard-main{padding:22px}
+.student-section-header.compact{margin-bottom:14px}
+.student-task-list{
+  display:grid;
+  gap:14px;
+}
+.student-task-item{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid #e5eaf2;
+  background:#fff;
+  box-shadow:0 8px 20px rgba(2,6,23,0.03);
+}
+.student-task-item.is-complete{background:#f0fdf4;border-color:#bbf7d0}
+.student-task-item.is-overdue{background:#fff1f2;border-color:#fecdd3}
+.student-task-item.is-due-today{background:#eff6ff;border-color:#bfdbfe}
+.student-task-main{
+  display:flex;
+  gap:14px;
+  min-width:0;
+  flex:1;
+}
+.student-task-icon{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  background:#eff6ff;
+  color:#1d4ed8;
+  font-weight:800;
+}
+.student-task-copy{min-width:0}
+.student-task-subject{
+  font-size:.74rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#64748b;
+  margin-bottom:6px;
+}
+.student-task-copy h4{margin:0 0 8px;font-size:1rem}
+.student-task-copy h4 a{color:#0f172a;text-decoration:none}
+.student-task-copy p{color:#546274;line-height:1.6;font-size:.92rem}
+.student-task-meta{
+  min-width:132px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:8px;
+  text-align:right;
+}
+.student-task-due{font-size:.84rem;color:#64748b}
+.student-task-link{font-size:.85rem;color:#2563eb;text-decoration:none;font-weight:700}
+.status-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:.74rem;
+  font-weight:800;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+}
+.status-chip.success{background:#dcfce7;color:#166534}
+.status-chip.warning{background:#fef3c7;color:#92400e}
+.status-chip.danger{background:#fee2e2;color:#b91c1c}
+.status-chip.neutral{background:#e2e8f0;color:#334155}
+.student-dashboard-side{
+  display:grid;
+  gap:18px;
+}
+.student-panel{padding:20px}
+.student-announcement-list,
+.deadline-reminder-list{
+  display:grid;
+  gap:12px;
+}
+.student-announcement-item,
+.deadline-reminder-item{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:14px 15px;
+  border-radius:16px;
+  border:1px solid #e5eaf2;
+  background:#fff;
+  text-decoration:none;
+}
+.student-announcement-item h4,
+.student-announcement-item h4 a,
+.deadline-reminder-item strong{
+  margin:0;
+  color:#0f172a;
+  text-decoration:none;
+}
+.student-announcement-head,
+.student-announcement-foot{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.student-announcement-head span,
+.student-announcement-foot small,
+.student-announcement-item p,
+.deadline-reminder-item span,
+.empty-state-card p{
+  color:#667085;
+}
+.student-announcement-item p{line-height:1.6;font-size:.92rem;margin:0}
+.student-announcement-foot a{
+  color:#2563eb;
+  text-decoration:none;
+  font-weight:700;
+  font-size:.86rem;
+}
+.deadline-reminder-item{background:linear-gradient(180deg,#fff8f0 0%,#fff 100%);border-color:#f5d6a3}
+.reminder-badge{
+  width:32px;
+  height:32px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fde68a;
+  color:#92400e;
+  font-weight:800;
+}
+.empty-state-card{
+  padding:18px;
+  border-radius:16px;
+  border:1px dashed #d6deea;
+  background:#f8fafc;
+}
+.empty-state-card.compact{padding:16px}
+.empty-state-card h4{margin:0 0 8px;color:#0f172a}
+.empty-state-card p{margin:0;line-height:1.6}
+@media (max-width: 1080px){
+  .student-dashboard-hero,
+  .student-dashboard-grid{
+    grid-template-columns:1fr;
+  }
+  .student-metrics-grid{
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width: 700px){
+  .student-dashboard-hero,
+  .student-dashboard-main,
+  .student-panel{
+    padding:18px;
+  }
+  .student-task-item{
+    flex-direction:column;
+  }
+  .student-task-meta{
+    align-items:flex-start;
+    text-align:left;
+    min-width:0;
+  }
+  .student-announcement-head,
+  .student-announcement-foot{
+    flex-direction:column;
+  }
+}
 .profile-picture img{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px}
 
 /* Personal info card tweaks */
