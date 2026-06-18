@@ -20,6 +20,7 @@ def create_app():
     Database.create_attendance_table()
     Database.create_announcement_table()
     Database.create_task_tables()
+    Database.create_task_bookmarks_table()
     Database.create_submission_table()
     Database.create_feedback_table()
     Database.create_notification_table()
