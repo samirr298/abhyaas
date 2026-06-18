@@ -50,6 +50,49 @@ class Task(BaseModel):
         return cls.fetch_one(sql, [task_id])
 
 
+class TaskBookmark(BaseModel):
+    @staticmethod
+    def get_bookmarked_task_ids(user_id):
+        sql = "SELECT task_id FROM task_bookmarks WHERE user_id = %s"
+        rows = TaskBookmark.fetch_all(sql, [user_id]) or []
+        return {int(row['task_id']) for row in rows if row.get('task_id') is not None}
+
+    @staticmethod
+    def is_bookmarked(user_id, task_id):
+        sql = "SELECT id FROM task_bookmarks WHERE user_id = %s AND task_id = %s LIMIT 1"
+        return TaskBookmark.fetch_one(sql, [user_id, task_id]) is not None
+
+    @staticmethod
+    def toggle(user_id, task_id):
+        if TaskBookmark.is_bookmarked(user_id, task_id):
+            sql = "DELETE FROM task_bookmarks WHERE user_id = %s AND task_id = %s"
+            TaskBookmark.execute_write(sql, [user_id, task_id])
+            return False
+
+        sql = "INSERT INTO task_bookmarks (user_id, task_id) VALUES (%s, %s)"
+        TaskBookmark.execute_write(sql, [user_id, task_id])
+        return True
+
+    @staticmethod
+    def get_bookmarks_for_user(user_id):
+        sql = """
+            SELECT
+                t.*,
+                b.created_at AS bookmarked_at,
+                s.id AS submission_id,
+                s.status AS submission_status,
+                s.submitted_at,
+                s.submitted_filename
+            FROM task_bookmarks b
+            JOIN tasks t ON t.id = b.task_id
+            LEFT JOIN submissions s
+                ON s.task_id = t.id AND s.student_id = b.user_id
+            WHERE b.user_id = %s
+            ORDER BY b.created_at DESC
+        """
+        return TaskBookmark.fetch_all(sql, [user_id]) or []
+
+
 class TaskSubmission(BaseModel):
     @classmethod
     def get_submission_for_task(cls, task_id, student_id):
