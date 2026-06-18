@@ -84,7 +84,14 @@
                   {% for item in notification_list %}
                   <a href="{{ url_for('tasks.view_task', task_id=item.task_id) }}?notification_id={{ item.id }}" class="notif-item {% if item.is_read == 0 %}unread{% endif %}">
                     <div class="notif-item-title">{{ item.title }}</div>
-                    <div class="notif-item-meta">{{ item.subject or 'General' }} · {{ item.created_at.strftime('%d %b %Y %I:%M %p') if item.created_at else '' }}</div>
+                    <div class="notif-item-meta">
+                      {% if item.notification_type == 'deadline_reminder' and item.due_date %}
+                        Deadline reminder · Due {{ item.due_date.strftime('%d %b %Y') }}
+                      {% else %}
+                        {{ item.subject or 'General' }}
+                      {% endif %}
+                      · {{ item.created_at.strftime('%d %b %Y %I:%M %p') if item.created_at else '' }}
+                    </div>
                   </a>
                   {% endfor %}
                 {% else %}
