@@ -7,195 +7,138 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    .hidden {
-    display: none !important;
-  }
-</style>
-<div class="attendance-page">
-    <section class="attendance-hero card">
-        <div class="attendance-hero-copy">
-            <p class="attendance-eyebrow">Hi {{ username }} ,This is your Attendance status</p>
-            <h2 class="attendance-title">Today</h2>
-            <p class="attendance-copy">
-                Check today’s status, mark attendance, and review your recent history from one screen.
-            </p>
+<div class="attendance-dashboard">
+  <section class="attendance-topbar card">
+    <div class="attendance-topbar-copy">
+      <p class="attendance-section-kicker">Attendance</p>
+      <h2>Track your attendance record</h2>
+      <p>Review your monthly history, check your current rate, and mark today present from one place.</p>
+    </div>
 
-            <div class="attendance-status-row">
-                <span class="attendance-status-pill {% if attendance_status == 'Present' %}present{% else %}not-marked{% endif %}">
-                    <span class="attendance-status-dot"></span>
-                    {{ attendance_status }}
-                </span>
-                <span class="attendance-status-meta">Date shown: {{ date }}</span>
-            </div>
+    <!-- <form class="attendance-search-form" method="GET" action="{{ url_for('attend.mark_attendance') }}">
+      <input type="search" name="q" value="{{ search_query }}" placeholder="Search records..." aria-label="Search attendance records">
+      <input type="hidden" name="month" value="{{ selected_month }}">
+      <input type="hidden" name="year" value="{{ selected_year }}">
+      <button type="submit">Search</button>
+    </form> -->
+  </section>
+
+  <section class="attendance-stats-grid">
+    <article class="attendance-stat-card attendance-stat-accent">
+      <div class="attendance-stat-head">
+        <span>Total present</span>
+        <strong>{{ present_count }}</strong>
+      </div>
+      <p>{{ total_days }} days tracked in {{ selected_month_name }} {{ selected_year }}</p>
+      <div class="attendance-stat-bar"><span style="width: {{ current_rate }}%;"></span></div>
+    </article>
+
+    <article class="attendance-stat-card">
+      <div class="attendance-stat-head">
+        <span>Absences</span>
+        <strong>{{ absent_count }}</strong>
+      </div>
+      <p>{{ total_days - present_count if total_days else 0 }} total days without a present mark.</p>
+    </article>
+
+    <article class="attendance-stat-card attendance-stat-dark">
+      <div class="attendance-stat-head">
+        <span>Current rate</span>
+        <strong>{{ current_rate }}%</strong>
+      </div>
+      <p>{{ threshold_label }}</p>
+    </article>
+  </section>
+
+
+    <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="attendance-month-filter">
+      <input type="hidden" name="q" value="{{ search_query }}">
+      <div class="attendance-month-controls">
+        <div class="attendance-field">
+          <label for="month-select">Month</label>
+          <select id="month-select" name="month">
+            {% for month_option in month_options %}
+              <option value="{{ month_option['value'] }}" {% if month_option['selected'] %}selected{% endif %}>{{ month_option['label'] }}</option>
+            {% endfor %}
+          </select>
         </div>
-
-        <div class="attendance-hero-actions">
-            {% if attendance_status != 'Present' %}
-            <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-hero-actions">
-                 <input type="hidden" name="status" value="present">
-                 <button type="submit">Mark Present</button>
-            </form>
-            {% else %}
-            <button class="btn-disabled" disabled style="cursor: not-allowed; opacity: 0.6;">Already Present</button>
-            {% endif %}
+        <div class="attendance-field">
+          <label for="year-select">Year</label>
+          <select id="year-select" name="year">
+            {% for year_option in year_options %}
+              <option value="{{ year_option['value'] }}" {% if year_option['selected'] %}selected{% endif %}>{{ year_option['label'] }}</option>
+            {% endfor %}
+          </select>
         </div>
-    </section>
+        <button type="submit" class="attendance-apply-btn">Apply</button>
+      </div>
+    </form>
 
-    <section class="attendance-summary-grid">
-        <article class="summary-card present-card">
-            <span class="summary-label">Present days</span>
-            <strong class="summary-value">{{ present_count }}</strong>
-            <span class="summary-note">Recorded present entries</span>
-        </article>
-
-        <article class="summary-card absent-card">
-            <span class="summary-label">Absent days</span>
-            <strong class="summary-value">{{ absent_count }}</strong>
-            <span class="summary-note">Recorded absent entries</span>
-        </article>
-
-        <article class="summary-card total-card">
-            <span class="summary-label">Total tracked days</span>
-            <strong class="summary-value">{{ total_days }}</strong>
-            <span class="summary-note">Attendance summary for {{ selected_month_name }} {{ selected_year }}</span>
-        </article>
-    </section>
-
-    <section class="attendance-history card">
-        <div class="history-header">
-            <div>
-                <p class="attendance-eyebrow">History</p>
-                <h3 class="history-title">Attendance history</h3>
-                <p class="attendance-copy">Showing {{ selected_month_name }} {{ selected_year }}. Newest records appear first.</p>
-                 <input class="search" id="search" placeholder="Search Attendance date or Day" style="margin-top: 10px;">
-            </div>
-
-            <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="month-filter">
-                <label for="month-select">Filter month</label>
-                <div class="month-filter-controls">
-                    <select id="month-select" name="month">
-                        {% for month_option in month_options %}
-                            <option value="{{ month_option['value'] }}" {% if month_option['selected'] %}selected{% endif %}>{{ month_option['label'] }}</option>
-                        {% endfor %}
-                    </select>
-                    <select id="year-select" name="year">
-                        {% for year_option in year_options %}
-                            <option value="{{ year_option['value'] }}" {% if year_option['selected'] %}selected{% endif %}>{{ year_option['label'] }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="history-filter-btn">Apply</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="history-scroll">
-            <table class="attendance-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>Status</th>
-                        <th>Marked at</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in history %}
-                    <tr class="attendance">
-                        <td data-label="Date">
-                            <div class="date-cell">
-                                <strong>{{ row['attendance_date'] }}</strong>
-                                {% if loop.first and current_page == 1 %}
-                                    <span class="date-badge">Latest</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td data-label="Day">
-                            {{ row['attendance_date'].strftime('%A') }}
-                        </td>
-                        <td data-label="Status">
-                            {% if row['status'] == 'present' %}
-                                <span class="status-chip present">Present</span>
-                            {% else %}
-                                <span class="status-chip absent">Absent</span>
-                            {% endif %}
-                        </td>
-                        <td data-label="Marked at">
-                            {% if row['status'] == 'present' and row['marked_at'] %}
-                                {{ row['marked_at'].strftime('%I:%M %p') }}
-                            {% else %}
-                                --
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #9ca3af; padding: 24px;">
-                            No historical attendance records found.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-            <div>
-                {% if current_page > 1 %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
-                       &larr; Previous
-                    </a>
-                {% else %}
-                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
-                        &larr; Previous
-                    </span>
+    <div class="attendance-history-table-wrap">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Status</th>
+            <th>Marked at</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in history %}
+          <tr>
+            <td data-label="Date">
+              <div class="attendance-date-cell">
+                <strong>{{ row['attendance_date'] }}</strong>
+                {% if loop.first and current_page == 1 %}
+                  <span class="attendance-badge">Latest</span>
                 {% endif %}
-            </div>
+              </div>
+            </td>
+            <td data-label="Day">{{ row['attendance_date'].strftime('%A') }}</td>
+            <td data-label="Status">
+              {% if row['status'] == 'present' %}
+                <span class="attendance-chip present">Present</span>
+              {% else %}
+                <span class="attendance-chip absent">Absent</span>
+              {% endif %}
+            </td>
+            <td data-label="Marked at">
+              {% if row['status'] == 'present' and row['marked_at'] %}
+                {{ row['marked_at'].strftime('%I:%M %p') }}
+              {% else %}
+                --
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="attendance-empty">No historical attendance records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-            <div class="page-indicator" style="font-size: 0.875rem; color: #4b5563;">
-                Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong>
-            </div>
-
-            <div>
-                {% if current_page < total_pages %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year) }}" class="btn-pagination" style="text-decoration: none;">
-                       Next &rarr;
-                    </a>
-                {% else %}
-                    <span class="btn-pagination disabled" style="color: #9ca3af; cursor: not-allowed; opacity: 0.5;">
-                        Next &rarr;
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-    </section>
+    {% if total_pages > 1 %}
+    <div class="attendance-pagination">
+      <div>
+        {% if current_page > 1 %}
+          <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year, q=search_query) }}" class="attendance-page-btn">&larr; Previous</a>
+        {% else %}
+          <span class="attendance-page-btn disabled">&larr; Previous</span>
+        {% endif %}
+      </div>
+      <div class="attendance-page-indicator">Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong></div>
+      <div>
+        {% if current_page < total_pages %}
+          <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year, q=search_query) }}" class="attendance-page-btn">Next &rarr;</a>
+        {% else %}
+          <span class="attendance-page-btn disabled">Next &rarr;</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
 </div>
-<script>
-// We wait for the DOM content to fully load 
-document.addEventListener("DOMContentLoaded", () => {
-    // Looks for the search input rendered by base_app.html
-    const globalSearchInput = document.getElementById("search");
-    
-    // Selects all the individual announcement cards in this specific view
-    const cards = document.querySelectorAll(".attendance");
-
-    // Only run the logic if the global search bar actually exists on this page
-    if (globalSearchInput) {
-        globalSearchInput.addEventListener('input', (e) => {
-            const searchText = e.target.value.toLowerCase();
-
-            cards.forEach(card => {
-                
-                const cardText = card.textContent.toLowerCase();
-
-                if (cardText.includes(searchText)) {
-                    card.classList.remove('hidden'); 
-                } else {
-                    card.classList.add('hidden');    
-                }
-            });
-        });
-    }
-});
-</script>
 {% endblock %}
