@@ -1,57 +1,107 @@
 {% extends "base_app.html" %}
 
 {% block title %}Manage Attendance{% endblock %}
-{% block page_heading %}Manage Student Attendance{% endblock %}
+{% block page_heading %}Manage Attendance{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="attendance-manage-page">
-  <section class="card attendance-hero">
-    <div>
-      <p class="attendance-eyebrow">Teacher view</p>
+<div class="attendance-dashboard">
+  <section class="attendance-topbar card">
+    <div class="attendance-topbar-copy">
+      <p class="attendance-section-kicker">Teacher view</p>
       <h2>Student attendance for {{ date }}</h2>
-      <p>Mark students present or absent and review the class attendance status.</p>
+      <p>Mark attendance, search the class list, and review the overall class rate.
+      </p>
     </div>
+
   </section>
 
-  <section class="card attendance-history">
-    <table class="attendance-table">
-      <thead>
-        <tr>
-          <th>Student</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for student in students %}
-        <tr>
-          <td>{{ student['name'] }}</td>
-          <td>{{ student['email'] }}</td>
-          <td>
-            {% if student['status'] == 'present' %}
-              <span class="status-chip present">Present</span>
-            {% elif student['status'] == 'absent' %}
-              <span class="status-chip absent">Absent</span>
-            {% else %}
-              <span class="status-chip not-marked">Not marked</span>
-            {% endif %}
-          </td>
-          <td>
-            <form method="post" action="{{ url_for('attend.manage_attendance') }}" style="display:inline-flex; gap:8px;">
-              <input type="hidden" name="student_id" value="{{ student['student_id'] }}">
-              <button type="submit" name="status" value="present" class="btn btn-primary">Present</button>
-              <button type="submit" name="status" value="absent" class="btn btn-outline">Absent</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <section class="attendance-stats-grid">
+    <article class="attendance-stat-card attendance-stat-accent">
+      <div class="attendance-stat-head">
+        <span>Total present</span>
+        <strong>{{ present_count }}</strong>
+      </div>
+      <p>{{ total_students }} students loaded for today.</p>
+    </article>
+
+    <article class="attendance-stat-card">
+      <div class="attendance-stat-head">
+        <span>Absences</span>
+        <strong>{{ absent_count }}</strong>
+      </div>
+      <p>{{ not_marked_count }} students are still not marked.</p>
+    </article>
+
+    <article class="attendance-stat-card attendance-stat-dark">
+      <div class="attendance-stat-head">
+        <span>Current rate</span>
+        <strong>{{ current_rate }}%</strong>
+      </div>
+      <p>{{ threshold_label }}</p>
+    </article>
+  </section>
+
+  <section class="attendance-history-card card">
+    <div class="attendance-history-header">
+      <div>
+        <p class="attendance-section-kicker">Attendance list</p>
+        <h3>Mark student attendance</h3>
+        <p>Tap a status button to update the record for today.</p>
+      </div>
+      <div class="attendance-filter-row">
+        <span class="attendance-toggle active">Today</span>
+      </div>
+    </div>
+
+    <div class="attendance-history-table-wrap">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td data-label="Student">
+              <div class="attendance-date-cell">
+                <strong>{{ student['name'] }}</strong>
+                <span class="attendance-subtext">@{{ student['username'] }}</span>
+              </div>
+            </td>
+            <td data-label="Email">{{ student['email'] }}</td>
+            <td data-label="Status">
+              {% if student['status'] == 'present' %}
+                <span class="attendance-chip present">Present</span>
+              {% elif student['status'] == 'absent' %}
+                <span class="attendance-chip absent">Absent</span>
+              {% else %}
+                <span class="attendance-chip not-marked">Not marked</span>
+              {% endif %}
+            </td>
+            <td data-label="Action">
+              <form method="post" action="{{ url_for('attend.manage_attendance') }}" class="attendance-action-form">
+                <input type="hidden" name="student_id" value="{{ student['student_id'] }}">
+                <button type="submit" name="status" value="present" class="attendance-mini-btn success">Present</button>
+                <button type="submit" name="status" value="absent" class="attendance-mini-btn danger">Absent</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="attendance-empty">No students match this search.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}
