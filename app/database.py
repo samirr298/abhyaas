@@ -120,6 +120,25 @@ class Database:
                 finally:
                         pass
                         connection.close()
+
+        def create_task_bookmarks_table():
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE IF NOT EXISTS task_bookmarks (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    user_id INT NOT NULL,
+                                    task_id INT NOT NULL,
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_bookmark_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                    CONSTRAINT fk_bookmark_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                                    UNIQUE KEY unique_task_bookmark (user_id, task_id)
+                                );''')
+                                connection.commit()
+                finally:
+                        pass
+                        connection.close()
         def create_submission_table():
                 connection =  Database.db()
                 try:
