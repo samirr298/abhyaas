@@ -4,7 +4,7 @@ SECRET_KEY = "change-this-to-a-random-secret-key"
 MYSQL_HOST = "localhost"
 MYSQL_USER = "root"
 MYSQL_PASSWORD = "asdfghjkl"
-MYSQL_DATABASE = "abhyaas"
+MYSQL_DATABASE = "abhyaasseason"
 
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
