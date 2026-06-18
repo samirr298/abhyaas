@@ -56,7 +56,18 @@
     <div class="app-main">
       <header class="app-topbar">
         <div class="topbar-left">
-         
+          {% if session.get('role') == 'teacher' and request.endpoint == 'auth.teacher_dashboard' %}
+          <form class="dashboard-search-form" action="{{ url_for('auth.teacher_dashboard') }}" method="GET">
+            <input
+              type="search"
+              name="q"
+              value="{{ request.args.get('q', '') }}"
+              placeholder="Search tasks, students, announcements"
+              aria-label="Search teacher dashboard"
+            >
+            <button type="submit">Search</button>
+          </form>
+          {% endif %}
         </div>
         <div class="topbar-right">
           <div class="profile-summary" aria-label="Current profile information">
