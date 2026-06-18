@@ -1,53 +1,183 @@
 {% extends "base_app.html" %}
 
 {% block title %}Abhyas - Dashboard{% endblock %}
-{% block page_heading %}Welcome, {{ session.get('name') or 'User' }}{% endblock %}
+{% block page_heading %}Teacher Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-landing">
-    <section class="task-hero card">
-        <div>
-            <p class="section-kicker">Overview</p>
-            <h2>Your Learning Progress</h2>
-            <p class="section-copy">Welcome back to Abhyas. Here is a quick look at your current status.</p>
+<section class="teacher-dashboard-hero card">
+    <div class="teacher-hero-copy">
+        <p class="section-kicker">Welcome back</p>
+        <h2>Here’s your class activity at a glance.</h2>
+        <p class="teacher-hero-text">Track attendance, monitor submitted work, and keep your announcements visible from one clean workspace.</p>
+        <div class="teacher-hero-actions">
+            <a class="primary-btn" href="{{ url_for('tasks.teacher_task') }}">Manage tasks</a>
+            <a class="secondary-btn" href="{{ url_for('auth.profile') }}">Edit profile</a>
         </div>
-    </section>
-
-    <div class="task-summary-grid" style="margin-top: 20px;">
-        <article class="summary-tile card">
-            <div class="summary-icon">📚</div>
-            <div>
-                <p class="summary-label">Workspaces</p>
-                <a href="{% if session.get('role') == 'teacher' %}{{ url_for('tasks.teacher_task') }}{% else %}{{ url_for('tasks.student_task') }}{% endif %}" class="primary-btn" style="margin-top: 10px; text-decoration: none;">Go to Tasks</a>
-            </div>
-        </article>
-
-        <article class="summary-tile card">
-            <div class="summary-icon">📅</div>
-            <div>
-                <p class="summary-label">Attendance</p>
-                <h3>{{ attendance_status }}</h3>
-                <p class="summary-note">{{ attendance_date_display }}</p>
-                <a href="{{ url_for('attend.mark_attendance') }}" class="secondary-btn" style="margin-top: 10px; text-decoration: none;">View attendance</a>
-            </div>
-        </article>
-
-        <article class="summary-tile card">
-            <div class="summary-icon">📝</div>
-            <div>
-                <p class="summary-label">Published tasks</p>
-                <h3>{{ teacher_tasks|length }}</h3>
-                <p class="summary-note">Assignments created so far</p>
-            </div>
-        </article>
-
-        <article class="summary-tile card">
-            <div class="summary-icon">�👤</div>
-            <div>
-                <p class="summary-label">Account</p>
-                <a href="{{ url_for('auth.profile') }}" class="secondary-btn" style="margin-top: 10px; text-decoration: none;">Edit Profile</a>
-            </div>
-        </article>
     </div>
-</div>
+    <div class="teacher-hero-status">
+        <div class="teacher-status-pill">
+            <span class="teacher-status-dot"></span>
+            {{ attendance_status }} today
+        </div>
+        <div class="teacher-hero-date">{{ attendance_date_display }}</div>
+        <div class="teacher-hero-score">
+            <strong>{{ attendance_rate }}%</strong>
+            <span>attendance over the last 30 days</span>
+        </div>
+    </div>
+</section>
+
+<section class="teacher-metrics-grid">
+    <article class="teacher-metric-card teacher-metric-accent">
+        <div class="metric-topline">
+            <span>Published tasks</span>
+            <strong>{{ published_tasks_count }}</strong>
+        </div>
+        <p>Assignments currently created under your account.</p>
+    </article>
+
+    <article class="teacher-metric-card">
+        <div class="metric-topline">
+            <span>Pending reviews</span>
+            <strong>{{ pending_reviews_count }}</strong>
+        </div>
+        <p>{{ reviewed_count }} submissions have already been reviewed.</p>
+    </article>
+
+    <article class="teacher-metric-card teacher-metric-dark">
+        <div class="metric-topline">
+            <span>Active / overdue</span>
+            <strong>{{ active_tasks_count }} / {{ overdue_tasks_count }}</strong>
+        </div>
+        <p>Active tasks are due today or later. Overdue items need attention.</p>
+    </article>
+</section>
+
+<section class="teacher-dashboard-grid">
+    <div class="teacher-dashboard-main card">
+        <div class="section-header teacher-section-header">
+            <div>
+                <p class="section-kicker">Published tasks</p>
+                <h3>Recent assignments</h3>
+            </div>
+            <div class="teacher-actions-row">
+                <a class="secondary-btn" href="{{ url_for('tasks.teacher_task') }}">Open task board</a>
+            </div>
+        </div>
+
+        {% if search_query %}
+            <div class="teacher-search-chip">Showing results for “{{ search_query }}”</div>
+        {% endif %}
+
+        {% if tasks and tasks|length > 0 %}
+            <div class="teacher-task-list">
+                {% for task in tasks %}
+                {% set due_value = task.due_date %}
+                {% if due_value and due_value.strftime is defined %}
+                    {% set due_date_text = due_value.strftime('%d %b, %Y') %}
+                {% else %}
+                    {% set due_date_text = 'TBD' %}
+                {% endif %}
+                <article class="teacher-task-item {% if task.due_date and task.due_date < now %}is-overdue{% elif task.due_date and task.due_date.date() == now.date() %}is-due-today{% else %}is-open{% endif %}">
+                    <div class="teacher-task-main">
+                        <div class="teacher-task-icon">{{ loop.index }}</div>
+                        <div class="teacher-task-copy">
+                            <div class="teacher-task-subject">{{ task.subject or 'General' }}</div>
+                            <h4><a href="{{ url_for('tasks.teacher_task') }}">{{ task.title }}</a></h4>
+                            <p>{{ task.description or 'No description provided.' }}</p>
+                        </div>
+                    </div>
+                    <div class="teacher-task-meta">
+                        {% if task.due_date and task.due_date < now %}
+                            <span class="status-chip danger">Overdue</span>
+                        {% elif task.due_date and task.due_date.date() == now.date() %}
+                            <span class="status-chip warning">Due today</span>
+                        {% else %}
+                            <span class="status-chip neutral">Open</span>
+                        {% endif %}
+                        <div class="teacher-task-due">Due {{ due_date_text }}</div>
+                        <div class="teacher-task-complete">{{ task.completed_count or 0 }} students completed</div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state-card">
+                <h4>No published tasks</h4>
+                <p>Create a task to see it appear here.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <aside class="teacher-dashboard-side">
+        <section class="card teacher-panel announcements-panel">
+            <div class="section-header teacher-section-header compact">
+                <div>
+                    <p class="section-kicker">Announcements</p>
+                    <h3>Latest updates</h3>
+                </div>
+                <div>
+                    <a class="secondary-btn" href="{{ url_for('announce.announcement') }}">View all</a>
+                </div>
+            </div>
+
+            {% if latest_announcements and latest_announcements|length > 0 %}
+                <div class="teacher-announcement-list">
+                    {% for announcement in latest_announcements %}
+                    <article class="teacher-announcement-item">
+                        <div class="teacher-announcement-head">
+                            <h4><a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">{{ announcement['title'] }}</a></h4>
+                            <span>{{ announcement['category'] or 'General' }}</span>
+                        </div>
+                        <p>{{ announcement['summary'] }}</p>
+                        <div class="teacher-announcement-foot">
+                            <small>{{ announcement['created_at'].strftime('%d %b %Y') if announcement['created_at'] is not none else '' }}</small>
+                            <a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">Open</a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-card compact">
+                    <h4>No announcements</h4>
+                    <p>New announcements will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="card teacher-panel submissions-panel">
+            <div class="section-header teacher-section-header compact">
+                <div>
+                    <p class="section-kicker">Submissions</p>
+                    <h3>Recent student work</h3>
+                </div>
+                <div class="reminder-badge">{{ submissions|length if submissions else 0 }}</div>
+            </div>
+
+            {% if submissions and submissions|length > 0 %}
+                <div class="teacher-submission-list">
+                    {% for submission in submissions %}
+                    <article class="teacher-submission-item {% if submission.status == 'Reviewed' %}is-reviewed{% else %}is-pending{% endif %}">
+                        <div class="teacher-submission-head">
+                            <strong>{{ submission.student_name }}</strong>
+                            {% if submission.status == 'Reviewed' %}
+                                <span class="status-chip success">Reviewed</span>
+                            {% else %}
+                                <span class="status-chip warning">Pending</span>
+                            {% endif %}
+                        </div>
+                        <p>{{ submission.task_title }}</p>
+                        <small>{{ submission.submitted_at.strftime('%d %b %Y %I:%M %p') if submission.submitted_at else '' }}</small>
+                    </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-card compact">
+                    <h4>No submissions yet</h4>
+                    <p>Student uploads will show up here.</p>
+                </div>
+            {% endif %}
+        </section>
+    </aside>
+</section>
 {% endblock %}
