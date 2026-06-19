@@ -15,11 +15,7 @@
       <p class="section-copy">Create new tasks, monitor who has submitted, and keep review notes organized for the
         class.</p>
     </div>
-    <div class="hero-pills teacher-summary-pills">
-      <span class="stat-pill"><strong>#</strong> submitted</span>
-      <span class="stat-pill"><strong>#</strong> pending</span>
-      <span class="stat-pill"><strong>#</strong> completion</span>
-    </div>
+
   </section>
 
   <section class="teacher-layout-grid">
@@ -174,11 +170,10 @@
       </div>
 
       <div class="feedback-container">
-        <h3>Give Student Feedback</h3>
-        <form action="" method="POST">
+        <form action="" method="POST" class="feedback-form">
           <input type="hidden" name="action" value="save_feedback">
 
-          <label>Select Student Submission:</label>
+          <label>Select submission</label>
           <select name="student_data" required>
             <option value="" disabled selected>-- Choose Submission --</option>
             {% for submission in totalsubmissions %}
@@ -190,44 +185,12 @@
             {% endfor %}
           </select>
 
-          <label>Feedback Notes:</label>
+          <label>Feedback notes</label>
           <textarea name="feedback" placeholder="Enter review evaluation text..." required></textarea>
 
           <button type="submit">Save Evaluation</button>
         </form>
       </div>
-
-      <hr>
-
-      <h3>All Student Submissions</h3>
-      <table class="compact-table">
-        <thead>
-          <tr class="table-header-row">
-            <th>Student</th>
-            <th>Task Title</th>
-            <th>Document File</th>
-            <th>Review Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for submission in totalsubmissions %}
-          <tr>
-            <td>{{ submission.student_name }}</td>
-            <td>{{ submission.task_title }}</td>
-            <td>
-              <a href="/static/student_uploads/{{ submission.submitted_filename }}" target="_blank">View File</a>
-            </td>
-            <td>
-              {% if submission.status == 'Reviewed' %}
-              <span class="tag reviewed">Reviewed</span>
-              {% else %}
-              <span class="tag pending">Pending Review</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
 
     </article>
 
