@@ -3,13 +3,26 @@
 {% block title %}Abhyas - Quiz History{% endblock %}
 
 {% block page_heading %}
-<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+<div class="header-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 10px;">
     <span>📜 Your Quiz History</span>
-    <a href="{{ url_for('quiz.quiz_generator_page') }}" style="font-size: 16px; background-color: #003366; color: white; padding: 8px 16px; border: none; border-radius: 4px; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Generate New Quiz</a>
+    <a href="{{ url_for('quiz.quiz_generator_page') }}" class="history-btn" style="font-size: 16px; background-color: #003366; color: white; padding: 8px 16px; border: none; border-radius: 4px; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;">Generate New Quiz</a>
 </div>
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Mobile Responsiveness for Quiz History */
+    @media (max-width: 768px) {
+        .header-container { flex-direction: column; align-items: flex-start !important; }
+        .history-btn { width: 100%; display: block; }
+        .history-item-flex { flex-direction: column; gap: 15px; }
+        .history-item-right { text-align: left !important; display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px; }
+        .history-item-right .actions-btns { margin-bottom: 0 !important; }
+        .detail-top-bar { flex-direction: column; align-items: flex-start !important; gap: 15px; }
+        .chart-box { min-width: 100% !important; flex: none !important; width: 100%; }
+        .question-header { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+    }
+</style>
 <div class="card" style="background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 55vh;">
     
     <div id="history-list-view">
@@ -17,7 +30,7 @@
     </div>
 
     <div id="history-detail-view" style="display: none;">
-        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+        <div class="detail-top-bar" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center;">
             <button onclick="goBackToList()" style="background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
                 ⬅ Back to List
             </button>
@@ -27,13 +40,13 @@
         <h3 id="detail-header-title" style="color: #003366; margin-top: 0; margin-bottom: 20px;">Quiz Review</h3>
         
         <div id="history-charts-container" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #eee;">
-            <div style="flex: 1; min-width: 250px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="chart-box" style="flex: 1; min-width: 250px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <h4 style="margin-top: 0; color: #555;">Accuracy</h4>
                 <div style="position: relative; height: 180px; width: 100%;">
                     <canvas id="historyScoreChart"></canvas>
                 </div>
             </div>
-            <div style="flex: 2; min-width: 300px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="chart-box" style="flex: 2; min-width: 300px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <h4 style="margin-top: 0; color: #555;">Time Per Question (Seconds)</h4>
                 <div style="position: relative; height: 180px; width: 100%;">
                     <canvas id="historyTimeChart"></canvas>
@@ -119,19 +132,21 @@
 
             html += `
                 <div style="background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;" onclick="showQuizDetails(${index})">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="history-item-flex" style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
                             ${displayTitle}
                             <h3 style="margin: 0; color: #003366; ${defaultDateStyle}">Quiz on ${quiz.formatted_date}</h3>
                             <p style="margin: 8px 0 0 0; color: #555;">⏱️ ${quiz.time_taken}s total time</p>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="margin-bottom: 10px;">
+                        <div class="history-item-right" style="text-align: right;">
+                            <div class="actions-btns" style="margin-bottom: 10px;">
                                 <button onclick="openEditModal(${quiz.id}, '${safeTitle}', event)" style="background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px 10px; cursor: pointer;">✏️ Edit</button>
                                 <button onclick="openDeleteModal(${quiz.id}, event)" style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 5px 10px; cursor: pointer;">🗑️</button>
                             </div>
-                            <span style="font-size: 2.2em; font-weight: bold; color: ${quiz.score === quiz.total_questions ? '#28a745' : '#003366'};">${quiz.score}/${quiz.total_questions}</span>
-                            <p style="margin: 0; color: #007bff; font-weight: bold;">Review Breakdown ➔</p>
+                            <div>
+                                <span style="font-size: 2.2em; font-weight: bold; color: ${quiz.score === quiz.total_questions ? '#28a745' : '#003366'}; line-height: 1;">${quiz.score}/${quiz.total_questions}</span>
+                                <p style="margin: 0; color: #007bff; font-weight: bold; margin-top: 5px;">Review Breakdown ➔</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -282,7 +297,7 @@
         
         contentArea.innerHTML = `
             <div style="margin-bottom: 20px; padding: 25px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px;">
+                <div class="question-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px;">
                     <strong style="font-size: 1.3em; color: #003366;">Question ${currentQuestionIndex + 1}</strong>
                     <span style="font-weight: bold; color: white; background: ${mainBadgeColor}; padding: 4px 10px; border-radius: 4px; font-size: 0.9em;">
                         ${isCorrect ? 'Correct' : 'Incorrect'}
