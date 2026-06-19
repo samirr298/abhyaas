@@ -91,8 +91,8 @@
             <td data-label="Action">
               <form method="post" action="{{ url_for('attend.manage_attendance') }}" class="attendance-action-form">
                 <input type="hidden" name="student_id" value="{{ student['student_id'] }}">
-                <button type="submit" name="status" value="present" class="attendance-mini-btn success">Present</button>
-                <button type="submit" name="status" value="absent" class="attendance-mini-btn danger">Absent</button>
+                <button type="submit" name="status" value="present" class="attendance-mini-btn success" {% if student['status'] in ['present', 'leave'] %}disabled{% endif %}>Present</button>
+                <button type="submit" name="status" value="absent" class="attendance-mini-btn danger" {% if student['status'] in ['absent', 'leave'] %}disabled{% endif %}>Absent</button>
               </form>
             </td>
           </tr>
