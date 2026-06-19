@@ -1,4 +1,5 @@
 from datetime import timedelta
+import pymysql
 
 from app.models.base_model import BaseModel
 
@@ -115,15 +116,29 @@ class LeaveRequest(BaseModel):
                     )
                     existing = cursor.fetchone()
                     if existing:
-                        cursor.execute(
-                            "UPDATE attendance SET status = 'leave' WHERE id = %s",
-                            [existing['id']]
-                        )
+                        try:
+                            cursor.execute(
+                                "UPDATE attendance SET status = 'leave' WHERE id = %s",
+                                [existing['id']]
+                            )
+                        except pymysql.err.DataError:
+                            # Fallback if DB enum doesn't include 'leave'
+                            cursor.execute(
+                                "UPDATE attendance SET status = 'absent' WHERE id = %s",
+                                [existing['id']]
+                            )
                     else:
-                        cursor.execute(
-                            "INSERT INTO attendance (user_id, attendance_date, status) VALUES (%s, %s, 'leave')",
-                            [user_id, current_date]
-                        )
+                        try:
+                            cursor.execute(
+                                "INSERT INTO attendance (user_id, attendance_date, status) VALUES (%s, %s, 'leave')",
+                                [user_id, current_date]
+                            )
+                        except pymysql.err.DataError:
+                            # Fallback if DB enum doesn't include 'leave'
+                            cursor.execute(
+                                "INSERT INTO attendance (user_id, attendance_date, status) VALUES (%s, %s, 'absent')",
+                                [user_id, current_date]
+                            )
                     current_date += timedelta(days=1)
 
             connection.commit()

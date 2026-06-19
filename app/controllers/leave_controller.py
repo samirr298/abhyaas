@@ -64,7 +64,8 @@ class LeaveController(BaseController):
         approved_days = 0
         pending_count = 0
         for req in leave_requests:
-            if req.get('status') == 'Pending':
+            status_val = (req.get('status') or '').lower()
+            if status_val == 'pending':
                 pending_count += 1
 
             start_date = req.get('leave_date')
@@ -80,7 +81,7 @@ class LeaveController(BaseController):
             req['date_range'] = f"{start_date.isoformat()} - {end_date.isoformat()}" if start_date != end_date else start_date.isoformat()
             req['duration_days'] = duration_days
 
-            if req.get('status') == 'Approved':
+            if status_val == 'approved':
                 approved_days += duration_days
 
         total_allowed_days = 21
@@ -98,6 +99,7 @@ class LeaveController(BaseController):
             total_taken=approved_days,
             pending_count=pending_count,
             remaining_days=remaining_days,
+            
         )
 
     @login_required
