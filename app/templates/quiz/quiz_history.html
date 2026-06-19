@@ -1,0 +1,123 @@
+{% extends 'base_app.html' %}
+
+{% block title %}Abhyas - Quiz History{% endblock %}
+
+{% block page_heading %}
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <span>📜 Your Quiz History</span>
+    <a href="{{ url_for('quiz.quiz_generator_page') }}" style="font-size: 16px; background-color: #003366; color: white; padding: 8px 16px; border: none; border-radius: 4px; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Generate New Quiz</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 50vh;">
+    
+    <div id="history-list-view">
+        <p style='text-align: center; padding: 20px; font-size: 1.2em; color: #666;'>⏳ Fetching history from database...</p>
+    </div>
+
+    <div id="history-detail-view" style="display: none;">
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <button onclick="goBackToList()" style="background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                ⬅ Back to List
+            </button>
+            <div style="text-align: right;" id="detail-header-stats">
+                </div>
+        </div>
+        
+        <h3 id="detail-header-title" style="color: #003366; margin-top: 0; margin-bottom: 20px;">Quiz Review</h3>
+        
+        <div id="detail-content-area">
+            </div>
+    </div>
+
+</div>
+
+<script>
+    // Global variable to hold our database data so we can access it when swapping views
+    let savedQuizzes = [];
+
+    // Fetch data immediately when the page loads
+    window.onload = async function() {
+        const listDiv = document.getElementById('history-list-view');
+        
+        try {
+            const response = await fetch("{{ url_for('quiz.get_quiz_history') }}");
+            const data = await response.json();
+
+            if (data.status !== 'success' || data.history.length === 0) {
+                listDiv.innerHTML = "<p style='color: #666; text-align: center; padding: 40px; font-weight: bold; font-size: 1.2em;'>No quiz history found in database! Go take a test.</p>";
+                return;
+            }
+
+            // Save the data globally
+            savedQuizzes = data.history;
+
+            let html = "";
+            savedQuizzes.forEach((quiz, index) => {
+                html += `
+                    <div style="background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="showQuizDetails(${index})">
+                            <div>
+                                <h3 style="margin: 0; color: #003366; font-size: 1.4em;">Quiz on ${quiz.formatted_date}</h3>
+                                <p style="margin: 8px 0 0 0; color: #555; font-size: 1em;">⏱️ ${quiz.time_taken}s total time</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 2.2em; font-weight: bold; color: ${quiz.score === quiz.total_questions ? '#28a745' : '#003366'};">${quiz.score}/${quiz.total_questions}</span>
+                                <p style="margin: 0; font-size: 0.9em; color: #007bff; margin-top: 5px; font-weight: bold;">Click to view breakdown ➔</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            listDiv.innerHTML = html;
+        } catch (error) {
+            console.error("Fetch failed", error);
+            listDiv.innerHTML = "<p style='color: red; text-align: center; padding: 20px; font-size: 1.2em;'>⚠️ Failed to load history from server.</p>";
+        }
+    };
+
+    // --- NEW: View Swap Functions ---
+
+    function showQuizDetails(index) {
+        const quiz = savedQuizzes[index];
+        
+        // 1. Populate the header data
+        document.getElementById('detail-header-title').innerText = `Reviewing: Quiz from ${quiz.formatted_date}`;
+        document.getElementById('detail-header-stats').innerHTML = `
+            <span style="font-size: 1.8em; font-weight: bold; color: ${quiz.score === quiz.total_questions ? '#28a745' : '#003366'};">${quiz.score}/${quiz.total_questions}</span>
+            <span style="color: #666; margin-left: 10px;">(⏱️ ${quiz.time_taken}s)</span>
+        `;
+
+        // 2. Build the detailed HTML for the questions
+        let detailsHtml = "";
+        quiz.qa_data.forEach((q, i) => {
+            let isCorrect = q.user_selected === q.correct_answer;
+            let color = isCorrect ? "#155724" : "#721c24";
+            let bg = isCorrect ? "#d4edda" : "#f8d7da";
+            let icon = isCorrect ? "✅" : "❌";
+            
+            detailsHtml += `
+                <div style="margin-bottom: 20px; padding: 20px; background: ${bg}; color: ${color}; border-radius: 6px; font-size: 1.1em; border: 1px solid ${isCorrect ? '#c3e6cb' : '#f5c6cb'};">
+                    <strong style="font-size: 1.2em;">Q${i+1}:</strong> ${q.question_text}<br>
+                    <div style="margin-top: 12px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 4px;">
+                        <em>Your Answer:</em> ${q.user_selected || "Skipped / Time Up"} ${icon}<br>
+                        ${!isCorrect ? `<em style="display: inline-block; margin-top: 5px;">Correct Answer:</em> <strong>${q.correct_answer}</strong>` : ""}
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('detail-content-area').innerHTML = detailsHtml;
+
+        // 3. Execute the Swap! (Hide list, show details)
+        document.getElementById('history-list-view').style.display = 'none';
+        document.getElementById('history-detail-view').style.display = 'block';
+    }
+
+    function goBackToList() {
+        // Reverse the swap! (Hide details, show list)
+        document.getElementById('history-detail-view').style.display = 'none';
+        document.getElementById('history-list-view').style.display = 'block';
+    }
+</script>
+{% endblock %}

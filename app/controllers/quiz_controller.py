@@ -11,7 +11,16 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 class QuizController:
     def quiz_generator_page(self):
-        return render_template('tasks/quiz_generator.html', quiz_data=None)
+        return render_template('quiz/quiz_generator.html', quiz_data=None)
+    
+    def quiz_history_page(self):
+        # Optional: Ensure user is logged in before showing the page
+        user_id = session.get('user_id') or session.get('id')
+        if not user_id:
+            # Adjust this redirect to match your actual login route name if needed
+            return redirect(url_for('login')) 
+            
+        return render_template('quiz/quiz_history.html')
 
     def start_quiz_session(self):
         # 1. Initialize the session state
@@ -42,7 +51,7 @@ class QuizController:
             'time_limit_per_question': total_seconds if enable_timer else None,
             'hide_answers': request.form.get('hide_answers') == 'true'
         }
-        return render_template('tasks/quiz_interactive.html')
+        return render_template('quiz/quiz_interactive.html')
 
     def generate_next_question(self):
         state = session.get('quiz_state')

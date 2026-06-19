@@ -12,6 +12,11 @@ class QuizRoutes:
             login_required(self.controller.quiz_generator_page)
         )
         
+        # --- NEW: Route for the dedicated History Page ---
+        self.bp.route("/student/quiz-history", methods=["GET"])(
+            login_required(self.controller.quiz_history_page)
+        )
+        
         self.bp.route("/student/start-quiz", methods=["POST"])(
             login_required(self.controller.start_quiz_session)
         )

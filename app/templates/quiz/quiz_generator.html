@@ -4,7 +4,7 @@
 {% block page_heading %}
 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
     <span>Generate Practice Quiz</span>
-    <button onclick="openHistory()" style="font-size: 16px; background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: normal; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Show previous quiz history</button>
+    <a href="{{ url_for('quiz.quiz_history_page') }}" style="font-size: 16px; background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Show previous quiz history</a>
 </div>
 {% endblock %}
 
@@ -121,80 +121,6 @@
     function toggleTimerInputs(checkbox) {
         const container = document.getElementById('timer-inputs-container');
         container.style.display = checkbox.checked ? 'flex' : 'none';
-    }
-
-    // --- NEW: Database History Modal Logic ---
-    async function openHistory() {
-        const modal = document.getElementById('history-modal');
-        const listDiv = document.getElementById('history-list');
-        
-        // Show loading state
-        listDiv.innerHTML = "<p style='text-align: center; padding: 20px;'>⏳ Fetching history from database...</p>";
-        modal.style.display = "flex";
-
-        try {
-            const response = await fetch("{{ url_for('quiz.get_quiz_history') }}");
-            const data = await response.json();
-
-            if (data.status !== 'success' || data.history.length === 0) {
-                listDiv.innerHTML = "<p style='color: #666; text-align: center; padding: 20px; font-weight: bold;'>No quiz history found in database! Go take a test.</p>";
-                return;
-            }
-
-            let html = "";
-            data.history.forEach((quiz, index) => {
-                html += `
-                    <div style="background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleDetails(${index})">
-                            <div>
-                                <h4 style="margin: 0; color: #003366;">Quiz on ${quiz.formatted_date}</h4>
-                                <p style="margin: 5px 0 0 0; color: #555; font-size: 0.9em;">⏱️ ${quiz.time_taken}s total</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <span style="font-size: 1.5em; font-weight: bold; color: ${quiz.score === quiz.total_questions ? '#28a745' : '#003366'};">${quiz.score}/${quiz.total_questions}</span>
-                                <p style="margin: 0; font-size: 0.8em; color: #007bff; margin-top: 5px;">Click to view breakdown ⬇️</p>
-                            </div>
-                        </div>
-                        <div id="details-${index}" style="display: none; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
-                            ${buildDetailsHtml(quiz.qa_data)}
-                        </div>
-                    </div>
-                `;
-            });
-            listDiv.innerHTML = html;
-        } catch (error) {
-            console.error("Fetch failed", error);
-            listDiv.innerHTML = "<p style='color: red; text-align: center; padding: 20px;'>⚠️ Failed to load history from server.</p>";
-        }
-    }
-
-    function closeHistory() {
-        document.getElementById('history-modal').style.display = "none";
-    }
-
-    function toggleDetails(index) {
-        const div = document.getElementById(`details-${index}`);
-        div.style.display = div.style.display === "none" ? "block" : "none";
-    }
-
-    function buildDetailsHtml(qaData) {
-        let html = "";
-        qaData.forEach((q, i) => {
-            let isCorrect = q.user_selected === q.correct_answer;
-            let color = isCorrect ? "#155724" : "#721c24";
-            let bg = isCorrect ? "#d4edda" : "#f8d7da";
-            
-            html += `
-                <div style="margin-bottom: 10px; padding: 10px; background: ${bg}; color: ${color}; border-radius: 4px; font-size: 0.95em; border: 1px solid ${isCorrect ? '#c3e6cb' : '#f5c6cb'};">
-                    <strong>Q${i+1}:</strong> ${q.question_text}<br>
-                    <div style="margin-top: 5px;">
-                        <em>Your Answer:</em> ${q.user_selected || "Skipped / Time Up"}<br>
-                        ${!isCorrect ? `<em>Correct Answer:</em> <strong>${q.correct_answer}</strong>` : ""}
-                    </div>
-                </div>
-            `;
-        });
-        return html;
     }
 </script>
 
