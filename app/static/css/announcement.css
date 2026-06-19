@@ -142,7 +142,7 @@
 }
 
 .announcement-card .read-more:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* Ensure the content column takes full available width */
@@ -192,4 +192,27 @@
     width: 100%;
     text-align: center;
   }
+}
+
+html.theme-dark .announcement-card {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,0.32) !important;
+}
+
+html.theme-dark .announcement-card .card-body h3,
+html.theme-dark .announcement-card .read-more,
+html.theme-dark .announcement-card .attachment {
+  color: #e2e8f0 !important;
+}
+
+html.theme-dark .announcement-card .card-body p,
+html.theme-dark .announcement-card .meta {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .btn-outline {
+  background: #111c30 !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
 }
