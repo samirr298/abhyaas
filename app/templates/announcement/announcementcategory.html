@@ -4,7 +4,7 @@
 <section class="announcement-list" aria-label="Announcement list">
     {% for records in annoucementshistory %}
     {% if records['category'] == categories %}
-    <article class="announcement-card" style="margin-bottom: 16px;">
+    <article class="announcement-card">
         <div class="announcement-image one"></div>
         <div class="announcement-content">
             <div class="meta-row">
@@ -15,7 +15,7 @@
             <p>{{ records['summary'] }}</p>
             <div class="card-footer">
                 <span class="small-meta">Author: {{ records['author_name'] }}</span>
-                <a href="/announcement/view/{{ records['id'] }}" class="read-more" style="text-decoration: none;">
+                <a href="/announcement/view/{{ records['id'] }}" class="read-more">
                     Read more &rarr;
                 </a>
             </div>
