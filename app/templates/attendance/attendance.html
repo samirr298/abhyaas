@@ -27,10 +27,10 @@
       {% if attendance_status not in ['Present', 'Leave'] %}
       <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-mark-form">
         <input type="hidden" name="status" value="present">
-        <button type="submit" class="attendance-mark-btn">Mark Present</button>
+        <button type="submit" class="attendance-mark-btn" id="markPresentBtn">Mark Present</button>
       </form>
       {% else %}
-      <button class="attendance-mark-btn" disabled>Already Updated</button>
+      <button class="attendance-mark-btn" disabled title="Attendance already marked for today">Already Updated</button>
       {% endif %}
     </div>
 
@@ -168,9 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Disable mark present button after submission to prevent double submission
   const markPresentForm = document.querySelector('.attendance-mark-form');
   if (markPresentForm) {
-    const submitBtn = markPresentForm.querySelector('.attendance-mark-btn');
-    markPresentForm.addEventListener('submit', () => {
-      if (submitBtn) {
+    const submitBtn = markPresentForm.querySelector('#markPresentBtn');
+    markPresentForm.addEventListener('submit', (e) => {
+      if (submitBtn && !submitBtn.disabled) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '0.6';
         submitBtn.style.cursor = 'not-allowed';
