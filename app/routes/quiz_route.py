@@ -37,4 +37,12 @@ class QuizRoutes:
             login_required(self.controller.get_quiz_history)
         )
 
+        self.bp.route("/student/update-quiz-title", methods=["POST"])(
+            login_required(self.controller.update_quiz_title)
+        )
+        
+        self.bp.route("/student/delete-quiz", methods=["POST"])(
+            login_required(self.controller.delete_quiz)
+        )
+        
         return self.bp

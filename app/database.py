@@ -169,6 +169,13 @@ class Database:
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     CONSTRAINT fk_quiz_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
                                 );''')
+                                
+                                # NEW: Safely inject the 'title' column into the existing table
+                                try:
+                                    cursor.execute("ALTER TABLE quiz_history ADD COLUMN title VARCHAR(255) NULL")
+                                except Exception:
+                                    pass # Column already exists, move on!
+                                    
                                 connection.commit()
                 finally:
                         connection.close()

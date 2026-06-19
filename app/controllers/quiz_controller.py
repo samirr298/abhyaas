@@ -185,7 +185,7 @@ class QuizController:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT score, total_questions, time_taken, qa_data, DATE_FORMAT(created_at, '%%b %%d, %%Y at %%h:%%i %%p') as formatted_date
+                    SELECT id, title, score, total_questions, time_taken, qa_data, DATE_FORMAT(created_at, '%%b %%d, %%Y at %%h:%%i %%p') as formatted_date
                     FROM quiz_history
                     WHERE student_id = %s
                     ORDER BY created_at DESC
@@ -201,5 +201,40 @@ class QuizController:
         except Exception as e:
             print(f"🚨 DATABASE FETCH ERROR: {e}")
             return jsonify({'status': 'error', 'message': 'Failed to fetch history'}), 500
+        finally:
+            connection.close()
+
+    def update_quiz_title(self):
+        user_id = session.get('user_id') or session.get('id')
+        data = request.get_json(force=True, silent=True)
+        quiz_id = data.get('quiz_id')
+        title = data.get('title')
+
+        connection = Database.db()
+        try:
+            with connection.cursor() as cursor:
+                # Update the title, but ONLY if the quiz belongs to the logged-in user (Security!)
+                cursor.execute("UPDATE quiz_history SET title = %s WHERE id = %s AND student_id = %s", (title, quiz_id, user_id))
+                connection.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+        finally:
+            connection.close()
+
+    def delete_quiz(self):
+        user_id = session.get('user_id') or session.get('id')
+        data = request.get_json(force=True, silent=True)
+        quiz_id = data.get('quiz_id')
+
+        connection = Database.db()
+        try:
+            with connection.cursor() as cursor:
+                # Delete the quiz, ensuring it belongs to the user
+                cursor.execute("DELETE FROM quiz_history WHERE id = %s AND student_id = %s", (quiz_id, user_id))
+                connection.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)}), 500
         finally:
             connection.close()
