@@ -366,6 +366,83 @@ html.theme-dark .menu {
   border-color: #334155;
 }
 
+/* Dark mode overrides for all white backgrounds */
+html.theme-dark *[style*="background: #fff"],
+html.theme-dark *[style*="background:#fff"],
+html.theme-dark *[style*="background-color: #fff"],
+html.theme-dark *[style*="background-color:#fff"],
+html.theme-dark *[style*="background: #ffffff"],
+html.theme-dark *[style*="background:#ffffff"],
+html.theme-dark *[style*="background-color: #ffffff"],
+html.theme-dark *[style*="background-color:#ffffff"] {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+/* Comprehensive dark mode for all card-like elements */
+html.theme-dark .settings-card,
+html.theme-dark .profile-card,
+html.theme-dark .info-card,
+html.theme-dark .section-card,
+html.theme-dark .container,
+html.theme-dark section,
+html.theme-dark aside,
+html.theme-dark article {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+/* Ensure visibility of form labels in dark mode */
+html.theme-dark label,
+html.theme-dark .field span,
+html.theme-dark .form-label {
+  color: #cbd5e1 !important;
+}
+
+/* Dark mode for cards section and payment info sections */
+html.theme-dark [class*="card"],
+html.theme-dark [class*="container"],
+html.theme-dark [class*="section"],
+html.theme-dark [class*="panel"],
+html.theme-dark [class*="box"],
+html.theme-dark [class*="wrapper"] {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+/* Override message bubbles for dark mode */
+html.theme-dark .message-bubble.incoming {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+html.theme-dark .message-bubble.outgoing {
+  background: #1e3a8a !important;
+  border-color: #1e40af !important;
+}
+
+html.theme-dark .message-contact:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.theme-dark .message-contact.active {
+  background: #1e40af !important;
+  border-color: #3b82f6 !important;
+}
+
+html.theme-dark .message-thread {
+  background: #0f172a !important;
+}
+
+html.theme-dark .message-empty-thread {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
 body.password-page {
   min-height: 100vh;
   background-color: var(--bg-color);
