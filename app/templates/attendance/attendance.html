@@ -25,9 +25,9 @@
       </div>
 
       {% if attendance_status not in ['Present', 'Leave'] %}
-      <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-mark-form">
+      <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-mark-form" id="attendance-mark-form">
         <input type="hidden" name="status" value="present">
-        <button type="submit" class="attendance-mark-btn" id="markPresentBtn">Mark Present</button>
+        <button type="submit" class="attendance-mark-btn" id="markPresentBtn" data-original-text="Mark Present">Mark Present</button>
       </form>
       {% else %}
       <button class="attendance-mark-btn" disabled title="Attendance already marked for today">Already Updated</button>
@@ -65,6 +65,23 @@
     </article>
   </section>
 
+  <section class="attendance-history-card card">
+    <div class="attendance-history-header">
+      <div>
+        <p class="attendance-section-kicker">Attendance history</p>
+        <h3>{{ selected_month_label }}</h3>
+        <p>Search or switch month and year to review your records.</p>
+      </div>
+    </div>
+
+    <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="attendance-search-row">
+      <input type="hidden" name="month" value="{{ selected_month }}">
+      <input type="hidden" name="year" value="{{ selected_year }}">
+      <div class="attendance-search-form">
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search by date, day, status, or marked time" aria-label="Search attendance history">
+        <button type="submit">Search</button>
+      </div>
+    </form>
 
     <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="attendance-month-filter">
       <input type="hidden" name="q" value="{{ search_query }}">
@@ -166,15 +183,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Disable mark present button after submission to prevent double submission
-  const markPresentForm = document.querySelector('.attendance-mark-form');
+  const markPresentForm = document.getElementById('attendance-mark-form');
   if (markPresentForm) {
     const submitBtn = markPresentForm.querySelector('#markPresentBtn');
+    let isSubmitting = false;
+
     markPresentForm.addEventListener('submit', (e) => {
-      if (submitBtn && !submitBtn.disabled) {
+      if (isSubmitting || (submitBtn && submitBtn.disabled)) {
+        e.preventDefault();
+        return false;
+      }
+
+      if (submitBtn) {
+        isSubmitting = true;
         submitBtn.disabled = true;
         submitBtn.style.opacity = '0.6';
         submitBtn.style.cursor = 'not-allowed';
+        const originalText = submitBtn.getAttribute('data-original-text') || 'Mark Present';
         submitBtn.textContent = 'Submitting...';
+        // Allow form to submit
+        return true;
       }
     });
   }

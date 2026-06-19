@@ -57,6 +57,13 @@
       </div>
     </div>
 
+    <form method="GET" action="{{ url_for('attend.manage_attendance') }}" class="attendance-search-row">
+      <div class="attendance-search-form">
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search by student, email, username, or status" aria-label="Search attendance management">
+        <button type="submit">Search</button>
+      </div>
+    </form>
+
     <div class="attendance-history-table-wrap">
       <table class="attendance-table">
         <thead>
