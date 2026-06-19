@@ -136,7 +136,7 @@ class LeaveController(BaseController):
 
             return redirect(url_for('leave.teacher_leave_requests'))
 
-        status_filter = (request.args.get('status_filter') or 'pending').strip().lower()
+        status_filter = (request.args.get('status_filter') or '').strip().lower()
         leave_requests = LeaveRequest.get_all_requests(status_filter)
 
         return self.render(

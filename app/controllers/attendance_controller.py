@@ -15,11 +15,14 @@ class AttendanceController(BaseController):
         if request.method == 'POST':
             existing = Attendance.get_today_record(userid, today)
             if existing:
-                flash("Attendance already updated for today.")
+                flash("Attendance already updated for today.", 'warning')
                 return redirect(url_for('attend.mark_attendance'))
             else:
-                Attendance.mark_present(userid, today)
-                flash("Attendance Done !")
+                result = Attendance.mark_present(userid, today)
+                if result:
+                    flash("Attendance marked successfully!", 'success')
+                else:
+                    flash("Failed to mark attendance. Please try again.", 'error')
                 return redirect(url_for('attend.mark_attendance'))
         
 
@@ -97,6 +100,8 @@ class AttendanceController(BaseController):
                     str(row_date or ''),
                     (row.get('status') or ''),
                     row_date.strftime('%A') if row_date else '',
+                    row.get('marked_at').strftime('%I:%M %p') if row.get('marked_at') else '',
+                    str(row.get('marked_at') or ''),
                 ]).lower()
                 if search_query in row_text:
                     filtered_history.append(row)
