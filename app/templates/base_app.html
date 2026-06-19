@@ -31,7 +31,10 @@
           <a class="active" href="#">Dashboard</a>
         {% endif %}
         {% if session.get('role') == 'teacher' %}
-        <a class="{% if request.endpoint == 'auth.teacher' %}active{% endif %}" href="{{ url_for('tasks.teacher_task') }}">Teacher Task</a>
+        <a class="{% if request.endpoint == 'tasks.teacher_task' %}active{% endif %}"
+   href="{{ url_for('tasks.teacher_task') }}">
+   Teacher Task
+</a>
         <a class="{% if request.endpoint == 'attend.manage_attendance' %}active{% endif %}" href="{{ url_for('attend.manage_attendance') }}">Attendance Management</a>
         {% endif %}
         <a class="{% if request.endpoint == 'attend.mark_attendance' %}active{% endif %}" href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
@@ -57,24 +60,12 @@
     <div class="app-main">
       <header class="app-topbar">
         <div class="topbar-left">
-          {% if session.get('role') == 'teacher' and request.endpoint == 'auth.teacher_dashboard' %}
-          <form class="dashboard-search-form" action="{{ url_for('auth.teacher_dashboard') }}" method="GET">
-            <input
-              type="search"
-              name="q"
-              value="{{ request.args.get('q', '') }}"
-              placeholder="Search tasks, students, announcements"
-              aria-label="Search teacher dashboard"
-            >
-            <button type="submit">Search</button>
-          </form>
-          {% endif %}
         </div>
         <div class="topbar-right">
           <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme">🌙</button>
           <div class="profile-summary" aria-label="Current profile information">
-            <strong>{{ session.get('username') or 'User' }}</strong>
-            <span>{{ session.get('email') or '' }}</span>
+            <strong>@{{ session.get('username') or 'User' }}</strong>
+            
           </div>
           <div class="notif-wrapper">
             <button type="button" id="notifBtn" class="notif-btn" aria-label="Toggle notifications">

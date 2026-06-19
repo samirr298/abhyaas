@@ -27,30 +27,66 @@
     </div>
 </section>
 
-<section class="teacher-metrics-grid">
-    <article class="teacher-metric-card teacher-metric-accent">
-        <div class="metric-topline">
-            <span>Published tasks</span>
-            <strong>{{ published_tasks_count }}</strong>
-        </div>
-        <p>Assignments currently created under your account.</p>
-    </article>
+<section class="teacher-overview-grid">
+    <div class="teacher-metrics-grid">
+        <article class="teacher-metric-card teacher-metric-accent">
+            <div class="metric-topline">
+                <span>Published tasks</span>
+                <strong>{{ published_tasks_count }}</strong>
+            </div>
+            <p>Assignments currently created under your account.</p>
+        </article>
 
-    <article class="teacher-metric-card">
-        <div class="metric-topline">
-            <span>Pending reviews</span>
-            <strong>{{ pending_reviews_count }}</strong>
-        </div>
-        <p>{{ reviewed_count }} submissions have already been reviewed.</p>
-    </article>
+        <article class="teacher-metric-card">
+            <div class="metric-topline">
+                <span>Pending reviews</span>
+                <strong>{{ pending_reviews_count }}</strong>
+            </div>
+            <p>{{ reviewed_count }} submissions have already been reviewed.</p>
+        </article>
 
-    <article class="teacher-metric-card teacher-metric-dark">
-        <div class="metric-topline">
-            <span>Active / overdue</span>
-            <strong>{{ active_tasks_count }} / {{ overdue_tasks_count }}</strong>
+        <article class="teacher-metric-card teacher-metric-dark">
+            <div class="metric-topline" >
+                <span>Active <strong>{{ active_tasks_count }} </strong> overdue<strong> {{ overdue_tasks_count }}</strong></span>
+                
+            </div>
+            <p>Active tasks are due today or later. Overdue items need attention.</p>
+        </article>
+    </div>
+
+    <section class="card teacher-panel submissions-panel teacher-submissions-compact">
+        <div class="section-header teacher-section-header compact">
+            <div>
+                <p class="section-kicker">Submissions</p>
+                <h3>Recent student work</h3>
+            </div>
+            <div class="reminder-badge">{{ submissions|length if submissions else 0 }}</div>
         </div>
-        <p>Active tasks are due today or later. Overdue items need attention.</p>
-    </article>
+
+        {% if submissions and submissions|length > 0 %}
+            <div class="teacher-submission-list">
+                {% for submission in submissions[:3] %}
+                <article class="teacher-submission-item {% if submission.status == 'Reviewed' %}is-reviewed{% else %}is-pending{% endif %}">
+                    <div class="teacher-submission-head">
+                        <strong>{{ submission.student_name }}</strong>
+                        {% if submission.status == 'Reviewed' %}
+                            <span class="status-chip success">Reviewed</span>
+                        {% else %}
+                            <span class="status-chip warning">Pending</span>
+                        {% endif %}
+                    </div>
+                    <p>{{ submission.task_title }}</p>
+                    <small>{{ submission.submitted_at.strftime('%d %b %Y %I:%M %p') if submission.submitted_at else '' }}</small>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state-card compact">
+                <h4>No submissions yet</h4>
+                <p>Student uploads will show up here.</p>
+            </div>
+        {% endif %}
+    </section>
 </section>
 
 <section class="teacher-dashboard-grid">
@@ -141,40 +177,6 @@
                 <div class="empty-state-card compact">
                     <h4>No announcements</h4>
                     <p>New announcements will appear here.</p>
-                </div>
-            {% endif %}
-        </section>
-
-        <section class="card teacher-panel submissions-panel">
-            <div class="section-header teacher-section-header compact">
-                <div>
-                    <p class="section-kicker">Submissions</p>
-                    <h3>Recent student work</h3>
-                </div>
-                <div class="reminder-badge">{{ submissions|length if submissions else 0 }}</div>
-            </div>
-
-            {% if submissions and submissions|length > 0 %}
-                <div class="teacher-submission-list">
-                    {% for submission in submissions %}
-                    <article class="teacher-submission-item {% if submission.status == 'Reviewed' %}is-reviewed{% else %}is-pending{% endif %}">
-                        <div class="teacher-submission-head">
-                            <strong>{{ submission.student_name }}</strong>
-                            {% if submission.status == 'Reviewed' %}
-                                <span class="status-chip success">Reviewed</span>
-                            {% else %}
-                                <span class="status-chip warning">Pending</span>
-                            {% endif %}
-                        </div>
-                        <p>{{ submission.task_title }}</p>
-                        <small>{{ submission.submitted_at.strftime('%d %b %Y %I:%M %p') if submission.submitted_at else '' }}</small>
-                    </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state-card compact">
-                    <h4>No submissions yet</h4>
-                    <p>Student uploads will show up here.</p>
                 </div>
             {% endif %}
         </section>
