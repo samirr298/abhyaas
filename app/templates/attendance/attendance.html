@@ -164,6 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const width = element.getAttribute('data-width') || '0';
     element.style.width = `${width}%`;
   });
+
+  // Disable mark present button after submission to prevent double submission
+  const markPresentForm = document.querySelector('.attendance-mark-form');
+  if (markPresentForm) {
+    const submitBtn = markPresentForm.querySelector('.attendance-mark-btn');
+    markPresentForm.addEventListener('submit', () => {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.textContent = 'Submitting...';
+      }
+    });
+  }
 });
 </script>
 {% endblock %}
