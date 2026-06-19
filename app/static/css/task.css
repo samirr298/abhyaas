@@ -762,3 +762,89 @@
   .task-grid-two { grid-template-columns: 1fr; }
   .bookmark-btn { width: 34px; height: 34px; }
 }
+
+.feedback-board-card {
+  align-self: start;
+}
+
+.feedback-container {
+  display: grid;
+  gap: 14px;
+}
+
+.feedback-form {
+  display: grid;
+  gap: 12px;
+}
+
+.feedback-form label {
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.feedback-form select,
+.feedback-form textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(44, 62, 140, 0.16);
+  padding: 11px 12px;
+  color: var(--text-main);
+  background: var(--card-bg);
+  font: inherit;
+}
+
+.feedback-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.feedback-form button {
+  justify-self: start;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+html.theme-dark .task-hero-card,
+html.theme-dark .task-list-card,
+html.theme-dark .feedback-card,
+html.theme-dark .task-form-card,
+html.theme-dark .current-task-card,
+html.theme-dark .feedback-board-card,
+html.theme-dark .submissions-card {
+  background: linear-gradient(180deg, #101b2e 0%, #111c30 100%) !important;
+  border-color: #334155 !important;
+}
+
+html.theme-dark .summary-tile,
+html.theme-dark .task-item,
+html.theme-dark .teacher-task-item,
+html.theme-dark .assignment-card {
+  background: #111c30 !important;
+  border-color: #334155 !important;
+}
+
+html.theme-dark .summary-icon,
+html.theme-dark .stat-pill,
+html.theme-dark .count-badge {
+  background: rgba(245, 159, 58, 0.16) !important;
+  color: #fbbf77 !important;
+}
+
+html.theme-dark .feedback-form select,
+html.theme-dark .feedback-form textarea,
+html.theme-dark .task-form input,
+html.theme-dark .task-form select,
+html.theme-dark .task-form textarea,
+html.theme-dark .mini-search {
+  background: #0b1220 !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}

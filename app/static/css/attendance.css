@@ -249,3 +249,70 @@ html.theme-dark .attendance-page-btn.disabled{
   background:#1e293b !important;
   color:#64748b !important;
 }
+
+.attendance-hero-actions {
+  align-items: stretch;
+  min-width: 300px;
+}
+
+.attendance-hero-actions .attendance-status-row {
+  justify-content: flex-end;
+}
+
+.attendance-search-row {
+  margin-bottom: 16px;
+}
+
+html.theme-dark .attendance-stat-accent {
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.24) 0%, #111c30 100%) !important;
+  border-color: rgba(45, 212, 191, 0.28) !important;
+}
+
+html.theme-dark .attendance-stat-card:not(.attendance-stat-dark):not(.attendance-stat-accent) {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, #111c30 100%) !important;
+  border-color: rgba(167, 139, 250, 0.22) !important;
+}
+
+html.theme-dark .attendance-stat-dark {
+  background: linear-gradient(135deg, #12315d 0%, #1f2937 100%) !important;
+  border-color: rgba(96, 165, 250, 0.32) !important;
+}
+
+html.theme-dark .attendance-status-pill.present,
+html.theme-dark .attendance-chip.present,
+html.theme-dark .attendance-mini-btn.success {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #86efac !important;
+  border-color: rgba(34, 197, 94, 0.34) !important;
+}
+
+html.theme-dark .attendance-status-pill.absent,
+html.theme-dark .attendance-chip.absent,
+html.theme-dark .attendance-mini-btn.danger {
+  background: rgba(244, 63, 94, 0.18) !important;
+  color: #fecdd3 !important;
+  border-color: rgba(244, 63, 94, 0.34) !important;
+}
+
+html.theme-dark .attendance-status-pill.leave,
+html.theme-dark .attendance-chip.leave {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.34) !important;
+}
+
+html.theme-dark .attendance-status-pill.not-marked,
+html.theme-dark .attendance-chip.not-marked,
+html.theme-dark .attendance-badge {
+  background: rgba(96, 165, 250, 0.18) !important;
+  color: #bfdbfe !important;
+  border-color: rgba(96, 165, 250, 0.34) !important;
+}
+
+@media (max-width:700px){
+  .attendance-hero-actions,
+  .attendance-hero-actions .attendance-status-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}

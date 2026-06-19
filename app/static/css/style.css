@@ -81,7 +81,7 @@ a:focus-visible{outline:3px solid rgba(245,159,58,.36);outline-offset:3px;border
 /* Dashboard / app styles */
 .app-root{background:#f6f7fb;color:#0b2540}
 .app-shell{display:flex;min-height:100vh}
-.app-sidebar{width:220px;background:linear-gradient(180deg,#061626 0%,#0b2540 100%);color:#cfe9ff;padding:20px 12px;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08);box-shadow:12px 0 32px rgba(7,26,42,.12)}
+.app-sidebar{width:220px;background: linear-gradient(180deg, #1959ab 0%, #757c84 100%) !important;;color:#cfe9ff;padding:20px 12px;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08);box-shadow:12px 0 32px rgba(7,26,42,.12)}
 .sidebar-brand{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:18px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
 .sidebar-brand img{width:34px;height:34px}
 .sidebar-nav{display:flex;flex-direction:column;gap:8px}
@@ -485,7 +485,7 @@ html.theme-dark [class*="section"],
 html.theme-dark [class*="panel"],
 html.theme-dark [class*="box"],
 html.theme-dark [class*="wrapper"] {
-  background-color: #0f172a !important;
+ 
   color: #e2e8f0 !important;
 }
 
@@ -556,7 +556,7 @@ html.theme-dark .message-empty-thread {
 }
 
 html.theme-dark .app-sidebar {
-  background:linear-gradient(180deg,#06111f 0%,#0b1b2e 100%) !important;
+  background: linear-gradient(180deg, #1959ab 0%, #757c84 100%) !important;
   border-right-color:#243244 !important;
   box-shadow:12px 0 32px rgba(0,0,0,.25) !important;
 }
@@ -1118,7 +1118,7 @@ body.password-page {
   font-weight:700;
   font-size:.86rem;
 }
-.deadline-reminder-item{background:linear-gradient(180deg,#fff8f0 0%,#fff 100%);border-color:#f5d6a3}
+.deadline-reminder-item{background: linear-gradient(180deg, #9f8a72 0%, #b7bab6 100%);border-color:#f5d6a3}
 .reminder-badge{
   width:32px;
   height:32px;
@@ -1682,4 +1682,239 @@ html.theme-dark .btn-outline{
   .chip,.page-btn{flex:1;justify-content:center}
   .pagination-footer{flex-direction:column;align-items:stretch}
   .btn-pagination{width:100%}
+}
+
+.app-topbar{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:rgba(246,247,251,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(20,58,102,.12);
+}
+
+.topbar-left{
+  display:none;
+}
+
+.topbar-right{
+  margin-left:auto;
+}
+
+.teacher-overview-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(300px,.75fr);
+  gap:18px;
+  align-items:stretch;
+}
+
+.teacher-overview-grid .teacher-metrics-grid{
+  margin:0;
+}
+
+.teacher-submissions-compact{
+  min-height:100%;
+}
+
+.teacher-submissions-compact .teacher-submission-list{
+  max-height:260px;
+  overflow:auto;
+  padding-right:4px;
+}
+
+.teacher-submissions-compact .teacher-submission-item{
+  padding:12px;
+}
+
+.announcement-hero{
+  min-height:180px;
+  padding:22px;
+  border-radius:18px;
+}
+
+.announcement-hero::before,
+.announcement-hero::after,
+.announcement-hero-art{
+  display:none;
+}
+
+.announcement-hero-metrics{
+  align-self:center;
+}
+
+.announcement-hero .metric-card{
+  border-radius:14px;
+  background:rgba(255,255,255,.14);
+}
+
+.announcement-hero .metric-card strong,
+.announcement-hero .metric-card span{
+  color:#fff;
+}
+
+.chip{
+  background:#fff;
+  color:#143a66;
+}
+
+.chip.active{
+  background:#f59f3a;
+  border-color:#f59f3a;
+  color:#102233;
+}
+
+.notification-item{
+  border-radius:16px;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  box-shadow:0 10px 24px rgba(15,23,42,.05);
+}
+
+.notification-item.unread{
+  background:linear-gradient(135deg,#eef6ff 0%,#fff7ed 100%);
+  border-color:#bfdbfe;
+}
+
+.notification-status.read{
+  background:#f1f5f9;
+  color:#475569;
+}
+
+html.theme-dark .app-topbar{
+  background:rgba(11,18,32,.92) !important;
+  border-bottom-color:#263449 !important;
+}
+
+html.theme-dark .notif-btn{
+  background:linear-gradient(135deg,#12315d 0%,#17233a 100%) !important;
+  border:1px solid rgba(96,165,250,.25) !important;
+}
+
+html.theme-dark .notif-dropdown{
+  background:#101b2e !important;
+  border-color:#334155 !important;
+}
+
+html.theme-dark .notif-dropdown-header{
+  background:linear-gradient(135deg,#12315d 0%,#111c30 100%) !important;
+  border-bottom-color:#334155 !important;
+}
+
+html.theme-dark .notif-item{
+  background:#0f172a !important;
+  border-bottom-color:#263449 !important;
+  color:#e2e8f0 !important;
+}
+
+html.theme-dark .notif-item.unread{
+  background:linear-gradient(135deg,rgba(37,99,235,.22) 0%,rgba(245,159,58,.12) 100%) !important;
+}
+
+html.theme-dark .notification-item{
+  background:linear-gradient(135deg,#111c30 0%,#0f172a 100%) !important;
+  border-color:#334155 !important;
+}
+
+html.theme-dark .notification-item.unread{
+  background:linear-gradient(135deg,rgba(37,99,235,.24) 0%,rgba(245,159,58,.14) 100%) !important;
+  border-color:rgba(96,165,250,.38) !important;
+}
+
+html.theme-dark .notification-body strong,
+html.theme-dark .notification-body span,
+html.theme-dark .notification-meta small{
+  color:#e2e8f0 !important;
+}
+
+html.theme-dark .notification-status{
+  background:rgba(96,165,250,.18) !important;
+  color:#bfdbfe !important;
+}
+
+html.theme-dark .student-dashboard-hero,
+html.theme-dark .teacher-dashboard-hero{
+  background:linear-gradient(135deg,#12315d 0%,#111c30 72%,rgba(245,159,58,.18) 100%) !important;
+  border-color:rgba(96,165,250,.22) !important;
+}
+
+html.theme-dark .metric-card.metric-accent,
+html.theme-dark .teacher-metric-card.teacher-metric-accent{
+  background:linear-gradient(135deg,rgba(14,116,144,.24) 0%,#111c30 100%) !important;
+  border-color:rgba(45,212,191,.26) !important;
+}
+
+html.theme-dark .metric-card.metric-dark,
+html.theme-dark .teacher-metric-card.teacher-metric-dark{
+  background:linear-gradient(135deg,#143a66 0%,#1f2937 100%) !important;
+  border-color:rgba(96,165,250,.3) !important;
+}
+
+html.theme-dark .teacher-metric-card,
+html.theme-dark .student-dashboard-main,
+html.theme-dark .student-panel,
+html.theme-dark .teacher-dashboard-main,
+html.theme-dark .teacher-panel,
+html.theme-dark .student-task-item,
+html.theme-dark .teacher-task-item,
+html.theme-dark .student-announcement-item,
+html.theme-dark .teacher-announcement-item,
+html.theme-dark .teacher-submission-item,
+html.theme-dark .deadline-reminder-item{
+  background:#111c30 !important;
+  border-color:#334155 !important;
+}
+
+html.theme-dark .teacher-submission-item.is-reviewed{
+  background:rgba(34,197,94,.14) !important;
+  border-color:rgba(34,197,94,.32) !important;
+}
+
+html.theme-dark .teacher-submission-item.is-pending{
+      background: rgb(106 70 70 / 90%) !important;
+  border-color:rgba(245,158,11,.32) !important;
+}
+
+html.theme-dark .announcement-hero{
+  background:linear-gradient(135deg,#12315d 0%,#111c30 70%,rgba(245,159,58,.2) 100%) !important;
+  border:1px solid rgba(96,165,250,.22) !important;
+}
+
+html.theme-dark .announcement-hero .metric-card{
+  background:rgba(15,23,42,.56) !important;
+  border-color:rgba(255,255,255,.12) !important;
+}
+
+html.theme-dark .ann-toolbar,
+html.theme-dark .announcement-card,
+html.theme-dark .pagination-footer{
+  background:#111c30 !important;
+}
+
+html.theme-dark .chip{
+  background:#0b1220 !important;
+  border-color:#334155 !important;
+  color:#cbd5e1 !important;
+}
+
+html.theme-dark .chip.active{
+  background:#f59f3a !important;
+  border-color:#f59f3a !important;
+  color:#102233 !important;
+}
+
+html.theme-dark .message-sidebar-header{
+  background:linear-gradient(135deg,#12315d 0%,#111c30 100%) !important;
+}
+
+html.theme-dark .message-contact.active{
+  background:linear-gradient(135deg,#12315d 0%,#17233a 100%) !important;
+}
+
+html.theme-dark .message-bubble.outgoing{
+  background:linear-gradient(135deg,#1d4d83 0%,#2563eb 100%) !important;
+}
+
+@media (max-width:1080px){
+  .teacher-overview-grid{
+    grid-template-columns:1fr;
+  }
 }
