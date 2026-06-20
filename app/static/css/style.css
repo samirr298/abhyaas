@@ -2006,6 +2006,8 @@ html.theme-dark [style*="color: #003366"],
 html.theme-dark [style*="color: #383d41"],
 html.theme-dark [style*="color: #333"],
 html.theme-dark [style*="color: #222"],
+html.theme-dark [style*="color: #0f172a"],
+html.theme-dark [style*="color: #64748b"],
 html.theme-dark [style*="color: #0a1f3d"] {
     color: #f8fafc !important;
 }
