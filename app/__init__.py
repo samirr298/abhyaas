@@ -20,14 +20,13 @@ def create_app():
     Database.create_attendance_table()
     Database.create_announcement_table()
     Database.create_task_tables()
+    Database.create_task_bookmarks_table()
     Database.create_submission_table()
     Database.create_feedback_table()
     Database.create_notification_table()
     Database.create_leave_request_table()
     Database.create_conversation_table()
     Database.create_message_table()
-    
-    
     # Session configurations
     app.permanent_session_lifetime = timedelta(days=30)
     app.secret_key = config.SECRET_KEY
@@ -46,6 +45,8 @@ def create_app():
     @app.context_processor
     def inject_notifications():
         if session.get('user_id'):
+            if session.get('role') == 'student':
+                Notification.sync_deadline_reminders(session['user_id'])
             unread_count = Notification.get_unread_count(session['user_id'])
             notifications = Notification.get_for_user(session['user_id'])
             return {
@@ -56,10 +57,6 @@ def create_app():
             'notification_unread_count': 0,
             'notification_list': [],
         }
-
-    @app.route('/ai-assistant')
-    def ai_assistant():
-        return render_template('ai_assistant.html')
 
     #initialising mail
     mail.init_app(app)
@@ -85,6 +82,7 @@ def create_app():
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
 
+
     from app.routes.leave_route import LeaveRoutes
     leave_routes = LeaveRoutes()
     app.register_blueprint(leave_routes.register())
@@ -96,5 +94,10 @@ def create_app():
     # Register SocketIO Event Listeners
     from app.routes.chat_socket import init_chat_sockets
     init_chat_sockets(socketio)
+
+    # register quiz blueprint
+    from app.routes.quiz_route import QuizRoutes
+    quiz_routes = QuizRoutes()
+    app.register_blueprint(quiz_routes.register())
 
     return app

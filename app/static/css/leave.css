@@ -130,6 +130,16 @@
   background: var(--primary-hover);
 }
 
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary:disabled:hover {
+  background: var(--primary);
+}
+
 .btn-secondary {
   padding: 12px 18px;
   background: var(--surface-strong);

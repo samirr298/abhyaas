@@ -33,20 +33,19 @@ class Database:
                                     profile_pic VARCHAR(255),
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     fee_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
-                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                    is_banned TINYINT(1) DEFAULT 0,
+                                    fee_amount DECIMAL(10,2) DEFAULT 0,
+                                    fee_due_date DATE NULL,
+                                    fee_paid_amount DECIMAL(10,2) DEFAULT 0,
+                                    fee_last_payment_at TIMESTAMP NULL DEFAULT NULL
                                 )
+
                                 """
                         )
-                                # Dynamically add new columns to support the fee feature
-                                try:
-                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_status VARCHAR(20) DEFAULT 'unpaid'")
-                                except Exception:
-                                        pass
-                                try:
-                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_updated_at TIMESTAMP NULL DEFAULT NULL")
-                                except Exception:
-                                        pass
                         connection.commit()
+
+
                 finally:
                         pass
                         connection.close()
@@ -62,11 +61,17 @@ class Database:
                                         user_id INT NOT NULL,
                                         attendance_date DATE NOT NULL,          
                                         marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                        status ENUM('present', 'absent', 'not_marked') NOT NULL DEFAULT 'not_marked',
+                                        status ENUM('present', 'absent', 'leave', 'not_marked') NOT NULL DEFAULT 'not_marked',
                                         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                                         );
                                 """
                         )
+                        try:
+                                cursor.execute("SHOW COLUMNS FROM attendance LIKE 'status'")
+                                if cursor.fetchone():
+                                        cursor.execute("ALTER TABLE attendance MODIFY COLUMN status ENUM('present', 'absent', 'leave', 'not_marked') NOT NULL DEFAULT 'not_marked'")
+                        except Exception:
+                                pass
                         
                         connection.commit()
                 finally:
@@ -110,6 +115,25 @@ class Database:
                                                 subject varchar(255),
                                                 CONSTRAINT fk_task_teacher FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
                                                 );''')
+                                connection.commit()
+                finally:
+                        pass
+                        connection.close()
+
+        def create_task_bookmarks_table():
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                               '''CREATE TABLE IF NOT EXISTS task_bookmarks (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    user_id INT NOT NULL,
+                                    task_id INT NOT NULL,
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_bookmark_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                    CONSTRAINT fk_bookmark_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                                    UNIQUE KEY unique_task_bookmark (user_id, task_id)
+                                );''')
                                 connection.commit()
                 finally:
                         pass
@@ -166,11 +190,15 @@ class Database:
                                     task_id INT NOT NULL,
                                     title VARCHAR(255) NOT NULL,
                                     subject VARCHAR(255) NOT NULL,
+                                    notification_type VARCHAR(50) NOT NULL DEFAULT 'task_created',
                                     is_read TINYINT(1) NOT NULL DEFAULT 0,
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                                     CONSTRAINT fk_notification_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
                                 );''')
+                                cursor.execute("SHOW COLUMNS FROM notifications LIKE 'notification_type'")
+                                if not cursor.fetchone():
+                                        cursor.execute("ALTER TABLE notifications ADD COLUMN notification_type VARCHAR(50) NOT NULL DEFAULT 'task_created' AFTER subject")
                                 connection.commit()
                 finally:
                         pass
@@ -190,7 +218,7 @@ class Database:
                                                 end_date DATE NOT NULL,
                                                 leave_type VARCHAR(50) NOT NULL DEFAULT 'General',
                                                 reason TEXT NOT NULL,
-                                                status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+                                                                                                status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
                                                 is_read TINYINT(1) DEFAULT 0,
                                                 submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -212,6 +240,9 @@ class Database:
                                         
                                         if 'leave_type' not in columns:
                                                 cursor.execute("ALTER TABLE leave_requests ADD COLUMN leave_type VARCHAR(50) DEFAULT 'General'")
+                                                connection.commit()
+                                        if 'status' in columns:
+                                                cursor.execute("ALTER TABLE leave_requests MODIFY COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'")
                                                 connection.commit()
                 finally:
                         connection.close()
@@ -251,8 +282,33 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
-                        connection.close()                
+                        connection.close()
+                        
 
-        
-
-
+        def create_quiz_history_table():
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                                '''CREATE TABLE IF NOT EXISTS quiz_history (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    student_id INT NOT NULL,
+                                    score INT NOT NULL,
+                                    total_questions INT NOT NULL,
+                                    time_taken INT NOT NULL,
+                                    qa_data LONGTEXT NOT NULL, 
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_quiz_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+                                );''')
+                                
+                                # NEW: Safely inject the 'title' column into the existing table
+                                try:
+                                    cursor.execute("ALTER TABLE quiz_history ADD COLUMN title VARCHAR(255) NULL")
+                                except Exception:
+                                    pass # Column already exists, move on!
+                                    
+                                connection.commit()
+                finally:
+                        connection.close()
+                        
+# Connection debug message removed during cleanup

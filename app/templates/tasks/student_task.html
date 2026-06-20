@@ -7,6 +7,11 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  .hidden {
+    display: none !important;
+  }
+</style>
 <div class="task-page student-task-page">
   <section class="task-hero card task-hero-card">
     <div>
@@ -60,58 +65,71 @@
     </article>
   </section>
 
-  <section class="task-grid-two">
+  <section class="task-grid-two" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
     <!-- LEFT COLUMN: SUBMITTED / REVIEWED -->
     <article class="card task-list-card">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 20px;">
         <div>
           <p class="section-kicker">Assignment feed</p>
           <h3>Completed & Submitted</h3>
         </div>
-        <span class="count-badge">
+        <span class="count-badge"
+          style="background: #e6f4ea; color: #137333; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
           {{ submission_map|length }}
         </span>
       </div>
 
-      <div class="assignments-grid">
+      <div class="assignments-grid" style="display: flex; flex-direction: column; gap: 16px;">
         {% for task in tasks %}
         {% if (task.id|int) in submission_map %}
-        <article class="assignment-card task-card">
-          <div class="card-top">
-            <strong class="task-subject">
+        <article class="assignment-card"
+          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;">
+          <div class="card-top" style="display: flex; justify-content: space-between; align-items: center;">
+            <strong class="task-subject"
+              style="color: #3b82f6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
               {{ task.subject or 'General' }}
             </strong>
-            {% if submission_map[task.id|int] == 'Reviewed' %}
-            <div class="review-badges">
-              <span class="tag reviewed"
-                >Reviewed</span>
-              <span class="tag feedback"
-                >
-                <a href="/task/{{ task.id }}" class="task-link task-link-muted">
-                  See Feedback
-                </a>
-              </span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline">
+                <button type="submit" class="bookmark-btn {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}is-bookmarked{% endif %}" aria-label="{% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}Remove bookmark{% else %}Save bookmark{% endif %}">
+                  {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}★{% else %}☆{% endif %}
+                </button>
+              </form>
+              {% if submission_map[task.id|int] == 'Reviewed' %}
+              <div style="display: flex; gap: 6px;">
+                <span class="tag reviewed"
+                  style="background: #e6f4ea; color: #137333; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Reviewed</span>
+                <span class="tag feedback"
+                  style="background: #f1f5f9; border-radius: 20px; font-size: 0.75rem;">
+                  <a href="/task/{{ task.id }}" style="text-decoration: none; color: #475569; padding: 4px 10px; display: inline-block;">
+                    See Feedback
+                  </a>
+                </span>
+              </div>
+              {% else %}
+              <span class="tag submitted"
+                style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Submitted</span>
+              {% endif %}
             </div>
-            {% else %}
-              <span class="status-pill status-pill-success">Submitted</span>
-            {% endif %}
           </div>
 
-            <h4 class="assign-title">{{ task.title }}</h4>
-            <p class="assign-desc">{{ task.description }}</p>
+          <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
+          <p class="assign-desc" style="margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{ task.description }}</p>
 
-          <div class="assign-meta">
+          <div class="assign-meta" style="margin-top: auto; padding-top: 12px; border-top: 1px dashed #e2e8f0; color: #64748b; font-size: 0.85rem;">
             <div><small>Due: {{ task.due_date.strftime('%d %b, %Y') if task.due_date else 'No Date' }}</small></div>
           </div>
 
           {% if submission_map[task.id|int] != 'Reviewed' %}
-          <form action="" method="POST" enctype="multipart/form-data" class="task-action-form">
+          <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
             <input type="hidden" name="action" value="submit_assignment">
             <input type="hidden" name="task_id" value="{{ task.id }}">
-            <label class="file-label task-action">
-              🔄 Resubmit File <input type="file" name="student_file" required class="hidden-input">
+            <label class="file-label"
+              style="border: 2px dashed #3b82f6; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #3b82f6; font-size: 0.85rem; font-weight: 500; display: block;">
+              🔄 Resubmit File <input type="file" name="student_file" required style="display: none;">
             </label>
-            <button type="submit" class="task-button task-button-primary">
+            <button class="primary-btn" type="submit"
+              style="background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 500; cursor: pointer; width: 100%;">
               Turn In Again
             </button>
           </form>
@@ -124,52 +142,63 @@
 
     <!-- RIGHT COLUMN: NOT SUBMITTED -->
     <article class="card task-list-card">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 20px;">
         <div>
           <p class="section-kicker">Needs attention</p>
-          <h4>Not Submitted</h4>
+          <h4 style="margin: 0; font-size: 1.1rem; color: #1e293b; font-weight: 600;">Not Submitted</h4>
         </div>
         <span class="count-badge"
-          >
+          style="background: #fee2e2; color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
           {{ tasks|length - (submission_map|length) }}
         </span>
       </div>
 
-      <div class="assignments-grid">
+      <div class="assignments-grid" style="display: flex; flex-direction: column; gap: 16px;">
         {% for task in tasks %}
         {% if (task.id|int) not in submission_map %}
-        <article class="assignment-card">
-          <strong class="task-subject"
-            class="task-subject negative">
-            {{ task.subject or 'General' }}
-          </strong>
-          <h4 class="assign-title">{{ task.title }}</h4>
-          <p class="assign-desc">{{ task.description }}</p>
+        <article class="assignment-card"
+          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <strong class="task-subject"
+              style="color: #ef4444; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+              {{ task.subject or 'General' }}
+            </strong>
+            <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline">
+              <button type="submit" class="bookmark-btn {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}is-bookmarked{% endif %}" aria-label="{% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}Remove bookmark{% else %}Save bookmark{% endif %}">
+                {% if bookmarked_task_ids and task.id|int in bookmarked_task_ids %}★{% else %}☆{% endif %}
+              </button>
+            </form>
+          </div>
+          <h4 class="assign-title" style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 600;">{{ task.title }}</h4>
+          <p class="assign-desc" style="margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{ task.description }}</p>
 
-          <div class="assign-meta">
+          <div class="assign-meta" style="margin-top: auto; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.85rem;">
             <div><small>Due: {{ task.due_date.strftime('%d %b, %Y') if task.due_date else 'No Date' }}</small></div>
             <div class="attach">
               {% if task.attached_filename %}
               <a href="{{ url_for('static', filename='uploads/' ~ task.attached_filename) }}" target="_blank"
-                class="task-link task-link-muted">📎 Download Material</a>
+                style="color: #3b82f6; text-decoration: none; font-weight: 500;">📎 Download Material</a>
               {% endif %}
             </div>
           </div>
 
-          <div class="task-action-row">
+          <div style="margin-top: 8px;">
             {% if not task.due_date < now %}
-            <form action="" method="POST" enctype="multipart/form-data" class="task-action-form">
+            <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px;">
               <input type="hidden" name="action" value="submit_assignment">
               <input type="hidden" name="task_id" value="{{ task.id }}">
-              <label class="file-label task-action task-action-muted">
-                Upload Document <input type="file" name="student_file" required class="hidden-input">
+              <label class="file-label"
+                style="border: 2px dashed #7b14d5; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; color: #475569; font-size: 0.9rem; display: block; !important">
+                Upload Document <input type="file" name="student_file" required style="display: none;">
               </label>
-              <button type="submit" class="task-button task-button-primary">
+              <button class="primary-btn" type="submit"
+                style="background: #56eaaa; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 500; cursor: pointer; width: 100%;">
                 Turn In Assignment
               </button>
             </form>
             {% else %}
-            <div class="status-pill status-pill-danger status-pill-soft">
+            <div class="tag overdue"
+              style="background: #fef2f2; color: #b91c1c; text-align: center; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 0.85rem;">
               ⚠️ TIME OVER !
             </div>
             {% endif %}

@@ -50,15 +50,64 @@
           <p class="form-help">Include enough detail to help your teacher understand the need for this request.</p>
         </div>
 
-        <button type="submit" class="btn-primary">Submit Request</button>
+        <button type="submit" id="submitLeaveBtn" class="btn-primary">Submit Request</button>
       </form>
     </section>
+
+    <script>
+      const remainingDays = {{ remaining_days or 0 }};
+      const leaveStartInput = document.getElementById('leave_date');
+      const leaveEndInput = document.getElementById('end_date');
+      const submitBtn = document.getElementById('submitLeaveBtn');
+      const leaveReasonInput = document.getElementById('leave_reason');
+
+      function validateAndDisableButton() {
+        const startDate = leaveStartInput.value;
+        const endDate = leaveEndInput.value;
+        const reason = leaveReasonInput.value.trim();
+
+        // Disable if remaining days is 0
+        if (remainingDays <= 0) {
+          submitBtn.disabled = true;
+          submitBtn.title = 'No remaining days available for leave';
+          return;
+        }
+
+        // Calculate leave duration if both dates are selected
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          
+          if (end >= start) {
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            
+            // Disable if requested duration exceeds remaining days
+            if (duration > remainingDays) {
+              submitBtn.disabled = true;
+              submitBtn.title = `Requested leave (${duration} days) exceeds available days (${remainingDays})`;
+              return;
+            }
+          }
+        }
+
+        // Enable button if all validations pass
+        submitBtn.disabled = false;
+        submitBtn.title = '';
+      }
+
+      // Validate on page load
+      validateAndDisableButton();
+
+      // Validate when dates change
+      leaveStartInput.addEventListener('change', validateAndDisableButton);
+      leaveEndInput.addEventListener('change', validateAndDisableButton);
+    </script>
 
     <aside class="panel panel-summary">
       <div class="summary-grid">
         <article class="summary-card summary-taken">
           <span class="summary-text">Approved days</span>
-          <strong>{{ total_taken or 0 }}</strong>
+          <strong>{{ total_taken }}</strong>
           <p class="summary-note">Used from your yearly 21-day allowance.</p>
         </article>
         <article class="summary-card summary-pending">

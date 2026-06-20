@@ -7,14 +7,21 @@
 {% endblock %}
 
 {% block content %}
-<div class="task-detail-page card">
-  <div class="task-topline">
+<div class="task-detail-page card" style="padding:20px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
     <div>
       <p class="section-kicker">Full assignment view</p>
       <h2>{{ task.title }}</h2>
-      <div class="task-meta-line">{{ task.subject or 'General' }} • Due: {{ task.due_date.strftime('%A, %d %b %Y %I:%M %p') }}</div>
+      <div style="color:var(--text-muted);">{{ task.subject or 'General' }} • Due: {{ task.due_date.strftime('%A, %d %b %Y %I:%M %p') }}</div>
     </div>
-    <div>
+    <div style="text-align:right;">
+      {% if session.get('role') == 'student' %}
+      <form action="{{ url_for('tasks.toggle_bookmark', task_id=task.id) }}" method="POST" class="bookmark-form-inline" style="margin-bottom:10px; justify-content:flex-end;">
+        <button type="submit" class="bookmark-btn {% if is_bookmarked %}is-bookmarked{% endif %}" aria-label="{% if is_bookmarked %}Remove bookmark{% else %}Save bookmark{% endif %}">
+          {% if is_bookmarked %}★{% else %}☆{% endif %}
+        </button>
+      </form>
+      {% endif %}
         {% if session.get('role') == 'teacher' %} 
       <a href="{{ url_for('tasks.teacher_task') }}" class="secondary-btn">Back to tasks</a>
         {%else%}
@@ -22,20 +29,21 @@
         {% endif %}
     </div>
   </div>
-  <hr>
 
-  <section class="task-detail-grid">
+  <hr style="margin:16px 0;">
+
+  <section style="display:grid; grid-template-columns: 1fr 360px; gap:18px;">
     <div>
       <h3>Instructions</h3>
-      <p class="task-description">{{ task.description }}</p>
+      <p style="color:var(--text-muted);">{{ task.description }}</p>
 
       {% if task.attached_filename %}
-      <div class="mt-10">
+      <div style="margin-top:10px;">
         <a href="{{ url_for('static', filename='uploads/' ~ task.attached_filename) }}" target="_blank" class="secondary-btn">📎 Download Attachment</a>
       </div>
       {% endif %}
 
-      <div class="mt-10">
+      <div style="margin-top:18px;">
         <h4>Your submission</h4>
         {% if submission %}
           <p>File: <a href="{{ url_for('static', filename='student_uploads/' ~ submission.submitted_filename) }}" target="_blank">{{ submission.submitted_filename }}</a></p>
@@ -48,19 +56,20 @@
         <form action="" method="POST" enctype="multipart/form-data">
           <input type="hidden" name="action" value="submit_assignment">
           <input type="file" name="student_file" required>
-          <button type="submit" class="primary-btn">Submit Assignment</button>
+          <button type="submit" class="primary-btn" style="margin-top:8px;">Submit Assignment</button>
         </form>
         {% endif %}
       </div>
     </div>
-    <aside class="detail-aside">
+
+    <aside style="border-left:1px solid rgba(0,0,0,0.04); padding-left:16px;">
       <h4>Teacher feedback</h4>
       {% if feedback %}
         {% for f in feedback %}
-          <div class="feedback-item-row">
-            <div class="feedback-item-header">From teacher</div>
-            <div class="muted-note">{{ f.feedback_text }}</div>
-            <div class="muted-note feedback-timestamp">{{ f.created_at }}</div>
+          <div style="padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.04);">
+            <div style="font-weight:700;">From teacher</div>
+            <div style="color:var(--text-muted);">{{ f.feedback_text }}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">{{ f.created_at }}</div>
           </div>
         {% endfor %}
       {% else %}

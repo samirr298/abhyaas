@@ -1,0 +1,274 @@
+/* Admin Dashboard Styles */
+
+/* Stats grid re-use from attendance, just dark-mode additions */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+/* Table styling */
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead th {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 2px solid var(--border, #e6e9ef);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.admin-table tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border, #e6e9ef);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+/* Action button mini styles reused from attendance page */
+.admin-mini-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.admin-mini-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.admin-mini-btn.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-mini-btn.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.admin-mini-btn.primary {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.admin-mini-btn.delete {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* Role badge */
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-role-badge.admin {
+  background: rgba(245, 159, 58, 0.2);
+  color: #b86d10;
+}
+
+.admin-role-badge.teacher {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1d4ed8;
+}
+
+.admin-role-badge.student {
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+}
+
+/* Status badge */
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-status-badge.banned {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.admin-status-badge.active {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+/* Admin actions row */
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-role-form {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.admin-role-form select {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e6e9ef);
+  font-size: 12px;
+  background: #fff;
+}
+
+/* Inline action forms */
+.admin-action-form {
+  display: inline;
+}
+
+/* Self-label */
+.admin-self-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-table thead {
+    display: none;
+  }
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+  .admin-table tr {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border, #e6e9ef);
+  }
+  .admin-table tbody td {
+    border: none;
+    padding: 8px 10px;
+  }
+  .admin-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-role-form {
+    width: 100%;
+  }
+  .admin-role-form select {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Dark mode overrides --- */
+html.theme-dark .admin-table thead th {
+  color: #cbd5e1 !important;
+  border-bottom-color: #334155 !important;
+}
+
+html.theme-dark .admin-table tbody td {
+  color: #e2e8f0 !important;
+  border-bottom-color: #2a3748 !important;
+}
+
+html.theme-dark .admin-table tbody tr:hover {
+  background: #1e293b !important;
+}
+
+html.theme-dark .admin-role-form select {
+  background: #0b1220 !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+html.theme-dark .admin-role-badge.admin {
+  background: rgba(245, 159, 58, 0.2) !important;
+  color: #fbbf77 !important;
+}
+
+html.theme-dark .admin-role-badge.teacher {
+  background: rgba(96, 165, 250, 0.2) !important;
+  color: #bfdbfe !important;
+}
+
+html.theme-dark .admin-role-badge.student {
+  background: rgba(52, 211, 153, 0.2) !important;
+  color: #86efac !important;
+}
+
+html.theme-dark .admin-status-badge.banned {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fecaca !important;
+}
+
+html.theme-dark .admin-status-badge.active {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #86efac !important;
+}
+
+html.theme-dark .admin-mini-btn.success {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #86efac !important;
+}
+
+html.theme-dark .admin-mini-btn.danger {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fecaca !important;
+}
+
+html.theme-dark .admin-mini-btn.primary {
+  background: rgba(96, 165, 250, 0.18) !important;
+  color: #bfdbfe !important;
+}
+
+html.theme-dark .admin-mini-btn.delete {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fecaca !important;
+}
+
+html.theme-dark .admin-self-label {
+  color: #64748b !important;
+}

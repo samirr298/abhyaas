@@ -17,7 +17,7 @@
         <div class="search-row">
           <div class="search-container">
             <input id="message-search-input" class="search" placeholder="Search people or messages..." />
-            <button id="message-search-clear" class="search-clear">×</button>
+            <button id="message-search-clear" class="search-clear" type="button" aria-label="Clear search">&times;</button>
           </div>
         </div>
       </div>
@@ -34,7 +34,11 @@
             <div class="contact-row">
               <div class="avatar" title="{{ teacher.name }}">{{ teacher.name.split(' ')[0][:1] }}{{ (teacher.name.split(' ')[1][:1] if teacher.name.split(' ')|length > 1 else '') }}</div>
               <div class="message-contact-info">
-                <span class="message-contact-name">{{ teacher['name'] }}</span>
+                <span class="message-contact-name">
+                  {% if session.get('role') == 'student'%}<i style="color: rgb(218, 84, 84);">Teacher </i>
+                  {% elif session.get('role') == 'teacher'%}<i style="color: rgb(70, 51, 215);">Student </i>
+                  {% endif %}
+                   : {{ teacher['name'] }}</span>
                 <span class="message-contact-text">{{ teacher.last_message or 'Click to start chatting...' }}</span>
               </div>
             </div>
@@ -53,7 +57,7 @@
           <p class="message-panel-subtitle">Your conversation history appears here.</p>
         </div>
         <div class="mobile-controls">
-          <button id="contactsToggleBtn" class="mobile-nav-btn" aria-label="Show contacts">☰</button>
+          <button id="contactsToggleBtn" class="mobile-nav-btn" type="button" aria-label="Show contacts">&#9776;</button>
         </div>
       </div>
 

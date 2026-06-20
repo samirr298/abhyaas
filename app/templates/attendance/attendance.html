@@ -7,190 +7,205 @@
 {% endblock %}
 
 {% block content %}
-<div class="attendance-page">
-    <section class="attendance-hero card">
-        <div class="attendance-hero-copy">
-            <p class="attendance-eyebrow">Hi {{ username }} ,This is your Attendance status</p>
-            <h2 class="attendance-title">Today</h2>
-            <p class="attendance-copy">
-                Check today’s status, mark attendance, and review your recent history from one screen.
-            </p>
+<div class="attendance-dashboard">
+  <section class="attendance-topbar card">
+    <div class="attendance-topbar-copy">
+      <p class="attendance-section-kicker">Attendance</p>
+      <h2>Track your attendance record</h2>
+      <p>Review your monthly history, check your current rate, and mark today present from one place.</p>
+    </div>
 
-            <div class="attendance-status-row">
-                <span class="attendance-status-pill {% if attendance_status == 'Present' %}present{% else %}not-marked{% endif %}">
-                    <span class="attendance-status-dot"></span>
-                    {{ attendance_status }}
-                </span>
-                <span class="attendance-status-meta">Date shown: {{ date }}</span>
-            </div>
+    <div class="attendance-hero-actions">
+      <div class="attendance-status-row">
+        <span class="attendance-status-pill {% if attendance_status == 'Present' %}present{% elif attendance_status == 'Leave' %}leave{% else %}not-marked{% endif %}">
+          <span class="attendance-status-dot"></span>
+          {{ attendance_status }}
+        </span>
+        <span class="attendance-status-meta">Date shown: {{ date }}</span>
+      </div>
+
+      {% if attendance_status not in ['Present', 'Leave'] %}
+      <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-mark-form" id="attendance-mark-form">
+        <input type="hidden" name="status" value="present">
+        <button type="submit" class="attendance-mark-btn" id="markPresentBtn" data-original-text="Mark Present">Mark Present</button>
+      </form>
+      {% else %}
+      <button class="attendance-mark-btn" disabled title="Attendance already marked for today">Already Updated</button>
+      {% endif %}
+    </div>
+
+  </section>
+
+
+
+  <section class="attendance-stats-grid">
+    <article class="attendance-stat-card attendance-stat-accent">
+      <div class="attendance-stat-head">
+        <span>Total present</span>
+        <strong>{{ present_count }}</strong>
+      </div>
+      <p>{{ total_days }} days tracked in {{ selected_month_name }} {{ selected_year }}</p>
+      <div class="attendance-stat-bar"><span class="attendance-stat-fill" data-width="{{ current_rate|int }}"></span></div>
+    </article>
+
+    <article class="attendance-stat-card">
+      <div class="attendance-stat-head">
+        <span>Absences</span>
+        <strong>{{ absent_count }}</strong>
+      </div>
+      <p>{{ total_days - present_count if total_days else 0 }} total days without a present mark.</p>
+    </article>
+
+    <article class="attendance-stat-card attendance-stat-dark">
+      <div class="attendance-stat-head">
+        <span>Current rate</span>
+        <strong>{{ current_rate }}%</strong>
+      </div>
+      <p>{{ threshold_label }}</p>
+    </article>
+  </section>
+
+  <section class="attendance-history-card card">
+    <div class="attendance-history-header">
+      <div>
+        <p class="attendance-section-kicker">Attendance history</p>
+        <h3>{{ selected_month_label }}</h3>
+        <p>Search or switch month and year to review your records.</p>
+      </div>
+    </div>
+
+    <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="attendance-search-row">
+      <input type="hidden" name="month" value="{{ selected_month }}">
+      <input type="hidden" name="year" value="{{ selected_year }}">
+      <div class="attendance-search-form">
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search by date, day, status, or marked time" aria-label="Search attendance history">
+        <button type="submit">Search</button>
+      </div>
+    </form>
+
+    <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="attendance-month-filter">
+      <input type="hidden" name="q" value="{{ search_query }}">
+      <div class="attendance-month-controls">
+        <div class="attendance-field">
+          <label for="month-select">Month</label>
+          <select id="month-select" name="month">
+            {% for month_option in month_options %}
+              <option value="{{ month_option['value'] }}" {% if month_option['selected'] %}selected{% endif %}>{{ month_option['label'] }}</option>
+            {% endfor %}
+          </select>
         </div>
-
-        <div class="attendance-hero-actions">
-              {% if attendance_status != 'Present' %}
-              <form action="{{ url_for('attend.mark_attendance') }}" method="POST" class="attendance-hero-actions">
-                  <input type="hidden" name="status" value="present">
-                  <button type="submit" class="attendance-mark-btn">Mark Present</button>
-              </form>
-            {% else %}
-              <button class="btn-disabled" disabled>Already Present</button>
-            {% endif %}
+        <div class="attendance-field">
+          <label for="year-select">Year</label>
+          <select id="year-select" name="year">
+            {% for year_option in year_options %}
+              <option value="{{ year_option['value'] }}" {% if year_option['selected'] %}selected{% endif %}>{{ year_option['label'] }}</option>
+            {% endfor %}
+          </select>
         </div>
-    </section>
+        <button type="submit" class="attendance-apply-btn">Apply</button>
+      </div>
+    </form>
 
-    <section class="attendance-summary-grid">
-        <article class="summary-card present-card">
-            <span class="summary-label">Present days</span>
-            <strong class="summary-value">{{ present_count }}</strong>
-            <span class="summary-note">Recorded present entries</span>
-        </article>
-
-        <article class="summary-card absent-card">
-            <span class="summary-label">Absent days</span>
-            <strong class="summary-value">{{ absent_count }}</strong>
-            <span class="summary-note">Recorded absent entries</span>
-        </article>
-
-        <article class="summary-card total-card">
-            <span class="summary-label">Total tracked days</span>
-            <strong class="summary-value">{{ total_days }}</strong>
-            <span class="summary-note">Attendance summary for {{ selected_month_name }} {{ selected_year }}</span>
-        </article>
-    </section>
-
-    <section class="attendance-history card">
-        <div class="history-header">
-            <div>
-                <p class="attendance-eyebrow">History</p>
-                <h3 class="history-title">Attendance history</h3>
-                <p class="attendance-copy">Showing {{ selected_month_name }} {{ selected_year }}. Newest records appear first.</p>
-                 <input class="search" id="search" placeholder="Search Attendance date or Day">
-            </div>
-
-            <form method="GET" action="{{ url_for('attend.mark_attendance') }}" class="month-filter">
-                <label for="month-select">Filter month</label>
-                <div class="month-filter-controls">
-                    <select id="month-select" name="month">
-                        {% for month_option in month_options %}
-                            <option value="{{ month_option['value'] }}" {% if month_option['selected'] %}selected{% endif %}>{{ month_option['label'] }}</option>
-                        {% endfor %}
-                    </select>
-                    <select id="year-select" name="year">
-                        {% for year_option in year_options %}
-                            <option value="{{ year_option['value'] }}" {% if year_option['selected'] %}selected{% endif %}>{{ year_option['label'] }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="history-filter-btn">Apply</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="history-scroll">
-            <table class="attendance-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>Status</th>
-                        <th>Marked at</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in history %}
-                    <tr class="attendance">
-                        <td data-label="Date">
-                            <div class="date-cell">
-                                <strong>{{ row['attendance_date'] }}</strong>
-                                {% if loop.first and current_page == 1 %}
-                                    <span class="date-badge">Latest</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td data-label="Day">
-                            {{ row['attendance_date'].strftime('%A') }}
-                        </td>
-                        <td data-label="Status">
-                            {% if row['status'] == 'present' %}
-                                <span class="status-chip present">Present</span>
-                            {% else %}
-                                <span class="status-chip absent">Absent</span>
-                            {% endif %}
-                        </td>
-                        <td data-label="Marked at">
-                            {% if row['status'] == 'present' and row['marked_at'] %}
-                                {{ row['marked_at'].strftime('%I:%M %p') }}
-                            {% else %}
-                                --
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="table-empty-cell">
-                            No historical attendance records found.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination-footer">
-            <div>
-                {% if current_page > 1 %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year) }}" class="btn-pagination">
-                       &larr; Previous
-                    </a>
-                {% else %}
-                    <span class="btn-pagination disabled">
-                        &larr; Previous
-                    </span>
+    <div class="attendance-history-table-wrap">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Status</th>
+            <th>Marked at</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in history %}
+          <tr>
+            <td data-label="Date">
+              <div class="attendance-date-cell">
+                <strong>{{ row['attendance_date'] }}</strong>
+                {% if loop.first and current_page == 1 %}
+                  <span class="attendance-badge">Latest</span>
                 {% endif %}
-            </div>
+              </div>
+            </td>
+            <td data-label="Day">{{ row['attendance_date'].strftime('%A') }}</td>
+            <td data-label="Status">
+              {% if row['status'] == 'present' %}
+                <span class="attendance-chip present">Present</span>
+              {% elif row['status'] == 'leave' %}
+                <span class="attendance-chip leave">Leave</span>
+              {% else %}
+                <span class="attendance-chip absent">Absent</span>
+              {% endif %}
+            </td>
+            <td data-label="Marked at">
+              {% if row['status'] in ['present', 'leave'] and row['marked_at'] %}
+                {{ row['marked_at'].strftime('%I:%M %p') }}
+              {% else %}
+                --
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="attendance-empty">No historical attendance records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-            <div class="page-indicator">
-                Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong>
-            </div>
-
-            <div>
-                {% if current_page < total_pages %}
-                    <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year) }}" class="btn-pagination">
-                       Next &rarr;
-                    </a>
-                {% else %}
-                    <span class="btn-pagination disabled">
-                        Next &rarr;
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-    </section>
+    {% if total_pages > 1 %}
+    <div class="attendance-pagination">
+      <div>
+        {% if current_page > 1 %}
+          <a href="{{ url_for('attend.mark_attendance', page=current_page - 1, month=selected_month, year=selected_year, q=search_query) }}" class="attendance-page-btn">&larr; Previous</a>
+        {% else %}
+          <span class="attendance-page-btn disabled">&larr; Previous</span>
+        {% endif %}
+      </div>
+      <div class="attendance-page-indicator">Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong></div>
+      <div>
+        {% if current_page < total_pages %}
+          <a href="{{ url_for('attend.mark_attendance', page=current_page + 1, month=selected_month, year=selected_year, q=search_query) }}" class="attendance-page-btn">Next &rarr;</a>
+        {% else %}
+          <span class="attendance-page-btn disabled">Next &rarr;</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
 </div>
 <script>
-// We wait for the DOM content to fully load 
-document.addEventListener("DOMContentLoaded", () => {
-    // Looks for the search input rendered by base_app.html
-    const globalSearchInput = document.getElementById("search");
-    
-    // Selects all the individual announcement cards in this specific view
-    const cards = document.querySelectorAll(".attendance");
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.attendance-stat-fill').forEach((element) => {
+    const width = element.getAttribute('data-width') || '0';
+    element.style.width = `${width}%`;
+  });
 
-    // Only run the logic if the global search bar actually exists on this page
-    if (globalSearchInput) {
-        globalSearchInput.addEventListener('input', (e) => {
-            const searchText = e.target.value.toLowerCase();
+  // Disable mark present button after submission to prevent double submission
+  const markPresentForm = document.getElementById('attendance-mark-form');
+  if (markPresentForm) {
+    const submitBtn = markPresentForm.querySelector('#markPresentBtn');
+    let isSubmitting = false;
 
-            cards.forEach(card => {
-                
-                const cardText = card.textContent.toLowerCase();
+    markPresentForm.addEventListener('submit', (e) => {
+      if (isSubmitting || (submitBtn && submitBtn.disabled)) {
+        e.preventDefault();
+        return false;
+      }
 
-                if (cardText.includes(searchText)) {
-                    card.classList.remove('hidden'); 
-                } else {
-                    card.classList.add('hidden');    
-                }
-            });
-        });
-    }
+      if (submitBtn) {
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+        const originalText = submitBtn.getAttribute('data-original-text') || 'Mark Present';
+        submitBtn.textContent = 'Submitting...';
+        // Allow form to submit
+        return true;
+      }
+    });
+  }
 });
 </script>
 {% endblock %}

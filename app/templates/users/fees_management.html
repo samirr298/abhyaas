@@ -41,8 +41,12 @@
                 <th>Username</th>
                 <th>Email</th>
                 <th>Current Status</th>
-                <th>Last Updated</th>
+                <th>Fee Amount</th>
+                <th>Due Date</th>
+                <th>Paid Amount</th>
+                <th>Last Payment</th>
                 <th>Action</th>
+
             </tr>
         </thead>
         <tbody>
@@ -57,24 +61,53 @@
                     </span>
                 </td>
                 <td>
-                    {% if student['fee_updated_at'] %}
-                        {{ student['fee_updated_at'] }}
+                    {{ '%.2f'|format(student['fee_amount'] if student['fee_amount'] is not none else 0) }}
+                </td>
+                <td>
+                    {% if student['fee_due_date'] %}
+                        {{ student['fee_due_date'] }}
                     {% else %}
-                        Never
+                        N/A
                     {% endif %}
                 </td>
                 <td>
-                    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <div class="action-row">
-                            {% if student['fee_status'] == 'unpaid' %}
-                            <button type="submit" name="fee_status" value="paid" class="action-btn mark-paid">Mark as Paid</button>
-                            {% else %}
-                            <button type="submit" name="fee_status" value="unpaid" class="action-btn mark-unpaid">Mark as Unpaid</button>
-                            {% endif %}
-                        </div>
-                    </form>
+                    {{ '%.2f'|format(student['fee_paid_amount'] if student['fee_paid_amount'] is not none else 0) }}
                 </td>
+                <td>
+                    {% if student['fee_last_payment_at'] %}
+                        {{ student['fee_last_payment_at'] }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-row">
+                      <!-- Set total fee (NOT payment) -->
+                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
+                        <input type="hidden" name="action" value="set_fee_amount">
+                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                        <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Total fee" required class="payment-input" value="{{ student['fee_amount'] if student['fee_amount'] is not none else '' }}">
+                        <input type="date" name="fee_due_date" class="payment-input" value="{{ student['fee_due_date'] if student['fee_due_date'] else '' }}" title="Due date">
+                        <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Set Total Fee</button>
+                      </form>
+
+                      <!-- Record payment -->
+                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
+                        <input type="hidden" name="action" value="record_payment">
+                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                        <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Amount" required class="payment-input">
+                        <button type="submit" class="action-btn mark-paid">Record</button>
+                      </form>
+
+                      <!-- Reset fee -->
+                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
+                        <input type="hidden" name="action" value="reset_fee">
+                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                        <button type="submit" class="action-btn mark-unpaid">Reset</button>
+                      </form>
+                    </div>
+                </td>
+
             </tr>
             {% endfor %}
         </tbody>
@@ -167,6 +200,15 @@
         transition: all 0.2s;
         white-space: nowrap;
     }
+
+    .payment-input {
+        width: 110px;
+        padding: 6px 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+    }
+
 
     .mark-paid {
         background-color: #28a745;

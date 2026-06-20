@@ -1,54 +1,197 @@
 {% extends "base_app.html" %}
 
 {% block title %}Admin Dashboard{% endblock %}
-{% block page_heading %}Admin Dashboard{% endblock %}
+{% block page_heading %}Admin Control Panel{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+{% endblock %}
 
 {% block content %}
-<section class="card admin-dashboard-card">
-  <div class="row-flex">
-    <div>
-      <h2>Manage user roles</h2>
-      <p>Assign teacher and admin permissions, and review current user roles.</p>
+<!-- Stats Cards -->
+<section class="attendance-stats-grid" style="margin-bottom:24px">
+  <div class="attendance-stat-card attendance-stat-accent">
+    <div class="attendance-stat-head">
+      <span>Total Users</span>
+      <strong>{{ stats.total }}</strong>
     </div>
+    <p>Registered users on the platform</p>
+  </div>
+  <div class="attendance-stat-card">
+    <div class="attendance-stat-head">
+      <span>Students</span>
+      <strong>{{ stats.students }}</strong>
+    </div>
+    <p>Enrolled student accounts</p>
+  </div>
+  <div class="attendance-stat-card">
+    <div class="attendance-stat-head">
+      <span>Teachers</span>
+      <strong>{{ stats.teachers }}</strong>
+    </div>
+    <p>Teacher accounts</p>
+  </div>
+  <div class="attendance-stat-card">
+    <div class="attendance-stat-head">
+      <span>Admins</span>
+      <strong>{{ stats.admins }}</strong>
+    </div>
+    <p>Administrator accounts</p>
+  </div>
+  <div class="attendance-stat-card attendance-stat-dark">
+    <div class="attendance-stat-head">
+      <span>Banned</span>
+      <strong>{{ stats.banned }}</strong>
+    </div>
+    <p>Accounts currently suspended</p>
+  </div>
+  <div class="attendance-stat-card">
+    <div class="attendance-stat-head">
+      <span>New Today</span>
+      <strong>{{ stats.new_today }}</strong>
+    </div>
+    <p>Users registered in the last 24 hrs</p>
   </div>
 </section>
 
-<section class="card user-role-table">
+<!-- Add User -->
+<section class="card" style="margin-bottom:18px">
+  <div class="card-header">
+    <h3>Add User</h3>
+    <span class="small-meta">Create student/teacher/admin accounts</span>
+  </div>
+
+  <form method="post" action="{{ url_for('auth.admin_dashboard') }}" class="add-user-form">
+    <input type="hidden" name="action" value="add_user">
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Name</label>
+        <input name="name" type="text" required placeholder="Full name">
+      </div>
+      <div class="form-field">
+        <label>Username</label>
+        <input name="username" type="text" required placeholder="3-30 chars, A-Z a-z 0-9 _">
+      </div>
+      <div class="form-field">
+        <label>Email</label>
+        <input name="email" type="email" required placeholder="name@example.com">
+      </div>
+      <div class="form-field">
+        <label>Role</label>
+        <select name="role" required>
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Temporary Password</label>
+        <input name="password" type="password" required placeholder="Set a temporary password">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="attendance-mini-btn success" style="padding:10px 16px">Add User</button>
+    </div>
+  </form>
+
+  <style>
+    .add-user-form { margin-top: 6px; }
+    .form-grid { display:flex; flex-wrap:wrap; gap:12px; }
+    .form-field { flex: 1 1 220px; display:flex; flex-direction:column; gap:6px; }
+    .form-field label { font-size:12px; font-weight:700; color:#475569; }
+    .form-field input, .form-field select { padding:10px 12px; border:1px solid var(--border,#e6e9ef); border-radius:10px; }
+    .form-actions { margin-top: 12px; }
+  </style>
+</section>
+
+<!-- Users Management Table -->
+<section class="card">
+  <div class="card-header">
+    <h3>Manage Users</h3>
+    <span class="small-meta">{{ users|length }} total users</span>
+  </div>
+
   {% if users %}
-  <table>
+
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse">
     <thead>
-      <tr>
-        <th>Name</th>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Action</th>
+      <tr style="text-align:left;border-bottom:2px solid var(--border,#e6e9ef)">
+        <th style="padding:12px 10px">Name</th>
+        <th style="padding:12px 10px">Username</th>
+        <th style="padding:12px 10px">Email</th>
+        <th style="padding:12px 10px">Role</th>
+        <th style="padding:12px 10px">Status</th>
+        <th style="padding:12px 10px;min-width:280px">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for user in users %}
-      <tr>
-        <td>{{ user['name'] }}</td>
-        <td>{{ user['username'] }}</td>
-        <td>{{ user['email'] }}</td>
-        <td>{{ user['role'] }}</td>
-        <td>
-          <form method="post" action="{{ url_for('auth.admin_dashboard') }}">
-            <input type="hidden" name="user_id" value="{{ user['id'] }}">
-            <select name="role">
-              <option value="student" {% if user['role'] == 'student' %}selected{% endif %}>Student</option>
-              <option value="teacher" {% if user['role'] == 'teacher' %}selected{% endif %}>Teacher</option>
-              <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
-            </select>
-            <button type="submit">Save</button>
-          </form>
+      <tr style="border-bottom:1px solid var(--border,#e6e9ef)">
+        <td style="padding:12px 10px;font-weight:600">{{ user['name'] }}</td>
+        <td style="padding:12px 10px">@{{ user['username'] }}</td>
+        <td style="padding:12px 10px">{{ user['email'] }}</td>
+        <td style="padding:12px 10px;">
+          <span class="status-chip chip-{{ user['role'] }}">
+            {{ user['role']|capitalize }}
+          </span>
+        </td>
+        <td style="padding:12px 10px">
+          {% if user['is_banned'] %}
+            <span class="status-chip banned" style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#fee2e2;color:#b91c1c">Banned</span>
+          {% else %}
+            <span class="status-chip active" style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#ecfdf5;color:#047857">Active</span>
+          {% endif %}
+        </td>
+        <td style="padding:12px 10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <!-- Role Change -->
+            <form method="post" action="{{ url_for('auth.admin_dashboard') }}" style="display:inline-flex;gap:6px;align-items:center">
+              <input type="hidden" name="action" value="update_role">
+              <input type="hidden" name="user_id" value="{{ user['id'] }}">
+              <select name="role" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border,#e6e9ef);font-size:12px">
+                <option value="student" {% if user['role'] == 'student' %}selected{% endif %}>Student</option>
+                <option value="teacher" {% if user['role'] == 'teacher' %}selected{% endif %}>Teacher</option>
+                <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
+              </select>
+              <button type="submit" class="attendance-mini-btn success" style="padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;background:#dcfce7;color:#166534">Save</button>
+            </form>
+
+            <!-- Ban / Unban -->
+            {% if user['id'] != session['user_id'] %}
+              {% if user['is_banned'] %}
+              <form method="post" action="{{ url_for('auth.admin_dashboard') }}" style="display:inline">
+                <input type="hidden" name="action" value="unban">
+                <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                <button type="submit" class="attendance-mini-btn success" style="padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;background:#dbeafe;color:#1d4ed8">Unban</button>
+              </form>
+              {% else %}
+              <form method="post" action="{{ url_for('auth.admin_dashboard') }}" style="display:inline">
+                <input type="hidden" name="action" value="ban">
+                <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                <button type="submit" class="attendance-mini-btn danger" style="padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;background:#fee2e2;color:#b91c1c">Ban</button>
+              </form>
+              {% endif %}
+
+              <!-- Delete -->
+<form method="POST" action="{{ url_for('auth.admin_dashboard') }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete')">                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                <button type="submit" style="padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;background:#fecaca;color:#991b1b">Delete</button>
+              </form>
+            {% else %}
+              <span style="font-size:12px;color:#94a3b8;font-style:italic">(you)</span>
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
-  <p>No users found.</p>
+  <p class="empty-state-card" style="text-align:center;padding:24px;color:#64748b">No users found.</p>
   {% endif %}
 </section>
 {% endblock %}

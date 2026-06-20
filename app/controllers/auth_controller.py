@@ -20,6 +20,11 @@ class AuthController(BaseController):
             user_details = Users.get_my_email(email)
             
             if user_details is not None:
+                # Ban check — reject login for banned users
+                if user_details.get('is_banned') or Users.is_email_banned(email):
+                    self.flash("Your account has been banned. Contact an administrator.", "error")
+                    return self.redirect_to('auth.login')
+
                 if check_password_hash(user_details['password_hash'], password):
                     self.session['user_id'] = user_details['id']
                     self.session['role'] = user_details['role']

@@ -4,105 +4,171 @@
 {% block page_heading %}Student Dashboard{% endblock %}
 
 {% block content %}
-<section class="card dashboard-intro">
-  <div>
+<section class="student-dashboard-hero card">
+  <div class="student-hero-copy">
     <p class="section-kicker">Welcome back</p>
-    <h2>Recent announcements</h2>
-    <p>Stay up to date with the latest news from your school.</p>
-  </div>
-</section>
-
-<section class="card attendance-status-card">
-  <div class="section-header">
-    <div>
-      <p class="section-kicker">Attendance status</p>
-      <h3>Today's attendance</h3>
-    </div>
-    <div>
-      <a class="secondary-btn" href="{{ url_for('attend.mark_attendance') }}">View full attendance</a>
+    <h2>Here’s what’s happening in your studies today.</h2>
+    <p class="student-hero-text">Keep track of upcoming deadlines, today’s work, and the latest school updates from one place.</p>
+    <div class="student-hero-actions">
+      <a class="primary-btn" href="{{ url_for('tasks.student_task') }}">Open tasks</a>
+      <a class="secondary-btn" href="{{ url_for('tasks.notifications') }}">View notifications</a>
     </div>
   </div>
-  <div class="attendance-card-body">
-    <div>
-      <h4>{{ attendance_status }}</h4>
-      <p class="muted-note">Date: {{ attendance_date_display }}</p>
+  <div class="student-hero-status">
+    <div class="hero-status-pill">
+      <span class="hero-status-dot"></span>
+      {{ attendance_status }} today
     </div>
-    <div>
-      <span class="status-chip">
-        <span class="status-dot {% if attendance_status == 'Present' %}dot-present{% elif attendance_status == 'Absent' %}dot-absent{% else %}dot-muted{% endif %}"></span>
-        {{ attendance_status }}
-      </span>
+    <div class="hero-date">{{ attendance_date_display }}</div>
+    <div class="hero-reminder-count">
+      <strong>{{ deadline_reminders|length if deadline_reminders else 0 }}</strong>
+      <span>deadline reminders</span>
     </div>
   </div>
 </section>
 
-<section class="card today-task-preview">
-  <div class="section-header">
-    <div>
-      <p class="section-kicker">Today’s tasks</p>
-      <h3>What you need to do today</h3>
+<section class="student-metrics-grid">
+  <article class="metric-card metric-accent">
+    <div class="metric-topline">
+      <span>Attendance rate</span>
+      <strong>{{ attendance_rate }}%</strong>
     </div>
-    <div>
-      <a class="secondary-btn" href="{{ url_for('tasks.student_task') }}">View all tasks</a>
-    </div>
-  </div>
+    <div class="metric-bar"><span style="width: {{ attendance_rate }}%;"></span></div>
+    <p>Based on the last 30 days of attendance records.</p>
+  </article>
 
-  {% if today_tasks and today_tasks|length > 0 %}
-    <div class="today-task-list">
-      {% for task in today_tasks %}
-      <article class="card task-card">
-        <div class="task-topline">
-          <div>
-            <p class="task-subject">{{ task.subject or 'General' }}</p>
-            <h4><a class="task-link" href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a></h4>
+  <article class="metric-card">
+    <div class="metric-topline">
+      <span>Pending tasks</span>
+      <strong>{{ pending_count }}</strong>
+    </div>
+    <p>{{ completed_count }} completed from {{ total_tasks_count }} visible tasks.</p>
+  </article>
+
+  <article class="metric-card metric-dark">
+    <div class="metric-topline">
+      <span>Upcoming deadlines</span>
+      <strong>{{ upcoming_deadlines }}</strong>
+    </div>
+    <p>{{ latest_announcements|length if latest_announcements else 0 }} latest announcements available now.</p>
+  </article>
+</section>
+
+<section class="student-dashboard-grid">
+  <div class="student-dashboard-main card">
+    <div class="section-header student-section-header">
+      <div>
+        <p class="section-kicker">Today’s tasks</p>
+        <h3>What you need to do today</h3>
+      </div>
+      <div>
+        <a class="secondary-btn" href="{{ url_for('tasks.student_task') }}">View all tasks</a>
+      </div>
+    </div>
+
+    {% if today_tasks and today_tasks|length > 0 %}
+      <div class="student-task-list">
+        {% for task in today_tasks %}
+        {% set due_value = task.due_date %}
+        {% if due_value and due_value.strftime is defined %}
+          {% set due_date_text = due_value.strftime('%d %b, %Y') %}
+        {% else %}
+          {% set due_date_text = 'TBD' %}
+        {% endif %}
+        <article class="student-task-item {% if (task.submission_status or '') == 'Reviewed' %}is-complete{% elif task.due_date and task.due_date < now %}is-overdue{% elif task.due_date and task.due_date.date() == now.date() %}is-due-today{% else %}is-open{% endif %}">
+          <div class="student-task-main">
+            <div class="student-task-icon">{{ loop.index }}</div>
+            <div class="student-task-copy">
+              <div class="student-task-subject">{{ task.subject or 'General' }}</div>
+              <h4><a href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a></h4>
+              <p>{{ task.description or 'No description provided.' }}</p>
+            </div>
           </div>
-          <div class="align-right">
-            {% if task.due_date and task.due_date < now %}
-            <span class="tag overdue">Overdue</span>
+          <div class="student-task-meta">
+            {% if (task.submission_status or '') == 'Reviewed' %}
+              <span class="status-chip success">Reviewed</span>
+            {% elif task.due_date and task.due_date < now %}
+              <span class="status-chip danger">Overdue</span>
+            {% elif task.due_date and task.due_date.date() == now.date() %}
+              <span class="status-chip warning">Due today</span>
             {% else %}
-            <span class="tag due">Due {{ task.due_date.strftime('%d %b, %Y') if task.due_date else 'TBD' }}</span>
+              <span class="status-chip neutral">Pending</span>
             {% endif %}
-            <a class="task-link" href="{{ url_for('tasks.view_task', task_id=task.id) }}">View details →</a>
-          </div>
-        </div>
-        <p class="task-description">{{ task.description or 'No description provided.' }}</p>
-      </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="muted">No tasks for today.</p>
-  {% endif %}
-</section>
-
-<section class="card announcement-preview">
-  <div class="section-header">
-    <div>
-      <p class="section-kicker">Announcements</p>
-      <h3>Latest updates</h3>
-    </div>
-    <div>
-      <a class="secondary-btn" href="{{ url_for('announce.announcement') }}">View all announcements</a>
-    </div>
-  </div>
-
-  {% if latest_announcements and latest_announcements|length > 0 %}
-    <div class="announcement-list">
-      {% for announcement in latest_announcements %}
-        <article class="announcement-card">
-          <div class="announcement-card-header">
-            <h4><a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">{{ announcement['title'] }}</a></h4>
-            <span class="meta">Posted on {{ announcement['created_at'].strftime('%b %d, %Y') if announcement['created_at'] is not none else announcement['created_at'] }}</span>
-          </div>
-          <p class="announcement-meta">Author: {{ announcement['author_name'] }}</p>
-          <p class="announcement-summary">{{ announcement['summary'] }}</p>
-          <div class="announcement-actions">
-            <a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}" class="primary-btn">Read full announcement</a>
+            <div class="student-task-due">Due {{ due_date_text }}</div>
+            <a class="student-task-link" href="{{ url_for('tasks.view_task', task_id=task.id) }}">View details</a>
           </div>
         </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="muted">No announcements are available right now.</p>
-  {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state-card">
+        <h4>No tasks yet</h4>
+        <p>New assignments will appear here when teachers publish them.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <aside class="student-dashboard-side">
+    <section class="card student-panel announcements-panel">
+      <div class="section-header student-section-header compact">
+        <div>
+          <p class="section-kicker">Announcements</p>
+          <h3>Latest updates</h3>
+        </div>
+        <div>
+          <a class="secondary-btn" href="{{ url_for('announce.announcement') }}">View all</a>
+        </div>
+      </div>
+
+      {% if latest_announcements and latest_announcements|length > 0 %}
+        <div class="student-announcement-list">
+          {% for announcement in latest_announcements %}
+          <article class="student-announcement-item">
+            <div class="student-announcement-head">
+              <h4><a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">{{ announcement['title'] }}</a></h4>
+              <span>{{ announcement['category'] or 'General' }}</span>
+            </div>
+            <p>{{ announcement['summary'] }}</p>
+            <div class="student-announcement-foot">
+              <small>{{ announcement['created_at'].strftime('%d %b %Y') if announcement['created_at'] is not none else '' }}</small>
+              <a href="{{ url_for('announce.announcement_view', announcement_id=announcement['id']) }}">Open</a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state-card compact">
+          <h4>No announcements</h4>
+          <p>School updates will show up here.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="card student-panel reminders-panel">
+      <div class="section-header student-section-header compact">
+        <div>
+          <p class="section-kicker">Deadline reminders</p>
+          <h3>Due soon</h3>
+        </div>
+        <div class="reminder-badge">{{ deadline_reminders|length if deadline_reminders else 0 }}</div>
+      </div>
+
+      {% if deadline_reminders and deadline_reminders|length > 0 %}
+        <div class="deadline-reminder-list">
+          {% for reminder in deadline_reminders[:3] %}
+          <a class="deadline-reminder-item" href="{{ url_for('tasks.view_task', task_id=reminder.task_id) }}?notification_id={{ reminder.id }}">
+            <strong>{{ reminder.title }}</strong>
+            <span>Due {{ reminder.due_date.strftime('%d %b %Y') if reminder.due_date else 'soon' }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state-card compact">
+          <h4>All caught up</h4>
+          <p>No deadline reminders are pending right now.</p>
+        </div>
+      {% endif %}
+    </section>
+  </aside>
 </section>
 {% endblock %}

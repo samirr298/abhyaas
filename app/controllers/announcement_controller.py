@@ -55,7 +55,8 @@ class AnnouncementController(BaseController):
         return redirect(url_for('announce.announcement'))
 
     @login_required
-    @role_required('teacher')
+    
+    @role_required('teacher' or 'admin')
     def announcement_create(self):
         if request.method == "POST":
             title = request.form.get('title')
