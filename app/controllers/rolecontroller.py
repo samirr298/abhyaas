@@ -24,17 +24,89 @@ class RoleController:
     @role_required("admin")
     def admin_dashboard(self):
         if request.method == 'POST':
-            user_id = request.form.get('user_id')
-            new_role = request.form.get('role')
-            if user_id and new_role in ['student', 'teacher', 'admin']:
-                Users.update_role(user_id, new_role)
-                flash('Role updated successfully.', 'success')
-            else:
-                flash('Invalid role assignment.', 'error')
+            action = request.form.get('action', 'update_role')
+
+            if action == 'update_role':
+                user_id = request.form.get('user_id')
+                new_role = request.form.get('role')
+                if user_id and new_role in ['student', 'teacher', 'admin']:
+                    Users.update_role(user_id, new_role)
+                    flash('Role updated successfully.', 'success')
+                else:
+                    flash('Invalid role assignment.', 'error')
+
+            elif action == 'ban':
+                user_id = request.form.get('user_id')
+                if user_id:
+                    target = Users.get_user_by_id(user_id)
+                    if target and target['id'] != session.get('user_id'):
+                        Users.ban_user(user_id)
+                        flash(f"User '{target['name'] or target['username']}' has been banned.", "error")
+                    else:
+                        flash("You cannot ban yourself.", "error")
+
+            elif action == 'unban':
+                user_id = request.form.get('user_id')
+                if user_id:
+                    target = Users.get_user_by_id(user_id)
+                    if target:
+                        Users.unban_user(user_id)
+                        flash(f"User '{target['name'] or target['username']}' has been unbanned.", "success")
+
+            elif action == 'delete':
+                user_id = request.form.get('user_id')
+                if user_id:
+                    target = Users.get_user_by_id(user_id)
+                    if target:
+                        if target['id'] == session.get('user_id'):
+                            flash("You cannot delete your own account.", "error")
+                            return redirect(url_for('auth.admin_dashboard'))
+                        # Delete the user
+                        Users.delete_user(user_id)
+                        flash(f"User '{target['name'] or target['username']}' has been permanently deleted.", "success")
+
+            elif action == 'add_user':
+                # Admin-created user
+                import re
+                from werkzeug.security import generate_password_hash
+
+                name = (request.form.get('name') or '').strip()
+                username = (request.form.get('username') or '').strip()
+                email = (request.form.get('email') or '').strip()
+                role = (request.form.get('role') or '').strip().lower()
+                password = request.form.get('password') or ''
+
+                if not name or not username or not email or not role or not password:
+                    flash('All fields are required to add a user.', 'error')
+                    return redirect(url_for('auth.admin_dashboard'))
+
+                if role not in ['student', 'teacher', 'admin']:
+                    flash('Invalid role selection.', 'error')
+                    return redirect(url_for('auth.admin_dashboard'))
+
+                if not re.match(r'^[A-Za-z0-9_]{3,30}$', username):
+                    flash('Username must be 3-30 chars and contain only letters, numbers, and underscores.', 'error')
+                    return redirect(url_for('auth.admin_dashboard'))
+
+                # Basic email sanity check
+                if '@' not in email or '.' not in email:
+                    flash('Please enter a valid email address.', 'error')
+                    return redirect(url_for('auth.admin_dashboard'))
+
+                password_hash = generate_password_hash(password)
+                created = Users.create_user(name, username, email, password_hash, role)
+
+                if created:
+                    flash(f"User '{username}' added successfully.", 'success')
+                else:
+                    flash('Failed to add user. Username or email may already exist.', 'error')
+
             return redirect(url_for('auth.admin_dashboard'))
 
+
         users = Users.get_all_users()
-        return render_template("users/admin_dashboard.html", users=users)
+        stats = Users.get_stats()
+        return render_template("users/admin_dashboard.html", users=users, stats=stats)
 
     @login_required
     @role_required("admin")
