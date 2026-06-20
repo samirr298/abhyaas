@@ -12,7 +12,7 @@
     <div>
       <p class="section-kicker">Full assignment view</p>
       <h2>{{ task.title }}</h2>
-      <div style="color:var(--text-muted);">{{ task.subject or 'General' }} • Due: {{ task.due_date.strftime('%A, %d %b %Y %I:%M %p') }}</div>
+      <div style="color:var(--text-muted);">{{ task.subject or 'General' }} • Due: {{ task.due_date.strftime('%A, %d %b %Y %I:%M %p') if task.due_date else 'TBD' }}</div>
     </div>
     <div style="text-align:right;">
       {% if session.get('role') == 'student' %}
@@ -37,7 +37,7 @@
       <h3>Instructions</h3>
       <p style="color:var(--text-muted);">{{ task.description }}</p>
 
-      {% if task.attached_filename %}
+      {% if task_exists and task.attached_filename %}
       <div style="margin-top:10px;">
         <a href="{{ url_for('static', filename='uploads/' ~ task.attached_filename) }}" target="_blank" class="secondary-btn">📎 Download Attachment</a>
       </div>
@@ -45,14 +45,14 @@
 
       <div style="margin-top:18px;">
         <h4>Your submission</h4>
-        {% if submission %}
+        {% if task_exists and submission %}
           <p>File: <a href="{{ url_for('static', filename='student_uploads/' ~ submission.submitted_filename) }}" target="_blank">{{ submission.submitted_filename }}</a></p>
           <p>Status: <strong>{{ submission.status }}</strong></p>
-        {% else %}
+        {% elif task_exists %}
           <p class="muted-note">You haven't submitted yet.</p>
         {% endif %}
 
-        {% if not submission and task.due_date > now %}
+        {% if task_exists and not submission and task.due_date and task.due_date > now %}
         <form action="" method="POST" enctype="multipart/form-data">
           <input type="hidden" name="action" value="submit_assignment">
           <input type="file" name="student_file" required>
@@ -64,7 +64,7 @@
 
     <aside style="border-left:1px solid rgba(0,0,0,0.04); padding-left:16px;">
       <h4>Teacher feedback</h4>
-      {% if feedback %}
+      {% if task_exists and feedback %}
         {% for f in feedback %}
           <div style="padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.04);">
             <div style="font-weight:700;">From teacher</div>
@@ -78,9 +78,4 @@
     </aside>
   </section>
 </div>
-    </article>
-  </section>
-</div>
-
-
 {% endblock %}
