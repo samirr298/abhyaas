@@ -1,8 +1,12 @@
 import os
+from pathlib import Path
 from flask import request, Response
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from app.controllers.base_controller import BaseController
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 
 
 class AIController(BaseController):
@@ -24,8 +28,8 @@ class AIController(BaseController):
 
     def __init__(self):
         super().__init__()
-        # Initializes the real Gemini client using your environment variable
-        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.client = genai.Client(api_key=api_key)
 
     def _is_heavy_task(self, text: str) -> bool:
         t = (text or "").lower()
