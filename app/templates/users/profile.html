@@ -19,7 +19,7 @@
       <div class="profile-top-copy">
         <div class="profile-eyebrow">Account profile</div>
         <h2 class="profile-top-name" id="display-username">{{ username or 'User' }}</h2>
-        <p class="profile-subtitle">{{ role or '' }}</p>
+        <p class="profile-subtitle">{% if role == 'teacher'%}Teacher{% elif role =='student' %}Student {% endif %}</p>
         <p class="muted profile-top-sub">{{ email }}</p>
         <div class="profile-badges">
           <span class="badge badge-success">Active Student</span>

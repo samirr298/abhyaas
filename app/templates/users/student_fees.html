@@ -19,6 +19,14 @@
 
     <p class="muted-note">Last updated by Administration: {{ last_updated }}</p>
 
+    <div class="fee-details">
+      <p class="muted">Fee amount: <strong>{{ '%.2f'|format(fee_amount) if fee_amount is not none else '0.00' }}</strong></p>
+      <p class="muted">Due date: <strong>{% if fee_due_date %}{{ fee_due_date }}{% else %}N/A{% endif %}</strong></p>
+      <p class="muted">Paid amount: <strong>{{ '%.2f'|format(fee_paid_amount) if fee_paid_amount is not none else '0.00' }}</strong></p>
+      <p class="muted">Last payment: <strong>{% if fee_last_payment_at %}{{ fee_last_payment_at }}{% else %}N/A{% endif %}</strong></p>
+    </div>
+
+
     <div class="notice-box {% if fee_status == 'PAID' %}notice-paid{% else %}notice-unpaid{% endif %}">
       <h4>Official Notice</h4>
       <p class="notice-text">{{ notice }}</p>

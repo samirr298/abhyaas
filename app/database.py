@@ -33,20 +33,19 @@ class Database:
                                     profile_pic VARCHAR(255),
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     fee_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
-                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                    is_banned TINYINT(1) DEFAULT 0,
+                                    fee_amount DECIMAL(10,2) DEFAULT 0,
+                                    fee_due_date DATE NULL,
+                                    fee_paid_amount DECIMAL(10,2) DEFAULT 0,
+                                    fee_last_payment_at TIMESTAMP NULL DEFAULT NULL
                                 )
+
                                 """
                         )
-                                # Dynamically add new columns to support the fee feature
-                                try:
-                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_status VARCHAR(20) DEFAULT 'unpaid'")
-                                except Exception:
-                                        pass
-                                try:
-                                        cursor.execute("ALTER TABLE users ADD COLUMN fee_updated_at TIMESTAMP NULL DEFAULT NULL")
-                                except Exception:
-                                        pass
                         connection.commit()
+
+
                 finally:
                         pass
                         connection.close()
@@ -283,7 +282,4 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
-                        connection.close()                
-
-
-
+                        connection.close()
