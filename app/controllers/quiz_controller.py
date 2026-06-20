@@ -1,13 +1,14 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 import os
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
 from app.database import Database # NEW: Import the database connection
 
 # Load environment variables and initialize Gemini
-load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
 
 class QuizController:
     def quiz_generator_page(self):

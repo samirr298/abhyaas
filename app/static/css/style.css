@@ -152,8 +152,8 @@ html.theme-dark .theme-toggle-btn{color:#e2e8f0}
 .container-lg{max-width:1100px;margin:0 auto}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
 .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.04)}
-.message-page{display:flex;justify-content:center;padding:24px 0 40px;align-items:stretch;height:calc(100vh - 180px);min-height:560px;overflow:hidden}
-.message-card{display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);gap:24px;width:min(100%,1140px);height:100%;align-items:stretch}
+.message-page{display:flex;justify-content:center;padding:24px 16px 40px;align-items:stretch;height:calc(100vh - 180px);min-height:560px;overflow:hidden}
+.message-card{display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);gap:20px;width:min(100%,1140px);height:100%;align-items:stretch;position:relative}
 .message-sidebar,
 .message-panel{background:#fff;border:1px solid #dbe3ee;border-radius:18px;box-shadow:0 14px 34px rgba(2,6,23,0.09);height:100%}
 .message-sidebar{display:flex;flex-direction:column;overflow:hidden;min-height:560px}
@@ -200,14 +200,118 @@ html.theme-dark .theme-toggle-btn{color:#e2e8f0}
 .page-header{margin-bottom:16px}
 .page-header h1{font-size:24px;margin:0;color:#0b2540}
 
+@media (max-width: 1200px){
+  .message-page{height:auto; min-height:0;}
+  .message-card{grid-template-columns:minmax(280px,320px) minmax(0,1fr); width:100%;}
+  .message-bubble{max-width:84%;}
+}
+
+@media (max-width: 900px){
+  .message-page{
+    padding:12px 12px 20px;
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+
+  .message-card{
+    grid-template-columns:1fr;
+    gap:12px;
+    height:auto;
+    min-height:0;
+  }
+
+  .message-sidebar{
+    display:none;
+    position:fixed;
+    inset:88px 12px 12px;
+    width:auto;
+    max-height:calc(100vh - 100px);
+    z-index:60;
+    min-height:0;
+    box-shadow:0 24px 60px rgba(2,6,23,0.2);
+  }
+
+  .message-card.sidebar-open .message-sidebar{display:flex;}
+
+  .message-panel{
+    min-height:0;
+    height:auto;
+  }
+
+  .message-panel-header{padding:18px 16px; align-items:center}
+  .message-panel-header h2{font-size:18px}
+  .message-panel-subtitle{font-size:12px}
+  .mobile-controls{display:block}
+
+  .message-thread{
+    padding:16px 14px;
+    gap:12px;
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+  }
+
+  .message-bubble{max-width:90%; padding:14px 16px}
+  .message-bubble p{font-size:14px; line-height:1.6}
+
+  .message-composer{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    padding:14px;
+  }
+
+  .message-composer textarea{min-height:64px; border-radius:14px; font-size:14px}
+  .message-composer .btn-primary{width:100%; min-width:0; padding:13px 16px; border-radius:14px}
+
+  .message-sidebar-header{padding:18px 16px}
+  .message-contact-list{padding:14px; gap:8px}
+  .message-contact{padding:14px 15px}
+  .message-contact-name{font-size:14px}
+  .message-contact-text{font-size:12px}
+  .message-contact-time{font-size:11px}
+}
+
+@media (max-width: 600px){
+  .message-page{padding:8px 8px 16px}
+  .message-card{gap:10px}
+  .message-sidebar{inset:80px 8px 8px}
+  .message-panel-header{padding:16px 14px}
+  .message-thread{padding:14px 12px}
+  .message-bubble{max-width:94%; border-radius:16px}
+  .message-bubble.incoming{border-top-left-radius:4px}
+  .message-bubble.outgoing{border-top-right-radius:4px}
+  .message-contact{flex-direction:column; align-items:flex-start}
+  .message-contact-time{align-self:flex-end}
+}
+
 @media (max-width:1000px){
 	.search{width:200px}
 	.cards{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:700px){
 	.app-shell{flex-direction:column}
-	.app-sidebar{width:100%;flex-direction:row;align-items:center}
-	.sidebar-nav{display:none}
+	
+	/* Keep sidebar collapsed; it will be shown only when user taps the hamburger button */
+	.app-sidebar{width:100%;flex-direction:row;align-items:center;justify-content:space-between}
+	.sidebar-nav{
+		display:none;
+		flex-direction:column;
+		gap:8px;
+		padding:8px 0 6px;
+	}
+
+	/* When opened (toggled by JS), show the nav */
+	.app-sidebar.sidebar-open .sidebar-nav{display:flex;}
+
+	/* ensure sidebar-open actually expands the sidebar area */
+	.app-sidebar{min-height:0;}
+	.app-sidebar.sidebar-open{min-height:0;}
+
+	/* show hamburger */
+	.mobile-nav-btn{display:inline-flex !important;}
+
 	.search{width:100%}
 	.cards{grid-template-columns:1fr}
   .mobile-controls{display:block}
@@ -1978,4 +2082,186 @@ html.theme-dark .message-bubble.outgoing{
   .teacher-overview-grid{
     grid-template-columns:1fr;
   }
+}
+
+
+/* =========================================================
+   QUIZ & FEES DARK MODE FIXES
+   ========================================================= */
+
+/* 1. Background Color Flips */
+html.theme-dark [style*="background: white"],
+html.theme-dark [style*="background-color: white"],
+html.theme-dark [style*="background: #f8f9fa"],
+html.theme-dark [style*="background-color: #f8f9fa"],
+html.theme-dark [style*="background: #f1f3f5"] {
+    background: #111c30 !important;
+    border-color: #334155 !important;
+}
+
+html.theme-dark [style*="background-color: #e2e3e5"],
+html.theme-dark [style*="background: #e2e3e5"] {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* 2. Text Color Flips */
+html.theme-dark [style*="color: #003366"],
+html.theme-dark [style*="color: #383d41"],
+html.theme-dark [style*="color: #333"],
+html.theme-dark [style*="color: #222"],
+html.theme-dark [style*="color: #0f172a"],
+html.theme-dark [style*="color: #64748b"],
+html.theme-dark [style*="color: #0a1f3d"] {
+    color: #f8fafc !important;
+}
+
+html.theme-dark [style*="color: #555"],
+html.theme-dark [style*="color: #666"],
+html.theme-dark [style*="color: #777"],
+html.theme-dark [style*="color: #888"],
+html.theme-dark [style*="color: #a0aabf"] {
+    color: #94a3b8 !important;
+}
+
+html.theme-dark [style*="color: #155724"] { color: #86efac !important; }
+html.theme-dark [style*="color: #721c24"] { color: #fca5a5 !important; }
+html.theme-dark [style*="color: #d9534f"], 
+html.theme-dark [style*="color: red"] { color: #f87171 !important; }
+
+/* 3. Success/Error Boxes & Quiz Options */
+html.theme-dark [style*="background-color: #d4edda"],
+html.theme-dark [style*="background: #d4edda"],
+html.theme-dark [style*="border: 2px solid #28a745"] {
+    background: rgba(34,197,94,.16) !important;
+    border-color: rgba(34,197,94,.32) !important;
+    color: #86efac !important;
+}
+
+html.theme-dark [style*="background-color: #f8d7da"],
+html.theme-dark [style*="background: #f8d7da"],
+html.theme-dark [style*="border: 2px solid #dc3545"],
+html.theme-dark [style*="border: 2px solid #d9534f"] {
+    background: rgba(239,68,68,.16) !important;
+    border-color: rgba(239,68,68,.32) !important;
+    color: #fca5a5 !important;
+}
+
+html.theme-dark [style*="background: #cce5ff"] {
+    background: rgba(96,165,250,.16) !important;
+    border-color: rgba(96,165,250,.32) !important;
+    color: #bfdbfe !important;
+}
+
+html.theme-dark [style*="background: #fffcf0"] {
+    background: rgba(245,158,11,.16) !important;
+    border-color: #f59e0b !important;
+    color: #fde68a !important;
+}
+
+/* 4. Form Inputs */
+html.theme-dark textarea,
+html.theme-dark input[type="number"],
+html.theme-dark input[type="text"],
+html.theme-dark input[type="date"],
+html.theme-dark select {
+    background: #0b1220 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+/* 5. Fees Table Fixes */
+html.theme-dark .table-responsive {
+    background: linear-gradient(to right, #111c30 30%, rgba(17,28,48,0)),
+                linear-gradient(to left, #111c30 30%, rgba(17,28,48,0)) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-color: #111c30 !important;
+    background-attachment: local, local, scroll, scroll !important;
+}
+
+html.theme-dark table th {
+    background-color: #0b1220 !important;
+    border-bottom-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+html.theme-dark table td {
+    border-bottom-color: #263449 !important;
+    color: #e2e8f0 !important;
+}
+
+html.theme-dark table tbody tr:hover {
+    background-color: #17233a !important;
+}
+
+html.theme-dark .stat-card.dark {
+    background: #0b1220 !important;
+}
+
+html.theme-dark .chart-box {
+    background: #111c30 !important;
+    border-color: #334155 !important;
+}
+
+/* SPECIFIC FEES DASHBOARD DARK MODE OVERRIDES */
+
+/* Fix the white card backgrounds from the internal style block */
+html.theme-dark .fee-dashboard .stat-card:not(.dark),
+html.theme-dark .fee-dashboard .payment-history {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fix the text colors inside the white cards */
+html.theme-dark .fee-dashboard .stat-card:not(.dark) .card-amount,
+html.theme-dark .fee-dashboard .payment-history h3 {
+    color: #f8fafc !important;
+}
+
+/* Fix the scrolling container background & white gradient indicators */
+html.theme-dark .fee-dashboard .table-responsive {
+    background: linear-gradient(to right, #0f172a 30%, rgba(15,23,42,0)),
+                linear-gradient(to left, #0f172a 30%, rgba(15,23,42,0)) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)) 100% 0 !important;
+    background-color: #0f172a !important;
+}
+
+/* Soften the blue background icon badge in dark mode */
+html.theme-dark .fee-dashboard .stat-card div[style*="background: #e8f0fe"] {
+    background: rgba(66, 133, 244, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+/* INTERACTIVE QUIZ OPTION BUTTONS FIX */
+
+/* Force light text and a proper dark background on quiz options */
+html.theme-dark .opt-btn {
+    color: #f8fafc !important;
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* Give it a subtle highlight when the user hovers over an option */
+html.theme-dark .opt-btn:hover:not(:disabled) {
+    background: #2d3748 !important;
+    border-color: #60a5fa !important;
+}
+
+/* QUIZ HISTORY LIST EDIT BUTTON FIX */
+
+/* Style the Edit button in the history list for dark mode */
+html.theme-dark button[onclick*="openEditModal"] {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+/* Subtle hover effect for the Edit button */
+html.theme-dark button[onclick*="openEditModal"]:hover {
+    background: #2d3748 !important;
+    border-color: #60a5fa !important;
 }

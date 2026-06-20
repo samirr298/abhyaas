@@ -138,37 +138,69 @@ class Users(BaseModel):
 
     @staticmethod
     def get_all_students(fee_filter=None):
-        """
-        Fetch all students with their fee details.
+        """Fetch all students with consolidated fee details from `fees` ledger.
+
         fee_filter: None (all), 'paid', or 'unpaid'
         """
         sql = """
-            SELECT 
-                id, name, username, email,
-                fee_status, fee_updated_at,
-                fee_amount, fee_due_date, fee_paid_amount, fee_last_payment_at
-            FROM users
-            WHERE role = 'student'
+            SELECT
+                u.id, u.name, u.username, u.email,
+                COALESCE(SUM(f.amount), 0) AS fee_amount,
+                COALESCE(SUM(f.paid_amount), 0) AS fee_paid_amount,
+                MAX(f.due_date) AS fee_due_date,
+                CASE
+                    WHEN COALESCE(SUM(f.amount), 0) = 0 THEN 'paid'
+                    WHEN COALESCE(SUM(f.paid_amount), 0) >= COALESCE(SUM(f.amount), 0) THEN 'paid'
+                    ELSE 'unpaid'
+                END AS fee_status,
+                MAX(f.updated_at) AS fee_updated_at,
+                MAX(
+                    CASE
+                        WHEN t.payment_date IS NOT NULL THEN t.payment_date
+                        ELSE NULL
+                    END
+                ) AS fee_last_payment_at
+            FROM users u
+            LEFT JOIN fees f ON f.student_id = u.id
+            LEFT JOIN fee_transactions t ON t.fee_id = f.id
+            WHERE u.role = 'student'
+            GROUP BY u.id, u.name, u.username, u.email
         """
+
         params = []
+        if fee_filter in ['paid', 'unpaid']:
+            sql += " HAVING (CASE WHEN COALESCE(SUM(f.amount), 0) = 0 THEN 'paid' WHEN COALESCE(SUM(f.paid_amount), 0) >= COALESCE(SUM(f.amount), 0) THEN 'paid' ELSE 'unpaid' END) = %s"
+            params = [fee_filter]
 
-        if fee_filter == 'unpaid':
-            sql += " AND fee_status = 'unpaid'"
-        elif fee_filter == 'paid':
-            sql += " AND fee_status = 'paid'"
+        sql += " ORDER BY u.name ASC"
+        rows = Users.fetch_all(sql, params) or []
+        # Normalize potential datetime/date fields to strings so templates
+        # won't need to call .strftime (which can error if values are strings).
+        for r in rows:
+            if r.get('fee_due_date') and hasattr(r['fee_due_date'], 'strftime'):
+                try:
+                    r['fee_due_date'] = r['fee_due_date'].strftime('%Y-%m-%d')
+                except Exception:
+                    r['fee_due_date'] = str(r['fee_due_date'])
+            if r.get('fee_updated_at') and hasattr(r['fee_updated_at'], 'strftime'):
+                try:
+                    r['fee_updated_at'] = r['fee_updated_at'].strftime('%b %d, %Y')
+                except Exception:
+                    r['fee_updated_at'] = str(r['fee_updated_at'])
+            if r.get('fee_last_payment_at') and hasattr(r['fee_last_payment_at'], 'strftime'):
+                try:
+                    r['fee_last_payment_at'] = r['fee_last_payment_at'].strftime('%b %d, %Y')
+                except Exception:
+                    r['fee_last_payment_at'] = str(r['fee_last_payment_at'])
 
-        sql += " ORDER BY name ASC"
-        return Users.fetch_all(sql, params) or []
+        return rows
 
 
     @staticmethod
     def get_student_by_id(student_id):
         """Fetch a specific student by ID."""
         sql = """
-            SELECT 
-                id, name, username, email,
-                fee_status, fee_updated_at,
-                fee_amount, fee_due_date, fee_paid_amount, fee_last_payment_at
+            SELECT id, name, username, email
             FROM users
             WHERE id = %s AND role = 'student'
         """
@@ -178,56 +210,53 @@ class Users(BaseModel):
     @staticmethod
     def update_fee_status(student_id, fee_status):
         """Update fee status and timestamp for a student."""
-        sql = "UPDATE users SET fee_status = %s, fee_updated_at = CURRENT_TIMESTAMP WHERE id = %s AND role = 'student'"
-        return Users.execute_write(sql, [fee_status, student_id])
+        # Operate on the multi-invoice ledger. If setting to 'paid', mark all
+        # fee rows for the student as paid (paid_amount = amount). If setting to
+        # 'unpaid', reset paid_amount to 0 and mark unpaid. This keeps the
+        # historical fees table consistent instead of relying on removed user
+        # table columns.
+        if fee_status == 'paid':
+            sql = """
+                UPDATE fees
+                SET paid_amount = amount, status = 'paid', updated_at = CURRENT_TIMESTAMP
+                WHERE student_id = %s
+            """
+            return Users.execute_write(sql, [student_id])
+
+        if fee_status == 'unpaid':
+            # remove transaction history for this user's fees and mark unpaid
+            try:
+                # delete transactions for all fees of this student
+                tx_sql = "DELETE t FROM fee_transactions t JOIN fees f ON t.fee_id = f.id WHERE f.student_id = %s"
+                Users.execute_write(tx_sql, [student_id])
+            except Exception:
+                pass
+
+            sql = """
+                UPDATE fees
+                SET paid_amount = 0.00, status = 'unpaid', updated_at = CURRENT_TIMESTAMP
+                WHERE student_id = %s
+            """
+            return Users.execute_write(sql, [student_id])
+
+        # Unknown status — no-op
+        return False
 
     @staticmethod
     def record_fee_payment(student_id, paid_amount, payment_at=None):
         """Record a payment for the student and update fee status/timestamps."""
-        # payment_at is optional; if not provided we use CURRENT_TIMESTAMP.
-        if payment_at is None:
-            sql = """
-                UPDATE users
-                SET 
-                    fee_paid_amount = %s,
-                    fee_last_payment_at = CURRENT_TIMESTAMP,
-                    fee_status = CASE 
-                        WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
-                        WHEN %s >= fee_amount THEN 'paid'
-                        ELSE 'unpaid'
-                    END,
-                    fee_updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s AND role = 'student'
-            """
-            return Users.execute_write(sql, [paid_amount, paid_amount, student_id])
-
-        sql = """
-            UPDATE users
-            SET 
-                fee_paid_amount = %s,
-                fee_last_payment_at = %s,
-                fee_status = CASE 
-                    WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
-                    WHEN %s >= fee_amount THEN 'paid'
-                    ELSE 'unpaid'
-                END,
-                fee_updated_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND role = 'student'
-        """
-        return Users.execute_write(sql, [paid_amount, payment_at, paid_amount, student_id])
+        # Route this to the ledger by creating a payment against the oldest unpaid fee.
+        return Users.add_fee_payment(student_id, paid_amount, payment_at)
 
     @staticmethod
     def reset_fee(student_id):
         """Reset fee payment amounts and mark as unpaid."""
-        sql = """
-            UPDATE users
-            SET 
-                fee_status = 'unpaid',
-                fee_paid_amount = 0,
-                fee_last_payment_at = NULL,
-                fee_updated_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND role = 'student'
-        """
+        # Reset all fee ledger rows for the student
+        try:
+            Users.execute_write("DELETE t FROM fee_transactions t JOIN fees f ON t.fee_id = f.id WHERE f.student_id = %s", [student_id])
+        except Exception:
+            pass
+        sql = "UPDATE fees SET paid_amount = 0.00, status = 'unpaid', updated_at = CURRENT_TIMESTAMP WHERE student_id = %s"
         return Users.execute_write(sql, [student_id])
 
     @staticmethod
@@ -236,18 +265,8 @@ class Users(BaseModel):
 
         Resets paid amount/payment info and marks fee as unpaid.
         """
-        sql = """
-            UPDATE users
-            SET 
-                fee_amount = %s,
-                fee_due_date = %s,
-                fee_status = 'unpaid',
-                fee_paid_amount = 0,
-                fee_last_payment_at = NULL,
-                fee_updated_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND role = 'student'
-        """
-        return Users.execute_write(sql, [fee_amount, fee_due_date, student_id])
+        # Replace single-field user fee with a single invoice on fees table.
+        return Users.add_student_due(student_id, 'Manual Fee Update', fee_amount, fee_due_date)
 
     @staticmethod
     def add_fee_amount(student_id, fee_amount, fee_due_date=None):
@@ -256,23 +275,8 @@ class Users(BaseModel):
         Adds to existing fee_amount and keeps current paid amounts.
         Updates fee_due_date if provided.
         """
-        sql = """
-            UPDATE users
-            SET 
-                fee_amount = COALESCE(fee_amount, 0) + %s,
-                fee_due_date = CASE WHEN %s IS NULL THEN fee_due_date ELSE %s END,
-                fee_status = CASE 
-                    WHEN (COALESCE(fee_amount, 0) + %s) IS NULL OR (COALESCE(fee_amount, 0) + %s) = 0 THEN 'unpaid'
-                    WHEN fee_paid_amount IS NOT NULL AND fee_paid_amount >= (COALESCE(fee_amount, 0) + %s) THEN 'paid'
-                    ELSE 'unpaid'
-                END,
-                fee_updated_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND role = 'student'
-        """
-        return Users.execute_write(
-            sql,
-            [fee_amount, fee_due_date, fee_due_date, fee_amount, fee_amount, fee_amount, student_id]
-        )
+        # Create a new fee line instead of mutating legacy user columns
+        return Users.add_student_due(student_id, 'Bulk/Incremental Charge', fee_amount, fee_due_date)
 
     @staticmethod
     def add_fee_payment(student_id, payment_amount, payment_at=None):
@@ -280,47 +284,122 @@ class Users(BaseModel):
 
         fee_paid_amount is increased by payment_amount. fee_status updates based on whether paid >= fee_amount.
         """
-        if payment_at is None:
-            sql = """
-                UPDATE users
-                SET 
-                    fee_paid_amount = COALESCE(fee_paid_amount, 0) + %s,
-                    fee_last_payment_at = CURRENT_TIMESTAMP,
-                    fee_status = CASE 
-                        WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
-                        WHEN (COALESCE(fee_paid_amount, 0) + %s) >= fee_amount THEN 'paid'
-                        ELSE 'unpaid'
-                    END,
-                    fee_updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s AND role = 'student'
-            """
-            return Users.execute_write(sql, [payment_amount, payment_amount, student_id])
+        # Route this to the ledger by creating a new payment against the oldest unpaid fee.
+        # Find an unpaid fee for the student
+        fee = Users.fetch_one("SELECT id, amount, paid_amount FROM fees WHERE student_id = %s AND status = 'unpaid' ORDER BY created_at ASC LIMIT 1", [student_id])
+        if not fee:
+            return False
 
-        sql = """
-            UPDATE users
-            SET 
-                fee_paid_amount = COALESCE(fee_paid_amount, 0) + %s,
-                fee_last_payment_at = %s,
-                fee_status = CASE 
-                    WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
-                    WHEN (COALESCE(fee_paid_amount, 0) + %s) >= fee_amount THEN 'paid'
-                    ELSE 'unpaid'
-                END,
-                fee_updated_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND role = 'student'
-        """
-        return Users.execute_write(sql, [payment_amount, payment_at, payment_amount, student_id])
+        new_paid = float(fee['paid_amount'] or 0) + float(payment_amount)
+        new_status = 'paid' if new_paid >= float(fee['amount'] or 0) else 'unpaid'
+        Users.execute_write("UPDATE fees SET paid_amount = %s, status = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s", [new_paid, new_status, fee['id']])
+        Users.execute_write("INSERT INTO fee_transactions (fee_id, amount_paid) VALUES (%s, %s)", [fee['id'], payment_amount])
+        return True
 
 
     @staticmethod
     def get_fee_status(user_id):
         """Fetch a user's fee status and related fee details."""
         sql = """
-            SELECT 
-                fee_status, fee_updated_at,
-                fee_amount, fee_due_date, fee_paid_amount, fee_last_payment_at
-            FROM users
+            SELECT
+                COALESCE(SUM(f.amount), 0) AS fee_amount,
+                COALESCE(SUM(f.paid_amount), 0) AS fee_paid_amount,
+                CASE
+                    WHEN COALESCE(SUM(f.amount), 0) = 0 THEN 'paid'
+                    WHEN COALESCE(SUM(f.paid_amount), 0) >= COALESCE(SUM(f.amount), 0) THEN 'paid'
+                    ELSE 'unpaid'
+                END AS fee_status,
+                MIN(CASE WHEN f.status != 'paid' THEN f.due_date ELSE NULL END) AS fee_due_date,
+                MAX(f.updated_at) AS fee_updated_at
+            FROM fees f
+            WHERE f.student_id = %s
+        """
+        result = Users.fetch_one(sql, [user_id])
+        return result or {'fee_status': 'unpaid', 'fee_amount': 0, 'fee_paid_amount': 0, 'fee_due_date': None, 'fee_updated_at': None}
+
+    # --- Multi-Invoice Fees Ledger Helpers ---
+    @staticmethod
+    def add_student_due(student_id, title, amount, due_date=None):
+        """Insert a brand new dynamic due invoice line for a student."""
+        sql = """
+            INSERT INTO fees (student_id, title, amount, due_date, status)
+            VALUES (%s, %s, %s, %s, 'unpaid')
+        """
+        return Users.execute_write(sql, [student_id, title, amount, due_date])
+
+    @staticmethod
+    def get_fees_by_student_id(student_id):
+        """Fetch all individual invoice due lines assigned to a specific student."""
+        sql = "SELECT id, title, amount, paid_amount, status, due_date, updated_at FROM fees WHERE student_id = %s ORDER BY created_at DESC"
+        rows = Users.fetch_all(sql, [student_id]) or []
+        # Normalize date/datetime fields to simple strings for templates to avoid
+        # calling .strftime() in templates (which can fail if values are already strings).
+        for r in rows:
+            if r.get('updated_at') and hasattr(r['updated_at'], 'strftime'):
+                try:
+                    r['updated_at'] = r['updated_at'].strftime('%b %d, %Y')
+                except Exception:
+                    r['updated_at'] = str(r['updated_at'])
+            if r.get('due_date') and hasattr(r['due_date'], 'strftime'):
+                try:
+                    r['due_date'] = r['due_date'].strftime('%Y-%m-%d')
+                except Exception:
+                    r['due_date'] = str(r['due_date'])
+        return rows
+
+    @staticmethod
+    def record_payment_on_fee(fee_id, payment_amount):
+        """Record payment collection and log the specific transaction receipt."""
+        sql_fetch = "SELECT amount, paid_amount FROM fees WHERE id = %s"
+        fee = Users.fetch_one(sql_fetch, [fee_id])
+        if not fee:
+            return False
+            
+        new_paid = float(fee['paid_amount'] or 0) + float(payment_amount)
+        new_status = 'paid' if new_paid >= float(fee['amount'] or 0) else 'unpaid'
+        
+        sql_update = """
+            UPDATE fees 
+            SET paid_amount = %s, status = %s, updated_at = CURRENT_TIMESTAMP 
             WHERE id = %s
         """
-        return Users.fetch_one(sql, [user_id])
+        success = Users.execute_write(sql_update, [new_paid, new_status, fee_id])
+        
+        if success:
+            sql_log = "INSERT INTO fee_transactions (fee_id, amount_paid) VALUES (%s, %s)"
+            Users.execute_write(sql_log, [fee_id, payment_amount])
+            
+        return success
 
+    @staticmethod
+    def reset_single_fee(fee_id):
+        """Flush transaction history for a single invoice row line item back to 0."""
+        Users.execute_write("DELETE FROM fee_transactions WHERE fee_id = %s", [fee_id])
+        
+        sql = "UPDATE fees SET paid_amount = 0.00, status = 'unpaid' WHERE id = %s"
+        return Users.execute_write(sql, [fee_id])
+    
+    @staticmethod
+    def get_transactions_by_student_id(student_id):
+        """Fetch every individual partial payment receipt for a student."""
+        sql = """
+            SELECT t.fee_id, t.amount_paid, t.payment_date 
+            FROM fee_transactions t
+            JOIN fees f ON t.fee_id = f.id
+            WHERE f.student_id = %s
+            ORDER BY t.payment_date DESC
+        """
+        rows = Users.fetch_all(sql, [student_id]) or []
+        for r in rows:
+            if r.get('payment_date') and hasattr(r['payment_date'], 'strftime'):
+                try:
+                    r['payment_date'] = r['payment_date'].strftime('%b %d, %Y')
+                except Exception:
+                    r['payment_date'] = str(r['payment_date'])
+        return rows
+    
+    @staticmethod
+    def delete_fee(fee_id):
+        """Permanently delete an invoice and all cascaded payment receipts."""
+        sql = "DELETE FROM fees WHERE id = %s"
+        return Users.execute_write(sql, [fee_id])
