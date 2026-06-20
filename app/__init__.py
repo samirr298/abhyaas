@@ -82,6 +82,7 @@ def create_app():
     fee_routes = FeeRoutes()
     app.register_blueprint(fee_routes.register())
 
+<<<<<<< HEAD
     from app.routes.leave_route import LeaveRoutes
     leave_routes = LeaveRoutes()
     app.register_blueprint(leave_routes.register())
@@ -93,5 +94,11 @@ def create_app():
     # Register SocketIO Event Listeners
     from app.routes.chat_socket import init_chat_sockets
     init_chat_sockets(socketio)
+=======
+    # register quiz blueprint
+    from app.routes.quiz_route import QuizRoutes
+    quiz_routes = QuizRoutes()
+    app.register_blueprint(quiz_routes.register())
+>>>>>>> feature/fees-dashboard
 
     return app
