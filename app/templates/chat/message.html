@@ -209,6 +209,8 @@ if (activeConversationId && activeConversationId !== "None" && activeConversatio
 <script>
 // Search contacts/messages and update sidebar
 let searchTimeout = null;
+const messageCard = document.querySelector('.message-card');
+const contactsToggleBtn = document.getElementById('contactsToggleBtn');
 
 // search clear button behaviour
 const searchClear = document.getElementById('message-search-clear');
@@ -229,6 +231,29 @@ if(textInputField && sendBtn){
     sendBtn.disabled = !textInputField.value.trim();
   });
 }
+
+if(contactsToggleBtn && messageCard){
+  contactsToggleBtn.addEventListener('click', function(){
+    messageCard.classList.toggle('sidebar-open');
+  });
+}
+
+const contactList = document.querySelector('.message-contact-list');
+if(contactList && messageCard){
+  contactList.addEventListener('click', function(event){
+    const contactLink = event.target.closest('.message-contact');
+    if(contactLink && window.innerWidth <= 900){
+      messageCard.classList.remove('sidebar-open');
+    }
+  });
+}
+
+window.addEventListener('resize', function(){
+  if(messageCard && window.innerWidth > 900){
+    messageCard.classList.remove('sidebar-open');
+  }
+});
+
 function renderContacts(list){
   const container = document.querySelector('.message-contact-list');
   if(!container) return;
