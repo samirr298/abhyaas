@@ -243,24 +243,25 @@
   </section>
 </div>
 <script>
-const searchInput = document.getElementById('searchbar');
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchbar');
+  const rows = document.querySelectorAll('tr.student-row');
 
-// Target the table rows directly
-const rows = document.querySelectorAll('tr.student-row');
+  if (!searchInput || !rows.length) {
+    return;
+  }
 
-searchInput.addEventListener('input', (e) => {
-    const searchText = e.target.value.toLowerCase();
+  const applyFilter = () => {
+    const searchText = searchInput.value.trim().toLowerCase();
 
-    rows.forEach(row => {
-        // textContent extracts text from all <td> elements inside this row (Name, Task Title, Status)
-        const rowText = row.textContent.toLowerCase();
-
-        if (rowText.includes(searchText)) {
-            row.classList.remove('hidden'); 
-        } else {
-            row.classList.add('hidden');    
-        }
+    rows.forEach((row) => {
+      const rowText = row.textContent.toLowerCase();
+      row.classList.toggle('hidden', searchText !== '' && !rowText.includes(searchText));
     });
+  };
+
+  searchInput.addEventListener('input', applyFilter);
+  applyFilter();
 });
 </script>
 

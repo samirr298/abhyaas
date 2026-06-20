@@ -296,6 +296,10 @@
   min-height: 84px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .submission-actions {
   display: flex;
   align-items: center;
