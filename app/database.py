@@ -178,7 +178,6 @@ class Database:
                                 connection.commit()
                 finally:
                         pass
-<<<<<<< HEAD
                         connection.close()
         def create_notification_table():
                 connection =  Database.db()
@@ -284,8 +283,7 @@ class Database:
                 finally:
                         pass
                         connection.close()
-=======
-                        connection.close() 
+                        
 
         def create_quiz_history_table():
                 connection = Database.db()
@@ -314,4 +312,3 @@ class Database:
                         connection.close()
                         
 # Connection debug message removed during cleanup
->>>>>>> feature/fees-dashboard
