@@ -53,6 +53,8 @@
           <a class="{% if request.endpoint == 'auth.student_fees' %}active{% endif %}" href="{{ url_for('auth.student_fees') }}">Fees</a>
         {% endif %}
 
+        <a class="{% if request.endpoint == 'ai.ai_page' %}active{% endif %}" href="{{ url_for('ai.ai_page') }}">AI Assistant</a>
+
         {% if session.get('role') != 'admin' %}
         <a class="{% if request.endpoint and request.endpoint.startswith('messages.') %}active{% endif %}" href="{{ url_for('messages.conversations') }}">Message</a>
         {% endif %}
@@ -66,7 +68,7 @@
         <div class="topbar-left">
         </div>
         <div class="topbar-right">
-          <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme">🌙</button>
+<button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme">Moon</button>
           <div class="profile-summary" aria-label="Current profile information">
             <strong>@{{ session.get('username') or 'User' }}</strong>
             
