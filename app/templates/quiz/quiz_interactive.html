@@ -4,6 +4,17 @@
 {% block page_heading %}Interactive Practice Quiz{% endblock %}
 
 {% block content %}
+<style>
+    /* Mobile Responsiveness for Interactive Quiz */
+    @media (max-width: 768px) {
+        .quiz-action-bar { flex-direction: column; gap: 15px; }
+        .quiz-action-bar > div { text-align: center !important; width: 100%; }
+        .quiz-action-bar button { width: 100%; padding: 12px !important; font-size: 1.1em; }
+        .results-summary-flex { gap: 20px !important; flex-direction: column; }
+        .chart-box { min-width: 100% !important; flex: none !important; width: 100%; }
+        .stat-item-row { flex-direction: column; align-items: flex-start !important; gap: 8px; }
+    }
+</style>
 <div class="card" style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
     
     <div style="margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px;">
@@ -65,13 +76,13 @@
         <h3 style="color: #003366; border-bottom: 2px solid #eee; padding-bottom: 10px;">Performance Breakdown</h3>
         
         <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; margin-bottom: 25px;">
-            <div style="flex: 1; min-width: 250px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="chart-box" style="flex: 1; min-width: 250px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <h4 style="margin-top: 0; color: #555;">Accuracy</h4>
                 <div style="position: relative; height: 200px; width: 100%;">
                     <canvas id="scoreChart"></canvas>
                 </div>
             </div>
-            <div style="flex: 2; min-width: 300px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="chart-box" style="flex: 2; min-width: 300px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <h4 style="margin-top: 0; color: #555;">Time Per Question (Seconds)</h4>
                 <div style="position: relative; height: 200px; width: 100%;">
                     <canvas id="timeChart"></canvas>
@@ -407,7 +418,7 @@
             let textColor = isCorrect ? "#155724" : "#721c24";
 
             statsHtml += `
-                <div style="background-color: ${bgColor}; color: ${textColor}; padding: 12px 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
+                <div class="stat-item-row" style="background-color: ${bgColor}; color: ${textColor}; padding: 12px 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 1.1em;"><strong>Question ${i + 1}:</strong> ${icon} ${isCorrect ? 'Correct' : 'Incorrect'}</span>
                     <span style="font-weight: bold; background: rgba(255,255,255,0.5); padding: 4px 8px; border-radius: 4px;">⏱️ ${t}s</span>
                 </div>
