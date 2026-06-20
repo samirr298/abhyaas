@@ -250,6 +250,69 @@ class Users(BaseModel):
         return Users.execute_write(sql, [fee_amount, fee_due_date, student_id])
 
     @staticmethod
+    def add_fee_amount(student_id, fee_amount, fee_due_date=None):
+        """Accumulate total fee amount for a student.
+
+        Adds to existing fee_amount and keeps current paid amounts.
+        Updates fee_due_date if provided.
+        """
+        sql = """
+            UPDATE users
+            SET 
+                fee_amount = COALESCE(fee_amount, 0) + %s,
+                fee_due_date = CASE WHEN %s IS NULL THEN fee_due_date ELSE %s END,
+                fee_status = CASE 
+                    WHEN (COALESCE(fee_amount, 0) + %s) IS NULL OR (COALESCE(fee_amount, 0) + %s) = 0 THEN 'unpaid'
+                    WHEN fee_paid_amount IS NOT NULL AND fee_paid_amount >= (COALESCE(fee_amount, 0) + %s) THEN 'paid'
+                    ELSE 'unpaid'
+                END,
+                fee_updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s AND role = 'student'
+        """
+        return Users.execute_write(
+            sql,
+            [fee_amount, fee_due_date, fee_due_date, fee_amount, fee_amount, fee_amount, student_id]
+        )
+
+    @staticmethod
+    def add_fee_payment(student_id, payment_amount, payment_at=None):
+        """Accumulate paid amount for a student (reduces dues).
+
+        fee_paid_amount is increased by payment_amount. fee_status updates based on whether paid >= fee_amount.
+        """
+        if payment_at is None:
+            sql = """
+                UPDATE users
+                SET 
+                    fee_paid_amount = COALESCE(fee_paid_amount, 0) + %s,
+                    fee_last_payment_at = CURRENT_TIMESTAMP,
+                    fee_status = CASE 
+                        WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
+                        WHEN (COALESCE(fee_paid_amount, 0) + %s) >= fee_amount THEN 'paid'
+                        ELSE 'unpaid'
+                    END,
+                    fee_updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s AND role = 'student'
+            """
+            return Users.execute_write(sql, [payment_amount, payment_amount, student_id])
+
+        sql = """
+            UPDATE users
+            SET 
+                fee_paid_amount = COALESCE(fee_paid_amount, 0) + %s,
+                fee_last_payment_at = %s,
+                fee_status = CASE 
+                    WHEN fee_amount IS NULL OR fee_amount = 0 THEN 'paid'
+                    WHEN (COALESCE(fee_paid_amount, 0) + %s) >= fee_amount THEN 'paid'
+                    ELSE 'unpaid'
+                END,
+                fee_updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s AND role = 'student'
+        """
+        return Users.execute_write(sql, [payment_amount, payment_at, payment_amount, student_id])
+
+
+    @staticmethod
     def get_fee_status(user_id):
         """Fetch a user's fee status and related fee details."""
         sql = """

@@ -210,25 +210,40 @@
     <div class="top-cards">
         
         <div class="stat-card dark">
-            <div class="card-label">Total Paid This Year</div>
-            <h2 class="card-amount">NPR 1,45,000</h2>
-            
+            <div class="card-label">Total Paid</div>
+            <h2 class="card-amount">NPR {{ '%.2f' | format(fee_paid_amount) }}</h2>
+
+            {% set total_fee = fee_amount if fee_amount is not none else 0 %}
+            {% set paid = fee_paid_amount if fee_paid_amount is not none else 0 %}
+            {% set pct = 0 %}
+            {% if total_fee and total_fee > 0 %}
+                {% set pct = (paid / total_fee) * 100 %}
+            {% endif %}
+
+
             <div class="progress-container">
                 <div class="progress-bar-bg">
-                    <div class="progress-bar-fill"></div>
+                    <div class="progress-bar-fill" style="width: {{ '%.0f' | format(pct) }}%;"></div>
                 </div>
-                <div class="progress-text">85% Paid</div>
+                <div class="progress-text">{{ '%.0f' | format(pct) }}% Paid</div>
             </div>
         </div>
 
+
         <div class="stat-card">
-            <div class="badge badge-success">Success</div>
+            {% if fee_status == 'PAID' %}
+                <div class="badge badge-success">Paid</div>
+            {% else %}
+                <div class="badge badge-success" style="background:#f8d7da;color:#721c24;">Unpaid</div>
+            {% endif %}
+
             <div style="background: #e8f0fe; color: #4285f4; width: 40px; height: 40px; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; font-size: 1.2rem;">
                 ↺
             </div>
-            <div class="card-label" style="color: #888;">Last Transaction</div>
-            <h2 class="card-amount" style="color: #333;">NPR 45,000</h2>
-            <p style="margin: 0; font-size: 0.9rem; color: #888;">August 12, 2023 • E-Sewa</p>
+
+            <div class="card-label" style="color: #888;">Due / Last Update</div>
+            <h2 class="card-amount" style="color: #333;">NPR {{ '%.2f' | format(fee_amount - fee_paid_amount) }}</h2>
+            <p style="margin: 0; font-size: 0.9rem; color: #888;">{{ last_updated }}</p>
         </div>
 
     </div>
@@ -253,34 +268,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="font-weight: 600;">Aug 12, 2023</td>
-                            <td>Semester III Tuition</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 45,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Jul 05, 2023</td>
-                            <td>Exam Fee - Midterm</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 5,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Mar 15, 2023</td>
-                            <td>Library Caution Deposit</td>
-                            <td><span class="method-dot dot-cash"></span>Cash</td>
-                            <td style="font-weight: 600;">NPR 10,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Feb 10, 2023</td>
-                            <td>Semester II Tuition</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 45,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
+                        {% if fee_last_payment_at %}
+                            <tr>
+                                <td style="font-weight: 600;">{{ fee_last_payment_at }}</td>
+                                <td>Last Payment</td>
+                                <td><span class="method-dot dot-online"></span>Recorded</td>
+                                <td style="font-weight: 600;">NPR {{ '%.2f' | format(fee_paid_amount) }}</td>
+                                <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #888; padding: 20px 10px;">
+                                    No payments recorded yet.
+                                </td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

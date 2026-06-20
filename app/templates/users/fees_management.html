@@ -31,6 +31,37 @@
     </form>
 </section>
 
+<!-- Bulk Actions -->
+<section class="card fees-bulk">
+  <div class="row-flex" style="margin-bottom:12px;">
+    <div>
+      <h3 style="margin:0;">Add Fees For All Students</h3>
+      <p style="margin:0;color:#666;">Accumulates fee amount / payments instead of overwriting.</p>
+    </div>
+  </div>
+
+  <div class="row-flex" style="gap:10px;flex-wrap:wrap;">
+    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
+      <input type="hidden" name="action" value="set_fee_amount">
+      {% for s in students %}
+        <input type="hidden" name="student_ids" value="{{ s['id'] }}">
+      {% endfor %}
+      <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Fee to add" required class="payment-input" value="">
+      <input type="date" name="fee_due_date" class="payment-input" value="" title="Due date (optional)">
+      <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Add Total Fee (Bulk)</button>
+    </form>
+
+    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
+      <input type="hidden" name="action" value="record_payment">
+      {% for s in students %}
+        <input type="hidden" name="student_ids" value="{{ s['id'] }}">
+      {% endfor %}
+      <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Payment to add" required class="payment-input" value="">
+      <button type="submit" class="action-btn mark-paid">Add Payment (Bulk)</button>
+    </form>
+  </div>
+</section>
+
 <!-- Students Table -->
 <section class="card fees-table">
     {% if students %}
@@ -46,7 +77,6 @@
                 <th>Paid Amount</th>
                 <th>Last Payment</th>
                 <th>Action</th>
-
             </tr>
         </thead>
         <tbody>
@@ -82,21 +112,21 @@
                 </td>
                 <td>
                     <div class="action-row">
-                      <!-- Set total fee (NOT payment) -->
+                      <!-- Add total fee (ACCUMULATE now) -->
                       <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
                         <input type="hidden" name="action" value="set_fee_amount">
                         <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Total fee" required class="payment-input" value="{{ student['fee_amount'] if student['fee_amount'] is not none else '' }}">
+                        <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Fee to add" required class="payment-input" value="{{ student['fee_amount'] if student['fee_amount'] is not none else '' }}">
                         <input type="date" name="fee_due_date" class="payment-input" value="{{ student['fee_due_date'] if student['fee_due_date'] else '' }}" title="Due date">
-                        <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Set Total Fee</button>
+                        <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Add Fee</button>
                       </form>
 
-                      <!-- Record payment -->
+                      <!-- Record payment (ACCUMULATE now) -->
                       <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
                         <input type="hidden" name="action" value="record_payment">
                         <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Amount" required class="payment-input">
-                        <button type="submit" class="action-btn mark-paid">Record</button>
+                        <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Payment to add" required class="payment-input">
+                        <button type="submit" class="action-btn mark-paid">Add Payment</button>
                       </form>
 
                       <!-- Reset fee -->
@@ -126,135 +156,9 @@
 </section>
 
 <style>
-    .fees-header, .fees-filter, .fees-table {
+    .fees-header, .fees-filter, .fees-table, .fees-bulk {
         margin-bottom: 20px;
     }
-
-    .fees-filter form {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .fees-filter select {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        background-color: white;
-        cursor: pointer;
-    }
-
-    .fees-table table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .fees-table th {
-        background-color: #f5f5f5;
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-        border-bottom: 2px solid #ddd;
-    }
-
-    .fees-table td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .fees-table tbody tr:hover {
-        background-color: #fafafa;
-    }
-
-    .row-flex{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-    .label-strong{font-weight:600}
-    .action-row{display:flex;gap:6px}
-    .empty-state{text-align:center;padding:40px}
-
-    .status-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .status-paid {
-        background-color: #d4edda;
-        color: #155724;
-    }
-
-    .status-unpaid {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    .action-btn {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-        white-space: nowrap;
-    }
-
-    .payment-input {
-        width: 110px;
-        padding: 6px 8px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-        font-size: 12px;
-    }
-
-
-    .mark-paid {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .mark-paid:hover {
-        background-color: #218838;
-    }
-
-    .mark-unpaid {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .mark-unpaid:hover {
-        background-color: #c82333;
-    }
-
-    .primary-btn, .secondary-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s;
-    }
-
-    .primary-btn {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .primary-btn:hover {
-        background-color: #0056b3;
-    }
-
-    .secondary-btn {
-        background-color: #6c757d;
-        color: white;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .secondary-btn:hover {
-        background-color: #545b62;
-    }
+    .fees-bulk .inline-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 </style>
 {% endblock %}

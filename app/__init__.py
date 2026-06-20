@@ -100,4 +100,10 @@ def create_app():
     quiz_routes = QuizRoutes()
     app.register_blueprint(quiz_routes.register())
 
+    # register AI assistant blueprint
+    from app.routes.ai_route import AIRoutes
+    ai_routes = AIRoutes()
+    app.register_blueprint(ai_routes.register())
+
     return app
+

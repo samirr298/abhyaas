@@ -63,53 +63,20 @@
     scrollBottom();
   };
 
-  const generateAnswer = (question) => {
-    const normalized = question.trim().toLowerCase();
-    if (!normalized) {
-      return 'Please type a question so I can answer it.';
-    }
-
-    const simpleReplies = [
-      {
-        match: ['attendance', 'leave', 'task', 'homework', 'assignment'],
-        reply: 'You can ask about your task, attendance, or leave request in plain language. I will answer as simply as possible.'
+  const askBackend = async (question) => {
+    const res = await fetch('/ai/ask', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      {
-        match: ['how', 'what', 'why', 'when', 'where'],
-        reply: 'I can explain things step by step in plain language. Ask one question clearly, and I will keep the answer short.'
-      },
-      {
-        match: ['slow', 'seconds', 'time', 'fast'],
-        reply: 'The answer appears quickly once you submit. Ask a follow-up question anytime in the same session.'
-      },
-      {
-        match: ['don\'t know', 'cannot answer', 'unsure', 'confused'],
-        reply: 'If I cannot answer, I will say that clearly and suggest a simpler way to ask your question.'
-      }
-    ];
+      body: JSON.stringify({ question })
+    });
 
-    for (const item of simpleReplies) {
-      if (item.match.some((token) => normalized.includes(token))) {
-        return item.reply;
-      }
-    }
-
-    const knowledgeWords = ['define', 'explain', 'difference', 'steps', 'benefit'];
-    if (knowledgeWords.some((token) => normalized.includes(token))) {
-      return 'Here is a short, simple explanation: I keep language easy and avoid long technical terms.';
-    }
-
-    const unsureTriggers = ['joke', 'story', 'opinion', 'future', 'prediction'];
-    if (unsureTriggers.some((token) => normalized.includes(token))) {
-      return 'I’m sorry, I cannot answer that clearly. Please ask a question about a topic or a simple task.';
-    }
-
-    if (normalized.length < 20 && !normalized.includes('?')) {
-      return 'That sounds like a topic. Please ask a clear question so I can answer simply.';
-    }
-
-    return 'I’m sorry, I cannot answer that clearly. Please try a different question or make it more specific.';
+    // Always parse json even for non-200, since backend returns answer
+    const data = await res.json().catch(() => ({}));
+    return data.answer || 'Sorry, something went wrong.';
   };
+
 
   form.addEventListener('submit', function(event) {
     event.preventDefault();
@@ -123,17 +90,25 @@
     const placeholder = 'Thinking...';
     appendMessage(placeholder, 'assistant pending');
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const pendingMessage = document.querySelector('.ai-message.assistant.pending .ai-message-bubble p');
+
       if (pendingMessage) {
-        const answer = generateAnswer(question);
-        pendingMessage.textContent = answer;
+        try {
+          const answer = await askBackend(question);
+          pendingMessage.textContent = answer;
+        } catch (e) {
+          pendingMessage.textContent = 'Sorry, something went wrong.';
+        }
+
+        // pending class is not critical for styling, so we just remove it if present
         const parent = pendingMessage.closest('.ai-message');
         if (parent) parent.classList.remove('pending');
       }
       scrollBottom();
-    }, 500);
+    }, 150);
   });
 })();
 </script>
 {% endblock %}
+
