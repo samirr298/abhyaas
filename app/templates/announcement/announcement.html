@@ -112,7 +112,7 @@ Announcements | Abhyas
                 {% endfor %}
             </div>
 
-            {% if role == 'teacher' %}
+            {% if role == 'teacher' or role=='admin' %}
             <form action="{{ url_for('announce.announcement_create') }}" method="get">
                 <button type="submit" class="btn btn-primary">Create Announcement</button>
             </form>
