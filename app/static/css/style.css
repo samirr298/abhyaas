@@ -113,6 +113,31 @@ html.theme-dark .theme-toggle-btn{color:#e2e8f0}
 .notif-dropdown-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
 .notif-dropdown-header strong{font-size:0.95rem;color:#0f172a}
 .mark-all-btn{background:transparent;border:none;color:#143a66;font-size:0.8rem;cursor:pointer;text-decoration:none;font-weight:700}
+/* Base chip styles */
+.status-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block; /* Ensures padding behaves consistently */
+}
+
+/* Modifiers based on user role */
+.chip-admin {
+    background: rgba(245, 159, 58, 0.2);
+    color: #b86d10;
+}
+
+.chip-teacher {
+    background: rgba(59, 130, 246, 0.15);
+    color: #1d4ed8;
+}
+
+/* Default / student style */
+.chip-student {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+}
 .notif-list{max-height:360px;overflow:auto}
 .notif-item{display:block;padding:14px 16px;border-bottom:1px solid #f1f5f9;color:#0f172a;text-decoration:none}
 .notif-item:last-child{border-bottom:none}
@@ -312,10 +337,19 @@ html.theme-dark .message-composer,
 html.theme-dark .dashboard-search-form input,
 html.theme-dark .message-composer textarea,
 html.theme-dark .field input {
-  background: #0f172a !important;
+  background: #010101 !important;
   color: #e2e8f0 !important;
 }
-
+html.theme-dark .single-card .form-inner .right {
+    flex: 1;
+    padding: 22px;
+    background: linear-gradient(180deg, #000000);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
 html.theme-dark body {
   background: #0b1220;
 }
@@ -488,7 +522,18 @@ html.theme-dark [class*="wrapper"] {
  
   color: #e2e8f0 !important;
 }
+/* Make sure the parent container acts as the anchor */
+.auth-right {
+    position: relative;
+}
 
+/* Position the header wrapper tightly in the top-right corner */
+.auth-header {
+    position: absolute;
+    top: 20px;    /* Adjust for top spacing */
+    right: 20px;  /* Adjust for right spacing */
+    z-index: 10;  /* Keeps it on top of other elements */
+}
 /* Dashboard-specific dark mode text fixes */
 html.theme-dark .student-dashboard-hero h2,
 html.theme-dark .student-dashboard-hero .student-hero-text,
@@ -521,6 +566,22 @@ html.theme-dark .student-announcement-item,
 html.theme-dark .deadline-reminder-item,
 html.theme-dark .empty-state-card {
   border-color: #334155 !important;
+  background-color: #010101;
+}
+.field-row {
+    display: flex;
+    flex-direction: row; /* Forces items side-by-side */
+    gap: 20px;          /* Adds space between Student and Teacher options */
+    align-items: center; /* Aligns items vertically in the center */
+    margin-top: 10px;    /* Optional spacing from the "Role" label */
+}
+
+/* Ensure the label wrapping each radio button behaves like an inline-flex item */
+.field-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;           /* Spaces out the circle dot from the text "Student" / "Teacher" */
+    cursor: pointer;
 }
 
 /* Override message bubbles for dark mode */
