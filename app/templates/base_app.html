@@ -33,6 +33,7 @@
 
         {% if session.get('role') == 'teacher' %}
         <a class="{% if request.endpoint == 'tasks.teacher_task' %}active{% endif %}" href="{{ url_for('tasks.teacher_task') }}">Teacher Task</a>
+        
         <a class="{% if request.endpoint == 'attend.manage_attendance' %}active{% endif %}" href="{{ url_for('attend.manage_attendance') }}">Attendance Management</a>
         {% endif %}
 
@@ -40,9 +41,9 @@
         <a class="{% if request.endpoint == 'attend.mark_attendance' %}active{% endif %}" href="{{ url_for('attend.mark_attendance') }}">Attendance</a>
         {% endif %}
 
-        {% if session.get('role') != 'admin' %}
+        
         <a class="{% if request.endpoint and request.endpoint.startswith('announce.') %}active{% endif %}" href="{{ url_for('announce.announcement') }}">Announcements</a>
-        {% endif %}
+      
 
         {% if session.get('role') == 'admin' %}
           <a class="{% if request.endpoint == 'auth.fees_management' %}active{% endif %}" href="{{ url_for('auth.fees_management') }}">Fee Management</a>
