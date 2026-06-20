@@ -17,6 +17,8 @@ def create_app():
     # Initialize your database connection
     Database.db()
     Database.create_users_table()
+    Database.create_fee_tables()
+
     Database.create_attendance_table()
     Database.create_announcement_table()
     Database.create_task_tables()

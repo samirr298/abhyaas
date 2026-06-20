@@ -32,13 +32,7 @@ class Database:
                                     role VARCHAR(50) NOT NULL,
                                     profile_pic VARCHAR(255),
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                    fee_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
-                                    fee_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                                    is_banned TINYINT(1) DEFAULT 0,
-                                    fee_amount DECIMAL(10,2) DEFAULT 0,
-                                    fee_due_date DATE NULL,
-                                    fee_paid_amount DECIMAL(10,2) DEFAULT 0,
-                                    fee_last_payment_at TIMESTAMP NULL DEFAULT NULL
+                                    is_banned TINYINT(1) DEFAULT 0
                                 )
 
                                 """
@@ -291,6 +285,43 @@ class Database:
                         pass
                         connection.close()
                         
+
+        def create_fee_tables(self=None):
+                connection = Database.db()
+                try:
+                        with connection.cursor() as cursor:
+                                cursor.execute(
+                                """
+                                CREATE TABLE IF NOT EXISTS fees (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    student_id INT NOT NULL,
+                                    title VARCHAR(255) NOT NULL,
+                                    amount DECIMAL(10,2) NOT NULL,
+                                    due_date DATE NULL,
+                                    paid_amount DECIMAL(10,2) DEFAULT 0.00,
+                                    status ENUM('paid','unpaid') DEFAULT 'unpaid',
+                                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_fees_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+                                    INDEX idx_fees_student (student_id)
+                                );
+                                """
+                                )
+                                cursor.execute(
+                                """
+                                CREATE TABLE IF NOT EXISTS fee_transactions (
+                                    id INT AUTO_INCREMENT PRIMARY KEY,
+                                    fee_id INT NOT NULL,
+                                    amount_paid DECIMAL(10,2) NOT NULL,
+                                    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                    CONSTRAINT fk_ft_fee FOREIGN KEY (fee_id) REFERENCES fees(id) ON DELETE CASCADE,
+                                    INDEX idx_fee_transactions_fee (fee_id)
+                                );
+                                """
+                                )
+                                connection.commit()
+                finally:
+                        connection.close()
 
         def create_quiz_history_table():
                 connection = Database.db()
