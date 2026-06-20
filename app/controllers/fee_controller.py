@@ -38,22 +38,32 @@ class FeeController(BaseController):
 
         action = (request.form.get('action') or 'set_status').strip()
         student_id = request.form.get('student_id')
+        student_ids = request.form.getlist('student_ids') if hasattr(request.form, 'getlist') else []
 
-        if not student_id:
-            flash('Missing student ID.', 'error')
+        # Accept both single student_id and bulk student_ids
+        ids_to_update = []
+        if student_id:
+            ids_to_update = [student_id]
+        elif student_ids:
+            ids_to_update = [str(i) for i in student_ids if str(i).strip()]
+
+        if not ids_to_update:
+            flash('Missing student ID(s).', 'error')
             return redirect(url_for('auth.fees_management'))
 
-        # Verify student exists
-        student = Users.get_student_by_id(student_id)
-        if not student:
-            flash('Student not found.', 'error')
-            return redirect(url_for('auth.fees_management'))
+        # Helper: resolve names for flash message (best-effort)
+        def resolve_names(ids):
+            names = []
+            for sid in ids:
+                s = Users.get_student_by_id(sid)
+                if s and s.get('name'):
+                    names.append(s['name'])
+            return names
 
+        # set_fee_amount => add input to existing fee_amount (accumulate)
         if action == 'set_fee_amount':
-            # fee_amount and fee_due_date are required/optional respectively
             try:
-                fee_amount = request.form.get('fee_amount')
-                fee_amount = float(fee_amount)
+                fee_amount = float(request.form.get('fee_amount'))
             except Exception:
                 flash('Invalid fee amount.', 'error')
                 return redirect(url_for('auth.fees_management'))
@@ -68,18 +78,24 @@ class FeeController(BaseController):
                 if fee_due_date == '':
                     fee_due_date = None
 
-            if Users.set_fee_details(student_id, fee_amount=fee_amount, fee_due_date=fee_due_date):
-                flash(f"Fee set for {student['name']}.", 'success')
+            ok = True
+            for sid in ids_to_update:
+                if not Users.add_fee_amount(sid, fee_amount=fee_amount, fee_due_date=fee_due_date):
+                    ok = False
+                    break
+
+            names = resolve_names(ids_to_update)
+            if ok:
+                flash(f"Fee amount added for {len(ids_to_update)} student(s).", 'success')
             else:
-                flash('Failed to set fee. Please try again.', 'error')
+                flash(f"Failed to add fee amount for some students.", 'error')
 
             return redirect(url_for('auth.fees_management'))
 
+        # record_payment => add input to existing fee_paid_amount (accumulate)
         if action == 'record_payment':
-            # payment_amount is required
             try:
-                payment_amount = request.form.get('payment_amount')
-                payment_amount = float(payment_amount)
+                payment_amount = float(request.form.get('payment_amount'))
             except Exception:
                 flash('Invalid payment amount.', 'error')
                 return redirect(url_for('auth.fees_management'))
@@ -88,32 +104,49 @@ class FeeController(BaseController):
                 flash('Payment amount cannot be negative.', 'error')
                 return redirect(url_for('auth.fees_management'))
 
-            if Users.record_fee_payment(student_id, payment_amount, payment_at=None):
-                flash(f"Payment recorded for {student['name']}.", 'success')
+            ok = True
+            for sid in ids_to_update:
+                if not Users.add_fee_payment(sid, payment_amount=payment_amount, payment_at=None):
+                    ok = False
+                    break
+
+            if ok:
+                flash(f"Payment recorded for {len(ids_to_update)} student(s).", 'success')
             else:
-                flash('Failed to record payment. Please try again.', 'error')
+                flash('Failed to record payment for some students. Please try again.', 'error')
 
             return redirect(url_for('auth.fees_management'))
 
         if action == 'reset_fee':
-            if Users.reset_fee(student_id):
-                flash(f"Fee reset for {student['name']}.", 'success')
+            ok = True
+            for sid in ids_to_update:
+                if not Users.reset_fee(sid):
+                    ok = False
+                    break
+            if ok:
+                flash(f"Fee reset for {len(ids_to_update)} student(s).", 'success')
             else:
-                flash('Failed to reset fee. Please try again.', 'error')
+                flash('Failed to reset fee for some students. Please try again.', 'error')
             return redirect(url_for('auth.fees_management'))
 
-        # Backward-compatible: set_status (paid/unpaid)
+        # Backward-compatible: set_status (paid/unpaid) for a single student only
+        if len(ids_to_update) != 1:
+            flash('Status update supports single student only.', 'error')
+            return redirect(url_for('auth.fees_management'))
+
         fee_status = request.form.get('fee_status')
         if fee_status not in ['paid', 'unpaid']:
             flash('Invalid fee status. Please use "paid" or "unpaid".', 'error')
             return redirect(url_for('auth.fees_management'))
 
-        if Users.update_fee_status(student_id, fee_status):
-            flash(f"Fee status updated to '{fee_status}' for {student['name']}", 'success')
+        if Users.update_fee_status(ids_to_update[0], fee_status):
+            student = Users.get_student_by_id(ids_to_update[0])
+            flash(f"Fee status updated to '{fee_status}' for {student['name'] if student else 'student' }", 'success')
         else:
             flash('Failed to update fee status. Please try again.', 'error')
 
         return redirect(url_for('auth.fees_management'))
+
 
     
 
