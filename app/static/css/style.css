@@ -1979,3 +1979,183 @@ html.theme-dark .message-bubble.outgoing{
     grid-template-columns:1fr;
   }
 }
+
+
+/* =========================================================
+   QUIZ & FEES DARK MODE FIXES
+   ========================================================= */
+
+/* 1. Background Color Flips */
+html.theme-dark [style*="background: white"],
+html.theme-dark [style*="background-color: white"],
+html.theme-dark [style*="background: #f8f9fa"],
+html.theme-dark [style*="background-color: #f8f9fa"],
+html.theme-dark [style*="background: #f1f3f5"] {
+    background: #111c30 !important;
+    border-color: #334155 !important;
+}
+
+html.theme-dark [style*="background-color: #e2e3e5"],
+html.theme-dark [style*="background: #e2e3e5"] {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* 2. Text Color Flips */
+html.theme-dark [style*="color: #003366"],
+html.theme-dark [style*="color: #383d41"],
+html.theme-dark [style*="color: #333"],
+html.theme-dark [style*="color: #222"],
+html.theme-dark [style*="color: #0a1f3d"] {
+    color: #f8fafc !important;
+}
+
+html.theme-dark [style*="color: #555"],
+html.theme-dark [style*="color: #666"],
+html.theme-dark [style*="color: #777"],
+html.theme-dark [style*="color: #888"],
+html.theme-dark [style*="color: #a0aabf"] {
+    color: #94a3b8 !important;
+}
+
+html.theme-dark [style*="color: #155724"] { color: #86efac !important; }
+html.theme-dark [style*="color: #721c24"] { color: #fca5a5 !important; }
+html.theme-dark [style*="color: #d9534f"], 
+html.theme-dark [style*="color: red"] { color: #f87171 !important; }
+
+/* 3. Success/Error Boxes & Quiz Options */
+html.theme-dark [style*="background-color: #d4edda"],
+html.theme-dark [style*="background: #d4edda"],
+html.theme-dark [style*="border: 2px solid #28a745"] {
+    background: rgba(34,197,94,.16) !important;
+    border-color: rgba(34,197,94,.32) !important;
+    color: #86efac !important;
+}
+
+html.theme-dark [style*="background-color: #f8d7da"],
+html.theme-dark [style*="background: #f8d7da"],
+html.theme-dark [style*="border: 2px solid #dc3545"],
+html.theme-dark [style*="border: 2px solid #d9534f"] {
+    background: rgba(239,68,68,.16) !important;
+    border-color: rgba(239,68,68,.32) !important;
+    color: #fca5a5 !important;
+}
+
+html.theme-dark [style*="background: #cce5ff"] {
+    background: rgba(96,165,250,.16) !important;
+    border-color: rgba(96,165,250,.32) !important;
+    color: #bfdbfe !important;
+}
+
+html.theme-dark [style*="background: #fffcf0"] {
+    background: rgba(245,158,11,.16) !important;
+    border-color: #f59e0b !important;
+    color: #fde68a !important;
+}
+
+/* 4. Form Inputs */
+html.theme-dark textarea,
+html.theme-dark input[type="number"],
+html.theme-dark input[type="text"],
+html.theme-dark input[type="date"],
+html.theme-dark select {
+    background: #0b1220 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+/* 5. Fees Table Fixes */
+html.theme-dark .table-responsive {
+    background: linear-gradient(to right, #111c30 30%, rgba(17,28,48,0)),
+                linear-gradient(to left, #111c30 30%, rgba(17,28,48,0)) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-color: #111c30 !important;
+    background-attachment: local, local, scroll, scroll !important;
+}
+
+html.theme-dark table th {
+    background-color: #0b1220 !important;
+    border-bottom-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+html.theme-dark table td {
+    border-bottom-color: #263449 !important;
+    color: #e2e8f0 !important;
+}
+
+html.theme-dark table tbody tr:hover {
+    background-color: #17233a !important;
+}
+
+html.theme-dark .stat-card.dark {
+    background: #0b1220 !important;
+}
+
+html.theme-dark .chart-box {
+    background: #111c30 !important;
+    border-color: #334155 !important;
+}
+
+/* SPECIFIC FEES DASHBOARD DARK MODE OVERRIDES */
+
+/* Fix the white card backgrounds from the internal style block */
+html.theme-dark .fee-dashboard .stat-card:not(.dark),
+html.theme-dark .fee-dashboard .payment-history {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fix the text colors inside the white cards */
+html.theme-dark .fee-dashboard .stat-card:not(.dark) .card-amount,
+html.theme-dark .fee-dashboard .payment-history h3 {
+    color: #f8fafc !important;
+}
+
+/* Fix the scrolling container background & white gradient indicators */
+html.theme-dark .fee-dashboard .table-responsive {
+    background: linear-gradient(to right, #0f172a 30%, rgba(15,23,42,0)),
+                linear-gradient(to left, #0f172a 30%, rgba(15,23,42,0)) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)) 100% 0 !important;
+    background-color: #0f172a !important;
+}
+
+/* Soften the blue background icon badge in dark mode */
+html.theme-dark .fee-dashboard .stat-card div[style*="background: #e8f0fe"] {
+    background: rgba(66, 133, 244, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+/* INTERACTIVE QUIZ OPTION BUTTONS FIX */
+
+/* Force light text and a proper dark background on quiz options */
+html.theme-dark .opt-btn {
+    color: #f8fafc !important;
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* Give it a subtle highlight when the user hovers over an option */
+html.theme-dark .opt-btn:hover:not(:disabled) {
+    background: #2d3748 !important;
+    border-color: #60a5fa !important;
+}
+
+/* QUIZ HISTORY LIST EDIT BUTTON FIX */
+
+/* Style the Edit button in the history list for dark mode */
+html.theme-dark button[onclick*="openEditModal"] {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+/* Subtle hover effect for the Edit button */
+html.theme-dark button[onclick*="openEditModal"]:hover {
+    background: #2d3748 !important;
+    border-color: #60a5fa !important;
+}
