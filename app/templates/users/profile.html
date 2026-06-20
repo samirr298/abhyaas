@@ -27,6 +27,7 @@
         </div>
         
         <!-- Fee Status Section -->
+        {% if role == 'student' %}
         <div class="fee-status-section">
           {% if fee_status == 'unpaid' %}
           <div class="fee-warning-notice">
@@ -48,6 +49,7 @@
           </div>
           {% endif %}
         </div>
+        {% endif %}
       </div>
 
       <div class="profile-top-actions">
