@@ -152,8 +152,8 @@ html.theme-dark .theme-toggle-btn{color:#e2e8f0}
 .container-lg{max-width:1100px;margin:0 auto}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
 .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.04)}
-.message-page{display:flex;justify-content:center;padding:24px 0 40px;align-items:stretch;height:calc(100vh - 180px);min-height:560px;overflow:hidden}
-.message-card{display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);gap:24px;width:min(100%,1140px);height:100%;align-items:stretch}
+.message-page{display:flex;justify-content:center;padding:24px 16px 40px;align-items:stretch;height:calc(100vh - 180px);min-height:560px;overflow:hidden}
+.message-card{display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);gap:20px;width:min(100%,1140px);height:100%;align-items:stretch;position:relative}
 .message-sidebar,
 .message-panel{background:#fff;border:1px solid #dbe3ee;border-radius:18px;box-shadow:0 14px 34px rgba(2,6,23,0.09);height:100%}
 .message-sidebar{display:flex;flex-direction:column;overflow:hidden;min-height:560px}
@@ -200,14 +200,118 @@ html.theme-dark .theme-toggle-btn{color:#e2e8f0}
 .page-header{margin-bottom:16px}
 .page-header h1{font-size:24px;margin:0;color:#0b2540}
 
+@media (max-width: 1200px){
+  .message-page{height:auto; min-height:0;}
+  .message-card{grid-template-columns:minmax(280px,320px) minmax(0,1fr); width:100%;}
+  .message-bubble{max-width:84%;}
+}
+
+@media (max-width: 900px){
+  .message-page{
+    padding:12px 12px 20px;
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+
+  .message-card{
+    grid-template-columns:1fr;
+    gap:12px;
+    height:auto;
+    min-height:0;
+  }
+
+  .message-sidebar{
+    display:none;
+    position:fixed;
+    inset:88px 12px 12px;
+    width:auto;
+    max-height:calc(100vh - 100px);
+    z-index:60;
+    min-height:0;
+    box-shadow:0 24px 60px rgba(2,6,23,0.2);
+  }
+
+  .message-card.sidebar-open .message-sidebar{display:flex;}
+
+  .message-panel{
+    min-height:0;
+    height:auto;
+  }
+
+  .message-panel-header{padding:18px 16px; align-items:center}
+  .message-panel-header h2{font-size:18px}
+  .message-panel-subtitle{font-size:12px}
+  .mobile-controls{display:block}
+
+  .message-thread{
+    padding:16px 14px;
+    gap:12px;
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+  }
+
+  .message-bubble{max-width:90%; padding:14px 16px}
+  .message-bubble p{font-size:14px; line-height:1.6}
+
+  .message-composer{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    padding:14px;
+  }
+
+  .message-composer textarea{min-height:64px; border-radius:14px; font-size:14px}
+  .message-composer .btn-primary{width:100%; min-width:0; padding:13px 16px; border-radius:14px}
+
+  .message-sidebar-header{padding:18px 16px}
+  .message-contact-list{padding:14px; gap:8px}
+  .message-contact{padding:14px 15px}
+  .message-contact-name{font-size:14px}
+  .message-contact-text{font-size:12px}
+  .message-contact-time{font-size:11px}
+}
+
+@media (max-width: 600px){
+  .message-page{padding:8px 8px 16px}
+  .message-card{gap:10px}
+  .message-sidebar{inset:80px 8px 8px}
+  .message-panel-header{padding:16px 14px}
+  .message-thread{padding:14px 12px}
+  .message-bubble{max-width:94%; border-radius:16px}
+  .message-bubble.incoming{border-top-left-radius:4px}
+  .message-bubble.outgoing{border-top-right-radius:4px}
+  .message-contact{flex-direction:column; align-items:flex-start}
+  .message-contact-time{align-self:flex-end}
+}
+
 @media (max-width:1000px){
 	.search{width:200px}
 	.cards{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:700px){
 	.app-shell{flex-direction:column}
-	.app-sidebar{width:100%;flex-direction:row;align-items:center}
-	.sidebar-nav{display:none}
+	
+	/* Keep sidebar collapsed; it will be shown only when user taps the hamburger button */
+	.app-sidebar{width:100%;flex-direction:row;align-items:center;justify-content:space-between}
+	.sidebar-nav{
+		display:none;
+		flex-direction:column;
+		gap:8px;
+		padding:8px 0 6px;
+	}
+
+	/* When opened (toggled by JS), show the nav */
+	.app-sidebar.sidebar-open .sidebar-nav{display:flex;}
+
+	/* ensure sidebar-open actually expands the sidebar area */
+	.app-sidebar{min-height:0;}
+	.app-sidebar.sidebar-open{min-height:0;}
+
+	/* show hamburger */
+	.mobile-nav-btn{display:inline-flex !important;}
+
 	.search{width:100%}
 	.cards{grid-template-columns:1fr}
   .mobile-controls{display:block}
