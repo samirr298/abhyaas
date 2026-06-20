@@ -52,6 +52,37 @@ class Task(BaseModel):
 
 class TaskBookmark(BaseModel):
     @staticmethod
+    def snapshot_task(task):
+        if not task:
+            return
+
+        sql = """
+            UPDATE task_bookmarks
+            SET task_title = %s,
+                task_description = %s,
+                task_subject = %s,
+                task_due_date = %s,
+                task_attached_filename = %s,
+                task_created_by = %s,
+                task_created_at = %s,
+                task_deleted_at = NULL
+            WHERE task_id = %s
+        """
+        TaskBookmark.execute_write(
+            sql,
+            [
+                task.get('title'),
+                task.get('description'),
+                task.get('subject'),
+                task.get('due_date'),
+                task.get('attached_filename'),
+                task.get('created_by'),
+                task.get('created_at'),
+                task.get('id'),
+            ],
+        )
+
+    @staticmethod
     def get_bookmarked_task_ids(user_id):
         sql = "SELECT task_id FROM task_bookmarks WHERE user_id = %s"
         rows = TaskBookmark.fetch_all(sql, [user_id]) or []
@@ -69,22 +100,69 @@ class TaskBookmark(BaseModel):
             TaskBookmark.execute_write(sql, [user_id, task_id])
             return False
 
+        task = Task.fetch_one(
+            "SELECT id, title, description, subject, due_date, attached_filename, created_by, created_at FROM tasks WHERE id = %s LIMIT 1",
+            [task_id],
+        )
+        if not task:
+            return False
+
         sql = "INSERT INTO task_bookmarks (user_id, task_id) VALUES (%s, %s)"
         TaskBookmark.execute_write(sql, [user_id, task_id])
+        TaskBookmark.snapshot_task(task)
         return True
+
+    @staticmethod
+    def preserve_task_snapshot(task):
+        if not task:
+            return
+
+        sql = """
+            UPDATE task_bookmarks
+            SET task_title = %s,
+                task_description = %s,
+                task_subject = %s,
+                task_due_date = %s,
+                task_attached_filename = %s,
+                task_created_by = %s,
+                task_created_at = %s,
+                task_deleted_at = CURRENT_TIMESTAMP
+            WHERE task_id = %s
+        """
+        TaskBookmark.execute_write(
+            sql,
+            [
+                task.get('title'),
+                task.get('description'),
+                task.get('subject'),
+                task.get('due_date'),
+                task.get('attached_filename'),
+                task.get('created_by'),
+                task.get('created_at'),
+                task.get('id'),
+            ],
+        )
 
     @staticmethod
     def get_bookmarks_for_user(user_id):
         sql = """
             SELECT
-                t.*,
+                b.task_id AS bookmarked_task_id,
+                COALESCE(t.title, b.task_title) AS title,
+                COALESCE(t.description, b.task_description) AS description,
+                COALESCE(t.subject, b.task_subject) AS subject,
+                COALESCE(t.due_date, b.task_due_date) AS due_date,
+                COALESCE(t.attached_filename, b.task_attached_filename) AS attached_filename,
+                COALESCE(t.created_by, b.task_created_by) AS created_by,
+                COALESCE(t.created_at, b.task_created_at) AS created_at,
                 b.created_at AS bookmarked_at,
+                CASE WHEN t.id IS NULL THEN 0 ELSE 1 END AS task_exists,
                 s.id AS submission_id,
                 s.status AS submission_status,
                 s.submitted_at,
                 s.submitted_filename
             FROM task_bookmarks b
-            JOIN tasks t ON t.id = b.task_id
+            LEFT JOIN tasks t ON t.id = b.task_id
             LEFT JOIN submissions s
                 ON s.task_id = t.id AND s.student_id = b.user_id
             WHERE b.user_id = %s

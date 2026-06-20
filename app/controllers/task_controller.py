@@ -11,11 +11,12 @@ import math
 class TaskController(BaseController):
 
     def task_delete(self, task_id):
-        task = BaseModel.fetch_one("SELECT attached_filename FROM tasks WHERE id = %s LIMIT 1", [task_id])
+        task = BaseModel.fetch_one("SELECT * FROM tasks WHERE id = %s LIMIT 1", [task_id])
 
         if not task:
             return jsonify({"success": False, "message": "Task not found"}), 404
 
+        TaskBookmark.preserve_task_snapshot(task)
         BaseModel.execute_write("DELETE FROM feedback WHERE task_id = %s", [task_id])
         BaseModel.execute_write("DELETE FROM submissions WHERE task_id = %s", [task_id])
         BaseModel.execute_write("DELETE FROM tasks WHERE id = %s", [task_id])
@@ -353,13 +354,38 @@ class TaskController(BaseController):
         fetch_task_sql = "SELECT * FROM tasks WHERE id = %s LIMIT 1"
         task = BaseModel.fetch_one(fetch_task_sql, [task_id])
 
-        # student's submission for this task (if any)
-        fetch_sub_sql = "SELECT * FROM submissions WHERE task_id = %s AND student_id = %s LIMIT 1"
-        student_sub = BaseModel.fetch_one(fetch_sub_sql, [task_id, current_student_id]) or None
+        task_exists = task is not None
+        if not task_exists:
+            bookmark_sql = """
+                SELECT
+                    task_id AS id,
+                    task_title AS title,
+                    task_description AS description,
+                    task_subject AS subject,
+                    task_due_date AS due_date,
+                    task_attached_filename AS attached_filename,
+                    task_created_by AS created_by,
+                    task_created_at AS created_at
+                FROM task_bookmarks
+                WHERE user_id = %s AND task_id = %s
+                LIMIT 1
+            """
+            task = BaseModel.fetch_one(bookmark_sql, [current_student_id, task_id])
 
-        # any feedback for this student and task
-        fetch_feedback_sql = "SELECT * FROM feedback WHERE task_id = %s AND student_id = %s ORDER BY created_at DESC"
-        feedback_items = BaseModel.fetch_all(fetch_feedback_sql, [task_id, current_student_id]) or []
+        if not task:
+            return jsonify({"success": False, "message": "Task not found"}), 404
+
+        # student's submission for this task (if any)
+        if task_exists:
+            fetch_sub_sql = "SELECT * FROM submissions WHERE task_id = %s AND student_id = %s LIMIT 1"
+            student_sub = BaseModel.fetch_one(fetch_sub_sql, [task_id, current_student_id]) or None
+
+            # any feedback for this student and task
+            fetch_feedback_sql = "SELECT * FROM feedback WHERE task_id = %s AND student_id = %s ORDER BY created_at DESC"
+            feedback_items = BaseModel.fetch_all(fetch_feedback_sql, [task_id, current_student_id]) or []
+        else:
+            student_sub = None
+            feedback_items = []
 
         return self.render(
             'tasks/task_detail.html',
@@ -367,17 +393,21 @@ class TaskController(BaseController):
             submission=student_sub,
             feedback=feedback_items,
             is_bookmarked=TaskBookmark.is_bookmarked(current_student_id, task_id),
+            task_exists=task_exists,
             now=datetime.now()
         )
 
     @login_required
     @role_required('student')
     def toggle_bookmark(self, task_id):
-        task = BaseModel.fetch_one("SELECT id FROM tasks WHERE id = %s LIMIT 1", [task_id])
-        if not task:
-            return jsonify({"success": False, "message": "Task not found"}), 404
-
         current_student_id = self.session.get('user_id')
+
+        existing_bookmark = TaskBookmark.is_bookmarked(current_student_id, task_id)
+        if not existing_bookmark:
+            task = BaseModel.fetch_one("SELECT id FROM tasks WHERE id = %s LIMIT 1", [task_id])
+            if not task:
+                return jsonify({"success": False, "message": "Task not found"}), 404
+
         is_bookmarked = TaskBookmark.toggle(current_student_id, task_id)
 
         message = 'Task bookmarked.' if is_bookmarked else 'Bookmark removed.'
@@ -391,7 +421,7 @@ class TaskController(BaseController):
     def bookmarks(self):
         current_student_id = self.session.get('user_id')
         bookmarks = TaskBookmark.get_bookmarks_for_user(current_student_id)
-        bookmarked_task_ids = {int(item['id']) for item in bookmarks if item.get('id') is not None}
+        bookmarked_task_ids = {int(item['bookmarked_task_id']) for item in bookmarks if item.get('bookmarked_task_id') is not None}
 
         return self.render(
             'tasks/bookmarks.html',
