@@ -18,7 +18,7 @@
   </div>
 
   <div class="ai-chat-panel">
-    <div id="ai-message-list" class="ai-message-list" aria-live="polite" aria-atomic="false">
+    <div id="ai-message-list" class="ai-message-list" aria-live="polite">
       <div class="ai-message assistant">
         <div class="ai-message-bubble">
           <p>Hello! Ask me anything, and I’ll give you a short, simple answer. If I can’t answer, I’ll tell you clearly.</p>
@@ -39,76 +39,40 @@
 </section>
 
 <script>
-(function() {
   const form = document.getElementById('ai-input-form');
   const input = document.getElementById('ai-input-field');
   const messageList = document.getElementById('ai-message-list');
 
-  const sanitize = (text) => text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  const scrollBottom = () => {
-    if (messageList) {
-      messageList.scrollTop = messageList.scrollHeight;
-    }
-  };
-
-  const appendMessage = (text, role) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = `ai-message ${role}`;
-    const bubble = document.createElement('div');
-    bubble.className = 'ai-message-bubble';
-    bubble.innerHTML = `<p>${sanitize(text)}</p>`;
-    wrapper.appendChild(bubble);
-    messageList.appendChild(wrapper);
-    scrollBottom();
-  };
-
-  const askBackend = async (question) => {
-    const res = await fetch('/ai/ask', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ question })
-    });
-
-    // Always parse json even for non-200, since backend returns answer
-    const data = await res.json().catch(() => ({}));
-    return data.answer || 'Sorry, something went wrong.';
-  };
-
-
-  form.addEventListener('submit', function(event) {
+  form.addEventListener('submit', async function(event) {
     event.preventDefault();
     const question = input.value.trim();
     if (!question) return;
 
-    appendMessage(question, 'user');
+    // 1. Show user message
+    messageList.insertAdjacentHTML('beforeend', `<div class="ai-message user"><div class="ai-message-bubble"><p>${question}</p></div></div>`);
     input.value = '';
-    input.focus();
 
-    const placeholder = 'Thinking...';
-    appendMessage(placeholder, 'assistant pending');
+    // 2. Show thinking placeholder
+    messageList.insertAdjacentHTML('beforeend', `<div class="ai-message assistant generic-pending"><div class="ai-message-bubble"><p>Thinking...</p></div></div>`);
+    messageList.scrollTop = messageList.scrollHeight;
 
-    setTimeout(async () => {
-      const pendingMessage = document.querySelector('.ai-message.assistant.pending .ai-message-bubble p');
-
-      if (pendingMessage) {
-        try {
-          const answer = await askBackend(question);
-          pendingMessage.textContent = answer;
-        } catch (e) {
-          pendingMessage.textContent = 'Sorry, something went wrong.';
-        }
-
-        // pending class is not critical for styling, so we just remove it if present
-        const parent = pendingMessage.closest('.ai-message');
-        if (parent) parent.classList.remove('pending');
-      }
-      scrollBottom();
-    }, 150);
+    // 3. Get response from backend (As Plain Text)
+    try {
+      const res = await fetch('/ai/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `question=${encodeURIComponent(question)}`
+      });
+      const answer = await res.text();
+      
+      // 4. Swap "Thinking..." with the real answer
+      document.querySelector('.generic-pending p').textContent = answer;
+      document.querySelector('.generic-pending').classList.remove('generic-pending');
+    } catch (e) {
+      document.querySelector('.generic-pending p').textContent = 'Sorry, something went wrong.';
+    }
+    
+    messageList.scrollTop = messageList.scrollHeight;
   });
-})();
 </script>
 {% endblock %}
-

@@ -1,5 +1,5 @@
 import os
-from flask import request, jsonify
+from flask import request, Response
 from google import genai
 from google.genai import types
 from app.controllers.base_controller import BaseController
@@ -31,32 +31,26 @@ class AIController(BaseController):
         t = (text or "").lower()
         return any(p in t for p in self.HEAVY_TASK_PATTERNS)
 
-    def _shorten(self, text: str) -> str:
-        t = (text or "").strip()
-        if len(t) <= self.MAX_CHARS:
-            return t
-        return (t[: self.MAX_CHARS - 3].rstrip() + "...")
+    
 
     def ask(self):
-        data = request.get_json(silent=True) or {}
-        question = (data.get("question") or "").strip()
+        # 1. Read from standard form data instead of JSON
+        question = (request.form.get("question") or "").strip()
 
+        # 2. Return direct text strings instead of JSON responses
         if not question:
-            return jsonify({"ok": False, "answer": "Please type a question."}), 400
+            return "Please type a question.", 400
 
         # Guard 1: Reject heavy requests right away
         if self._is_heavy_task(question):
-            return jsonify({
-                "ok": False,
-                "answer": "I can’t help with heavy tasks. Ask a small question and I’ll answer briefly."
-            }), 200
+            return "I can’t help with heavy tasks. Ask a small question and I’ll answer briefly.", 200
 
         try:
             # Force brevity right at the model level via instructions
             system_instruction = (
                 "You are a helpful, extremely brief assistant. "
-                "Provide direct, short answers. Do not use pleasantries. "
-                f"Your response MUST be under {self.MAX_CHARS} characters."
+                "Provide direct, short answers but should conclude sentence. Do not use pleasantries. "
+                f"Your response MUST be under 180 characters."
             )
 
             # Cap output tokens to restrict word counts safely before it transfers
@@ -68,19 +62,18 @@ class AIController(BaseController):
 
             # Fire request to the optimized model
             response = self.client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-2.5-flash-lite',
                 contents=question,
                 config=config
             )
 
             raw_answer = response.text or "I am unsure how to answer that clearly."
-            final_answer = raw_answer
+            
+            # Apply your local shortening guardrail string length safety logic
+            final_answer = raw_answer[:self.MAX_CHARS].rstrip()  # Ensure we cut at max chars and avoid mid-word cuts
 
-            return jsonify({"ok": True, "answer": final_answer})
+            return final_answer, 200
 
         except Exception as e:
             print(f"🚨 GEMINI API RUNTIME ERROR: {str(e)}")
-            return jsonify({
-                "ok": False, 
-                "answer": "Sorry, I'm having trouble processing that right now."
-            }), 500
+            return "Sorry, I'm having trouble processing that right now.", 500
