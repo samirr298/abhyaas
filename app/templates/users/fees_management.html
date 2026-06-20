@@ -7,148 +7,361 @@
 <section class="card fees-header">
     <div class="row-flex">
         <div>
-            <h2>Student Fees Management</h2>
-            <p>View and manage student fee payment status</p>
+            <h2 style="font-size: 1.5rem; color: #0a1f3d; font-weight: 700; margin-bottom: 4px;">Student Fees Management</h2>
+            <p style="color: #64748b; font-size: 0.95rem; margin: 0;">View allocations, schedule due deadlines, and record processing payments.</p>
         </div>
         <div>
-            <a href="{{ url_for('auth.admin_dashboard') }}" class="secondary-btn">← Back to Admin</a>
+            <a href="{{ url_for('auth.admin_dashboard') }}" class="secondary-btn">← Back to Admin Hub</a>
         </div>
     </div>
 </section>
 
-<!-- Filter Section -->
-<section class="card fees-filter">
-    <form method="get" action="{{ url_for('auth.fees_management') }}">
-        <div class="row-flex">
-            <label for="filter" class="label-strong">Filter by Status:</label>
-            <select name="filter" id="filter">
-                <option value="">All Students</option>
-                <option value="unpaid" {% if current_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
-                <option value="paid" {% if current_filter == 'paid' %}selected{% endif %}>Paid</option>
-            </select>
-            <button type="submit" class="primary-btn">Apply Filter</button>
-        </div>
-    </form>
-</section>
-
-<!-- Bulk Actions -->
-<section class="card fees-bulk">
-  <div class="row-flex" style="margin-bottom:12px;">
-    <div>
-      <h3 style="margin:0;">Add Fees For All Students</h3>
-      <p style="margin:0;color:#666;">Accumulates fee amount / payments instead of overwriting.</p>
+<section class="card" style="margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(2, 6, 23, 0.03); background: #f8fafc;" id="bulk-invoice-section">
+    <div style="border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; padding-bottom: 12px;">
+        <h4 style="margin: 0; color: #0f172a; font-weight: 700; font-size: 1.05rem;">📦 Bulk Invoice Operations Dashboard</h4>
+        <p style="color: #64748b; font-size: 0.85rem; margin: 4px 0 0 0;">Assign or retract specific bills across multiple student accounts instantly.</p>
     </div>
-  </div>
 
-  <div class="row-flex" style="gap:10px;flex-wrap:wrap;">
-    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-      <input type="hidden" name="action" value="set_fee_amount">
-      {% for s in students %}
-        <input type="hidden" name="student_ids" value="{{ s['id'] }}">
-      {% endfor %}
-      <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Fee to add" required class="payment-input" value="">
-      <input type="date" name="fee_due_date" class="payment-input" value="" title="Due date (optional)">
-      <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Add Total Fee (Bulk)</button>
-    </form>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;">
 
-    <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-      <input type="hidden" name="action" value="record_payment">
-      {% for s in students %}
-        <input type="hidden" name="student_ids" value="{{ s['id'] }}">
-      {% endfor %}
-      <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Payment to add" required class="payment-input" value="">
-      <button type="submit" class="action-btn mark-paid">Add Payment (Bulk)</button>
-    </form>
-  </div>
-</section>
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px;">
+            <h5 style="margin: 0 0 16px 0; color: #0369a1; font-weight: 700;">➕ Issue Bulk Due Invoice</h5>
+            <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display: flex; flex-direction: column; gap: 12px;">
+                <input type="hidden" name="action" value="bulk_set_fee">
 
-<!-- Students Table -->
-<section class="card fees-table">
-    {% if students %}
-    <table>
-        <thead>
-            <tr>
-                <th>Student Name</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Current Status</th>
-                <th>Fee Amount</th>
-                <th>Due Date</th>
-                <th>Paid Amount</th>
-                <th>Last Payment</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for student in students %}
-            <tr>
-                <td>{{ student['name'] }}</td>
-                <td>{{ student['username'] or 'N/A' }}</td>
-                <td>{{ student['email'] }}</td>
-                <td>
-                    <span class="status-badge {% if student['fee_status'] == 'paid' %}status-paid{% else %}status-unpaid{% endif %}">
-                        {{ student['fee_status'] | upper }}
-                    </span>
-                </td>
-                <td>
-                    {{ '%.2f'|format(student['fee_amount'] if student['fee_amount'] is not none else 0) }}
-                </td>
-                <td>
-                    {% if student['fee_due_date'] %}
-                        {{ student['fee_due_date'] }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>
-                    {{ '%.2f'|format(student['fee_paid_amount'] if student['fee_paid_amount'] is not none else 0) }}
-                </td>
-                <td>
-                    {% if student['fee_last_payment_at'] %}
-                        {{ student['fee_last_payment_at'] }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="action-row">
-                      <!-- Add total fee (ACCUMULATE now) -->
-                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-                        <input type="hidden" name="action" value="set_fee_amount">
-                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <input type="number" step="0.01" min="0" name="fee_amount" placeholder="Fee to add" required class="payment-input" value="{{ student['fee_amount'] if student['fee_amount'] is not none else '' }}">
-                        <input type="date" name="fee_due_date" class="payment-input" value="{{ student['fee_due_date'] if student['fee_due_date'] else '' }}" title="Due date">
-                        <button type="submit" class="action-btn" style="background-color:#17a2b8;color:white;">Add Fee</button>
-                      </form>
-
-                      <!-- Record payment (ACCUMULATE now) -->
-                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-                        <input type="hidden" name="action" value="record_payment">
-                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <input type="number" step="0.01" min="0" name="payment_amount" placeholder="Payment to add" required class="payment-input">
-                        <button type="submit" class="action-btn mark-paid">Add Payment</button>
-                      </form>
-
-                      <!-- Reset fee -->
-                      <form method="post" action="{{ url_for('auth.update_fee_status') }}" class="inline-form">
-                        <input type="hidden" name="action" value="reset_fee">
-                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
-                        <button type="submit" class="action-btn mark-unpaid">Reset</button>
-                      </form>
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Target Group</label>
+                        <select name="target_group" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                            <option value="all">All Registered Students</option>
+                            <option value="unpaid">Unpaid Accounts Only</option>
+                            <option value="paid">Settled Accounts Only</option>
+                        </select>
                     </div>
-                </td>
+                    <div style="flex: 1.2;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Invoice Title</label>
+                        <input type="text" name="fee_title" placeholder="e.g., Annual Sports Fee" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                    </div>
+                </div>
 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Amount (NPR)</label>
+                        <input type="number" step="0.01" min="1" name="fee_amount" placeholder="0.00" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                    </div>
+                    <div style="flex: 1.2;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Due Deadline</label>
+                        <input type="date" name="fee_due_date" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                    </div>
+                </div>
+
+                <button type="button" class="primary-btn" style="background-color: #0369a1; padding: 10px; margin-top: 4px;" onclick="openBulkIssueModal(event, this.form)">Issue Bulk Bill</button>
+            </form>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px;">
+            <h5 style="margin: 0 0 16px 0; color: #b91c1c; font-weight: 700;">🗑️ Retract / Delete Bulk Invoice</h5>
+            <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display: flex; flex-direction: column; gap: 12px;">
+                <input type="hidden" name="action" value="bulk_delete_fee">
+
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Target Group</label>
+                        <select name="target_group" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                            <option value="all">All Registered Students</option>
+                            <option value="unpaid">Unpaid Accounts Only</option>
+                            <option value="paid">Settled Accounts Only</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1.2;">
+                        <label class="label-strong" style="display: block; margin-bottom: 6px; font-size: 0.8rem;">Exact Title to Delete</label>
+                        <select name="fee_title" required class="control-input-large" style="background: #f1f5f9; padding: 8px 10px;">
+                            <option value="">-- Select active invoice title --</option>
+                            {% set seen_titles = [] %}
+                            {% for student in students %}
+                                {% for fee in student['individual_fees'] %}
+                                    {% if fee['title'] not in seen_titles %}
+                                        <option value="{{ fee['title'] }}">{{ fee['title'] }}</option>
+                                        {% set _ = seen_titles.append(fee['title']) %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: #fee2e2; border-radius: 6px; padding: 12px; margin-top: 4px; border: 1px dashed #ef4444;">
+                    <p style="margin: 0; font-size: 0.8rem; color: #991b1b; line-height: 1.4;"><strong>Warning:</strong> This permanently deletes the invoice matching this exact title for the selected group, wiping all related receipts. This action cannot be undone.</p>
+                </div>
+
+                <button type="button" class="primary-btn" style="background-color: #b91c1c; padding: 10px; margin-top: auto;" onclick="openBulkDeleteModal(event, this.form)">Delete Bulk Bill</button>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+<section class="card fees-filter" id="fees-filter-section">
+    <form method="get" action="{{ url_for('auth.fees_management') }}">
+        <div class="row-flex" style="justify-content: flex-start; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="filter" class="label-strong">Payment Pipeline Filter:</label>
+                <select name="filter" id="filter">
+                    <option value="">All Registered Students</option>
+                    <option value="unpaid" {% if current_filter == 'unpaid' %}selected{% endif %}>Unpaid Accounts Only</option>
+                    <option value="paid" {% if current_filter == 'paid' %}selected{% endif %}>Settled Accounts Only</option>
+                </select>
+            </div>
+            <button type="submit" class="primary-btn">Apply Database Filter</button>
+        </div>
+    </form>
+</section>
+
+<section class="card fees-table-container">
+    {% if students %}
+    <div class="table-responsive-wrapper" id="fees-list-view">
+        <table class="fees-management-table">
+            <thead>
+                <tr>
+                    <th>Student Identity</th>
+                    <th>User Contact</th>
+                    <th>Status Badge</th>
+                    <th>Total Billed</th>
+                    <th>Due Deadline</th>
+                    <th>Amount Cleared</th>
+                    <th>Remaining Dues</th>
+                    <th style="text-align: center; width: 140px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                {% set totals = namespace(billed=0.0, paid=0.0, missing_payment=false) %}
+                {% for fee in student['individual_fees'] %}
+                    {% set totals.billed = totals.billed + (fee['amount'] | float) %}
+                    {% set totals.paid = totals.paid + (fee['paid_amount'] | float) %}
+                    {% if fee['status'] != 'paid' %}
+                        {% set totals.missing_payment = true %}
+                    {% endif %}
+                {% endfor %}
+
+                <tr style="cursor: pointer;" data-student-id="{{ student['id'] }}" class="student-row">
+                    <td>
+                        <div style="font-weight: 700; color: #0f172a;">{{ student['name'] }}</div>
+                        <div style="font-size: 0.82rem; color: #64748b;">@{{ student['username'] or 'N/A' }}</div>
+                    </td>
+                    <td style="color: #475569; font-size: 0.9rem;">{{ student['email'] }}</td>
+                    <td>
+                        <span class="status-badge {% if student['individual_fees'] and not totals.missing_payment %}status-paid{% else %}status-unpaid{% endif %}">
+                            {% if student['individual_fees'] and not totals.missing_payment %}PAID{% else %}UNPAID{% endif %}
+                        </span>
+                    </td>
+                    <td style="font-weight: 600; color: #0f172a;">
+                        NPR {{ '%.2f'|format(totals.billed) }}
+                    </td>
+                    <td style="font-size: 0.9rem; color: #475569;">
+                        {% if student['fee_due_date'] %}
+                            {{ student['fee_due_date'] }}
+                        {% else %}
+                            <span style="color: #94a3b8; font-style: italic;">Unset</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600; color: #16a34a;">
+                        NPR {{ '%.2f'|format(totals.paid) }}
+                    </td>
+                    {% set remaining_balance = totals.billed - totals.paid %}
+                    <td class="{% if remaining_balance > 0 %}amount-owed{% else %}amount-clear{% endif %}">
+                        NPR {{ '%.2f'|format(remaining_balance if remaining_balance > 0 else 0.0) }}
+                    </td>
+                    <td style="text-align: center;" data-action-stop="true">
+                        <button type="button" class="control-btn teal-btn" data-open-detail="{{ student['id'] }}" style="border-radius: 6px; padding: 6px 12px; font-weight: 700;">
+                            Manage
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="fees-detail-container">
+        {% for student in students %}
+        <div id="detail-{{ student['id'] }}" class="student-detail-view" style="display: none; animation: fadeIn 0.2s ease-in-out;">
+
+                <div class="detail-top-bar" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" data-close-detail="{{ student['id'] }}" style="background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    &larr; Back to List
+                </button>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.9rem; color: #64748b; margin-right: 8px;">Account Status:</span>
+                    {% set totals = namespace(billed=0.0, paid=0.0, missing_payment=false) %}
+                    {% for fee in student['individual_fees'] %}
+                        {% set totals.billed = totals.billed + (fee['amount'] | float) %}
+                        {% set totals.paid = totals.paid + (fee['paid_amount'] | float) %}
+                        {% if fee['status'] != 'paid' %}
+                            {% set totals.missing_payment = true %}
+                        {% endif %}
+                    {% endfor %}
+                    <span class="status-badge {% if student['individual_fees'] and not totals.missing_payment %}status-paid{% else %}status-unpaid{% endif %}" style="font-size: 0.85rem; padding: 6px 12px;">
+                        {% if student['individual_fees'] and not totals.missing_payment %}PAID{% else %}UNPAID{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                <h4 style="margin: 0 0 20px 0; font-size: 1.2rem; color: #0f172a; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                    Administrative Ledger Dashboard &mdash;
+                {% set remaining_balance = totals.billed - totals.paid %}
+                <div class="table-responsive-wrapper" style="margin-bottom: 24px;">
+                    <table class="fees-management-table" style="background: #0f172a; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Student Identity</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">User Contact</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Status Badge</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Total Billed</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Due Deadline</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Amount Cleared</th>
+                                <th style="background: #0f172a; color: #94a3b8; border-bottom: 1px solid #1e293b;">Remaining Dues</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #0f172a;">
+                                <td style="border: none;">
+                                    <div style="font-weight: 700; color: #f8fafc;">{{ student['name'] }}</div>
+                                    <div style="font-size: 0.82rem; color: #64748b;">@{{ student['username'] or 'N/A' }}</div>
+                                </td>
+                                <td style="color: #cbd5e1; font-size: 0.9rem; border: none;">{{ student['email'] }}</td>
+                                <td style="border: none;">
+                                    <span class="status-badge {% if student['individual_fees'] and not totals.missing_payment %}status-paid{% else %}status-unpaid{% endif %}">
+                                        {% if student['individual_fees'] and not totals.missing_payment %}PAID{% else %}UNPAID{% endif %}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 600; color: #f8fafc; border: none;">
+                                    NPR {{ '%.2f'|format(totals.billed) }}
+                                </td>
+                                <td style="font-size: 0.9rem; color: #cbd5e1; border: none;">
+                                    {% if student['fee_due_date'] %}
+                                        {{ student['fee_due_date'] }}
+                                    {% else %}
+                                        <span style="color: #64748b; font-style: italic;">Unset</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight: 600; color: #16a34a; border: none;">
+                                    NPR {{ '%.2f'|format(totals.paid) }}
+                                </td>
+                                <td class="{% if remaining_balance > 0 %}amount-owed{% else %}amount-clear{% endif %}" style="border: none;">
+                                                NPR {{ '%.2f'|format(remaining_balance if remaining_balance > 0 else 0.0) }}
+                                            </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <h5 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 700;">Issue New Due Invoice</h5>
+                                    <form method="post" action="{{ url_for('auth.update_fee_status') }}">
+                                        <input type="hidden" name="action" value="set_fee_amount">
+                                        <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                                        
+                                        <div style="margin-bottom: 12px;">
+                                            <input type="text" name="fee_title" placeholder="e.g., Semester IV Tuition, Lab Fee" required class="control-input-large">
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 10px; margin-bottom: 16px;">
+                                            <input type="number" step="0.01" min="1" name="fee_amount" placeholder="Amount (NPR)" required class="control-input-large" style="width: 100%;">
+                                            <input type="date" name="fee_due_date" required class="control-input-large" style="width: 100%;" title="Due Date">
+                                        </div>
+                                        <button type="submit" class="control-btn teal-btn" style="width: 100%; border-radius: 6px; padding: 10px; font-size: 14px;">Allocate Due Bill</button>
+                                    </form>
+                                </div>
+
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h5 style="margin: 0 0 12px 0; color: #166534; font-weight: 700;">Record Payment Collection</h5>
+                        {% if student['individual_fees'] %}
+                        <form method="post" action="{{ url_for('auth.update_fee_status') }}">
+                            <input type="hidden" name="action" value="record_payment">
+                            <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                                
+                            <div style="margin-bottom: 10px;">
+                                <select name="fee_id" id="fee-select-{{ student['id'] }}" required class="control-input-large" style="width: 100%; background: white;">
+                                    <option value="">-- Choose Target Unpaid Bill Title --</option>
+                                    {% for fee in student['individual_fees'] if fee['status'] != 'paid' %}
+                                        <option value="{{ fee['id'] }}" data-owed="{{ fee['amount'] - fee['paid_amount'] }}">{{ fee['title'] }} (Owed: {{ '%.2f'|format(fee['amount'] - fee['paid_amount']) }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                                <input type="number" step="0.01" min="0.01" name="payment_amount" id="pay-amt-{{ student['id'] }}" placeholder="Collection Amount Received" required class="control-input-large" style="flex: 1;">
+                                <button type="button" class="control-btn teal-btn" data-autofill="{{ student['id'] }}" style="border-radius: 6px; font-size: 13px; padding: 0 16px;">Full</button>
+                            </div>
+                            <button type="submit" class="control-btn green-btn" style="width: 100%; border-radius: 6px; padding: 10px; font-size: 14px;">Post Cash Payment</button>
+                        </form>
+                        {% else %}
+                        <p style="color: #64748b; font-size: 0.9rem; font-style: italic; text-align: center; margin-top: 25px;">No open due profiles exist to accept payments.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <h5 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #475569; font-weight: 700;">Current Active Fee Ledger Sub-rows:</h5>
+                    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                        <table style="width:100%; margin:0; font-size: 0.9rem; text-align: left;">
+                            <thead>
+                                <tr style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0;">
+                                    <th style="padding:12px 16px; color:#475569;">Fee Title Line</th>
+                                    <th style="padding:12px 16px; color:#475569;">Target Bill</th>
+                                    <th style="padding:12px 16px; color:#475569;">Collected</th>
+                                    <th style="padding:12px 16px; color:#475569;">Status State</th>
+                                    <th style="padding:12px 16px; text-align:center; color:#475569;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fee in student['individual_fees'] %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding:12px 16px; font-weight:600; color: #0f172a;">{{ fee['title'] }}</td>
+                                    <td style="padding:12px 16px; color: #334155;">NPR {{ '%.2f'|format(fee['amount']) }}</td>
+                                    <td style="padding:12px 16px; color:#16a34a; font-weight: 600;">NPR {{ '%.2f'|format(fee['paid_amount']) }}</td>
+                                    <td style="padding:12px 16px;">
+                                        <span class="status-badge {% if fee['status'] == 'paid' %}status-paid{% else %}status-unpaid{% endif %}" style="padding:4px 10px;">{{ fee['status']|upper }}</span>
+                                    </td>
+                                    <td style="padding:12px 16px; text-align:center; white-space: nowrap;">
+                                        <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display:inline;">
+                                            <input type="hidden" name="action" value="reset_fee">
+                                            <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                                            <input type="hidden" name="fee_id" value="{{ fee['id'] }}">
+                                            <button type="button" class="control-btn red-btn" style="padding: 6px 12px; font-size: 11px;" onclick="openCustomResetModal(event, this.form)" title="Wipe all collected payments to 0">Wipe</button>
+                                        </form>
+                                        <form method="post" action="{{ url_for('auth.update_fee_status') }}" style="display:inline; margin-left: 5px;">
+                                            <input type="hidden" name="action" value="delete_fee">
+                                            <input type="hidden" name="student_id" value="{{ student['id'] }}">
+                                            <input type="hidden" name="fee_id" value="{{ fee['id'] }}">
+                                            <button type="button" class="control-btn" style="padding: 6px 12px; font-size: 11px; background-color: #475569; color: white; border-radius: 6px; border: none;" onclick="openCustomDeleteModal(event, this.form)" title="Permanently delete this invoice">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color:#94a3b8; padding:20px; font-style:italic;">No custom fee lines logged for this profile stack yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
     <div class="empty-state">
         <p class="muted-note">
             {% if current_filter %}
-                No students found with status: <strong>{{ current_filter | upper }}</strong>
+                No student logs located matching pipeline state: <strong>{{ current_filter | upper }}</strong>
             {% else %}
-                No students found in the system.
+                No tracking records available in student columns.
             {% endif %}
         </p>
     </div>
@@ -156,9 +369,513 @@
 </section>
 
 <style>
-    .fees-header, .fees-filter, .fees-table, .fees-bulk {
-        margin-bottom: 20px;
+    /* Section Layouts */
+    .fees-header, .fees-filter, .fees-table-container {
+        margin-bottom: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(2, 6, 23, 0.03);
     }
-    .fees-bulk .inline-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+    .row-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .label-strong {
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.95rem;
+    }
+
+    /* Filter select adjustments */
+    .fees-filter select {
+        padding: 10px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background-color: #fff;
+        color: #0f172a;
+        font-weight: 500;
+        cursor: pointer;
+        min-width: 200px;
+    }
+
+    /* Responsive Table Shell wrapper */
+    .table-responsive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+    }
+
+    /* Modern Table Rules */
+    .fees-management-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .fees-management-table th {
+        background-color: #f8fafc;
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .fees-management-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .fees-management-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .fees-management-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status Pill Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    .status-paid {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .status-unpaid {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Amount state helpers */
+    .amount-owed { font-weight: 600; color: #b91c1c; }
+    .amount-clear { font-weight: 600; color: #16a34a; }
+
+    /* Administrative form controllers layout structure */
+    .admin-control-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .control-card-row {
+        width: 100%;
+    }
+
+    .actions-split-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .input-group-group {
+        display: flex;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #fff;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    /* Universal Control inputs */
+    .control-input {
+        border: none;
+        background: transparent;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        color: #0f172a;
+        width: 110px;
+        border-right: 1px solid #e2e8f0;
+    }
+
+    /* Hide up/down arrow spinners for Chrome, Safari, Edge, Opera */
+    .control-input::-webkit-outer-spin-button,
+    .control-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Hide up/down arrow spinners for Firefox */
+    .control-input[type="number"] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+    .control-input:focus {
+        outline: none;
+    }
+
+    .control-input[type="date"] {
+        width: 125px;
+        font-size: 0.8rem;
+        color: #475569;
+    }
+
+    /* Control Panel Button rules */
+    .control-btn {
+        border: none;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .teal-btn { background-color: #e0f2fe; color: #0369a1; }
+    .teal-btn:hover { background-color: #bae6fd; }
+
+    .green-btn { background-color: #dcfce7; color: #15803d; }
+    .green-btn:hover { background-color: #bbf7d0; }
+
+    .red-btn { background-color: #fee2e2; color: #b91c1c; border-radius: 8px; padding: 8px 14px; }
+    .red-btn:hover { background-color: #fecdd3; }
+
+    /* Core Button Modules */
+    .primary-btn, .secondary-btn {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 700;
+        transition: all 0.15s ease;
+    }
+
+    .primary-btn {
+        background-color: #143a66;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(20, 58, 102, 0.15);
+    }
+
+    .primary-btn:hover {
+        background-color: #1d4d83;
+    }
+
+    .secondary-btn {
+        background-color: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        text-decoration: none;
+    }
+
+    .secondary-btn:hover {
+        background-color: #e2e8f0;
+        color: #0f172a;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px;
+        color: #64748b;
+        font-style: italic;
+    }
+    
+    .control-input-large {
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #0f172a;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .control-input-large:focus {
+        outline: none;
+        border-color: #0369a1;
+        box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Custom confirmation modal & dark mode overrides */
+    html.theme-dark #custom-confirm-box,
+    html.theme-dark #custom-delete-box,
+    html.theme-dark #bulk-issue-box,
+    html.theme-dark #bulk-delete-box {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        color: #e2e8f0 !important;
+    }
+    html.theme-dark #custom-confirm-box p,
+    html.theme-dark #custom-delete-box p,
+    html.theme-dark #bulk-issue-box p,
+    html.theme-dark #bulk-delete-box p { color: #94a3b8 !important; }
+    
+    html.theme-dark #custom-confirm-box button[onclick*="close"],
+    html.theme-dark #custom-delete-box button[onclick*="close"],
+    html.theme-dark #bulk-issue-box button[onclick*="close"],
+    html.theme-dark #bulk-delete-box button[onclick*="close"] {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+    }
+
+    html.theme-dark .student-detail-view div[style*="background: #ffffff"],
+    html.theme-dark .student-detail-view div[style*="background: #f8fafc"],
+    html.theme-dark .student-detail-view div[style*="background: #fff"],
+    html.theme-dark .student-detail-view tr[style*="background: #f1f5f9"] {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+    }
+    html.theme-dark .student-detail-view h4,
+    html.theme-dark .student-detail-view h5,
+    html.theme-dark .student-detail-view th,
+    html.theme-dark .student-detail-view td {
+        color: #f8fafc !important;
+        border-color: #334155 !important;
+    }
+    html.theme-dark .control-input-large {
+        background: #1e293b !important;
+        color: #f8fafc !important;
+        border-color: #334155 !important;
+    }
 </style>
+
+<div id="custom-confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div id="custom-confirm-box" style="background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <h3 style="margin-top: 0; color: #b91c1c; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            ⚠️ Wipe Payments Records
+        </h3>
+        <p style="color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 12px 0 20px 0;">
+            Are you absolutely sure you want to permanently clear all transactional collections recorded for this line item? This will drop paid amount back to 0.00.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeCustomResetModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+            <button type="button" onclick="submitCustomResetForm()" style="padding: 8px 16px; border: none; border-radius: 6px; background: #b91c1c; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(185, 28, 28, 0.2);">Wipe Balance</button>
+        </div>
+    </div>
+</div>
+
+<div id="custom-delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div id="custom-delete-box" style="background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <h3 style="margin-top: 0; color: #0f172a; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            🗑️ Delete Invoice Completely
+        </h3>
+        <p style="color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 12px 0 20px 0;">
+            This will permanently remove this due invoice and destroy all associated payment receipts. This action cannot be undone. Proceed?
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeCustomDeleteModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+            <button type="button" onclick="submitCustomDeleteForm()" style="padding: 8px 16px; border: none; border-radius: 6px; background: #0f172a; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.2);">Delete Invoice</button>
+        </div>
+    </div>
+</div>
+
+<div id="bulk-issue-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div id="bulk-issue-box" style="background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <h3 style="margin-top: 0; color: #0369a1; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            ➕ Confirm Bulk Invoice
+        </h3>
+        <p style="color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 12px 0 20px 0;">
+            Are you sure you want to issue this new bill to all students in the selected target group?
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeBulkIssueModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+            <button type="button" onclick="submitBulkIssueForm()" style="padding: 8px 16px; border: none; border-radius: 6px; background: #0369a1; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(3, 105, 161, 0.2);">Issue Bills</button>
+        </div>
+    </div>
+</div>
+
+<div id="bulk-delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div id="bulk-delete-box" style="background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <h3 style="margin-top: 0; color: #b91c1c; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            ⚠️ Danger: Bulk Delete
+        </h3>
+        <p style="color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 12px 0 20px 0;">
+            Are you absolutely sure you want to permanently delete this specific invoice title from the selected group? All associated payment receipts will be destroyed. This cannot be undone.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeBulkDeleteModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+            <button type="button" onclick="submitBulkDeleteForm()" style="padding: 8px 16px; border: none; border-radius: 6px; background: #b91c1c; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(185, 28, 28, 0.2);">Delete Invoices</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let activeResetForm = null;
+
+function openCustomResetModal(event, formElement) {
+    event.preventDefault();
+    activeResetForm = formElement;
+    document.getElementById('custom-confirm-modal').style.display = 'flex';
+}
+function closeCustomResetModal() {
+    document.getElementById('custom-confirm-modal').style.display = 'none';
+    activeResetForm = null;
+}
+function submitCustomResetForm() {
+    if (activeResetForm) activeResetForm.submit();
+}
+
+function showStudentDetail(studentId) {
+    // Hide all main page elements
+    document.getElementById('fees-list-view').style.display = 'none';
+    document.getElementById('fees-filter-section').style.display = 'none';
+    if(document.getElementById('bulk-invoice-section')) document.getElementById('bulk-invoice-section').style.display = 'none';
+    
+    // Show the specific student's detail area
+    const detailView = document.getElementById(`detail-${studentId}`);
+    if (detailView) {
+        detailView.style.display = 'block';
+        sessionStorage.setItem('activeFeeStudentId', studentId);
+    }
+}
+
+function hideStudentDetail(studentId) {
+    // Hide the detail area
+    document.getElementById(`detail-${studentId}`).style.display = 'none';
+    
+    // Restore the main page elements
+    document.getElementById('fees-list-view').style.display = 'block';
+    document.getElementById('fees-filter-section').style.display = 'block';
+    if(document.getElementById('bulk-invoice-section')) document.getElementById('bulk-invoice-section').style.display = 'block';
+    
+    // Wipe memory
+    sessionStorage.removeItem('activeFeeStudentId');
+}
+
+// Flag memory whenever ANY form is submitted so we know it's an active save reload
+document.addEventListener("submit", function() {
+    sessionStorage.setItem('justSubmitted', 'true');
+});
+
+// Auto-restore ONLY if the page just reloaded from a form submission
+document.addEventListener("DOMContentLoaded", function() {
+    const savedStudentId = sessionStorage.getItem('activeFeeStudentId');
+    const justSubmitted = sessionStorage.getItem('justSubmitted');
+
+    if (savedStudentId && justSubmitted) {
+        // We just saved something, pop the drawer back open!
+        if (document.getElementById(`detail-${savedStudentId}`)) {
+            showStudentDetail(savedStudentId);
+        }
+        // Clear the flag so normal navigation behaves properly
+        sessionStorage.removeItem('justSubmitted');
+    } else {
+        // Normal navigation: ensure we are showing the main list
+        sessionStorage.removeItem('activeFeeStudentId');
+    }
+});
+
+// Autofill full due amount calculation helper
+function autofillFullAmount(studentId) {
+    const select = document.getElementById(`fee-select-${studentId}`);
+    const input = document.getElementById(`pay-amt-${studentId}`);
+    if (select && input) {
+        if (select.selectedIndex > 0) {
+            const selectedOption = select.options[select.selectedIndex];
+            const owedAmount = selectedOption.getAttribute('data-owed');
+            if (owedAmount) {
+                input.value = parseFloat(owedAmount).toFixed(2);
+            }
+        } else {
+            alert('Please pick an active target invoice title from the dropdown selector first.');
+        }
+    }
+}
+
+let activeDeleteForm = null;
+
+function openCustomDeleteModal(event, formElement) {
+    event.preventDefault();
+    activeDeleteForm = formElement;
+    document.getElementById('custom-delete-modal').style.display = 'flex';
+}
+
+function closeCustomDeleteModal() {
+    document.getElementById('custom-delete-modal').style.display = 'none';
+    activeDeleteForm = null;
+}
+
+function submitCustomDeleteForm() {
+    if (activeDeleteForm) {
+        activeDeleteForm.submit();
+    }
+}
+
+let activeBulkIssueForm = null;
+let activeBulkDeleteForm = null;
+
+function openBulkIssueModal(event, formElement) {
+    event.preventDefault();
+    activeBulkIssueForm = formElement;
+    document.getElementById('bulk-issue-modal').style.display = 'flex';
+}
+function closeBulkIssueModal() {
+    document.getElementById('bulk-issue-modal').style.display = 'none';
+    activeBulkIssueForm = null;
+}
+function submitBulkIssueForm() {
+    if (activeBulkIssueForm) activeBulkIssueForm.submit();
+}
+
+function openBulkDeleteModal(event, formElement) {
+    event.preventDefault();
+    activeBulkDeleteForm = formElement;
+    document.getElementById('bulk-delete-modal').style.display = 'flex';
+}
+function closeBulkDeleteModal() {
+    document.getElementById('bulk-delete-modal').style.display = 'none';
+    activeBulkDeleteForm = null;
+}
+function submitBulkDeleteForm() {
+    if (activeBulkDeleteForm) activeBulkDeleteForm.submit();
+}
+
+</script>
+<script>
+// Attach click handlers safely after DOM loads to avoid Jinja inside JS attributes
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.student-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+            const id = this.getAttribute('data-student-id');
+            if (id) showStudentDetail(id);
+        });
+    });
+
+    document.querySelectorAll('[data-open-detail]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.getAttribute('data-open-detail');
+            if (id) showStudentDetail(id);
+        });
+    });
+
+    document.querySelectorAll('[data-close-detail]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-close-detail');
+            if (id) hideStudentDetail(id);
+        });
+    });
+    document.querySelectorAll('[data-autofill]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.getAttribute('data-autofill');
+            if (id) autofillFullAmount(id);
+        });
+    });
+});
+</script>
 {% endblock %}

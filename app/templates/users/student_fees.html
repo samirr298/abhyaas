@@ -58,6 +58,8 @@
         margin: 0 0 5px 0;
         transition: font-size 0.3s ease; /* Smooth shrinking animation */
     }
+    .amount-owed { color: #be123c; }
+    .amount-clear { color: #047857; }
 
     /* Progress Bar */
     .progress-container {
@@ -203,47 +205,58 @@
             gap: 10px;
         }
     }
+    /* Transaction row helpers */
+    .tx-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+    .tx-row.tx-last { border-bottom: none; padding-bottom: 0; }
 </style>
 
 <div class="fee-dashboard">
     
+    <div class="flash {% if fee_status == 'PAID' %}success{% else %}error{% endif %}" style="margin-bottom: 25px; border-radius: 12px;">
+        ⚠️ <strong>Status Update:</strong> {{ notice }}
+    </div>
+    
     <div class="top-cards">
         
         <div class="stat-card dark">
-            <div class="card-label">Total Paid</div>
-            <h2 class="card-amount">NPR {{ '%.2f' | format(fee_paid_amount) }}</h2>
+            <div class="card-label">Total Semester Billed</div>
+            <h2 class="card-amount" style="margin-bottom: 0;">NPR {{ '%.2f'|format(fee_amount) }}</h2>
+        </div>
 
-            {% set total_fee = fee_amount if fee_amount is not none else 0 %}
-            {% set paid = fee_paid_amount if fee_paid_amount is not none else 0 %}
-            {% set pct = 0 %}
-            {% if total_fee and total_fee > 0 %}
-                {% set pct = (paid / total_fee) * 100 %}
-            {% endif %}
-
-
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: {{ '%.0f' | format(pct) }}%;"></div>
+        <div class="stat-card">
+            {% set percent = ((fee_paid_amount / fee_amount * 100)|int) if fee_amount > 0 else 0 %}
+            <div class="badge {% if fee_status == 'PAID' %}badge-success{% else %}badge-unpaid{% endif %}" style="position: absolute; top: 25px; right: 25px; border-radius: 20px; font-weight: 700; padding: 4px 12px;">
+                {{ fee_status }}
+            </div>
+            
+            <div class="card-label">Total Amount Paid</div>
+            <h2 class="card-amount" style="color: #333;">NPR {{ '%.2f'|format(fee_paid_amount) }}</h2>
+            
+            <div class="progress-container" style="margin-top: 15px;">
+                    <div class="progress-bar-bg" style="background: #e2e8f0;">
+                    <div class="progress-bar-fill" data-width="{{ percent }}"></div>
                 </div>
-                <div class="progress-text">{{ '%.0f' | format(pct) }}% Paid</div>
+                <div class="progress-text" style="color: #333;">{{ percent }}% Cleared</div>
             </div>
         </div>
 
 
         <div class="stat-card">
-            {% if fee_status == 'PAID' %}
-                <div class="badge badge-success">Paid</div>
-            {% else %}
-                <div class="badge badge-success" style="background:#f8d7da;color:#721c24;">Unpaid</div>
-            {% endif %}
-
-            <div style="background: #e8f0fe; color: #4285f4; width: 40px; height: 40px; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; font-size: 1.2rem;">
-                ↺
-            </div>
-
-            <div class="card-label" style="color: #888;">Due / Last Update</div>
-            <h2 class="card-amount" style="color: #333;">NPR {{ '%.2f' | format(fee_amount - fee_paid_amount) }}</h2>
-            <p style="margin: 0; font-size: 0.9rem; color: #888;">{{ last_updated }}</p>
+            <div class="card-label">Remaining Balance Owed</div>
+            {% set balance = fee_amount - fee_paid_amount %}
+            <h2 class="card-amount {% if balance > 0 %}amount-owed{% else %}amount-clear{% endif %}">
+                NPR {{ '%.2f'|format(balance if balance > 0 else 0.0) }}
+            </h2>
+            <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
+                {% set last_paid = namespace(title='No payments on record yet', found=false) %}
+                {% for fee in fees %}
+                    {% if fee['paid_amount'] > 0 and not last_paid.found %}
+                        {% set last_paid.title = fee['title'] %}
+                        {% set last_paid.found = true %}
+                    {% endif %}
+                {% endfor %}
+                Recent Payment Towards: <br><strong style="color: #334155;">{{ last_paid.title }}</strong>
+            </p>
         </div>
 
     </div>
@@ -251,38 +264,66 @@
     <div class="bottom-section">
         
         <div class="payment-history">
-            <div class="payment-history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #0a1f3d; font-size: 1.1rem;">Payment History</h3>
-                <span style="color: #003366; font-size: 0.9rem; cursor: pointer; font-weight: 600;">Filter by Year ⌄</span>
+            <div class="payment-history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #0a1f3d; font-size: 1.1rem;">Detailed Account Activity Statement</h3>
+                <small class="muted" style="font-size: 0.8rem; font-style: italic;">Live Sync Active</small>
             </div>
             
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Method</th>
-                            <th>Amount</th>
-                            <th style="text-align: center;">Action</th>
+                            <th>Description / Title</th>
+                            <th>Due Deadline</th>
+                            <th>Last Payment Activity</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Amount Details</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% if fee_last_payment_at %}
-                            <tr>
-                                <td style="font-weight: 600;">{{ fee_last_payment_at }}</td>
-                                <td>Last Payment</td>
-                                <td><span class="method-dot dot-online"></span>Recorded</td>
-                                <td style="font-weight: 600;">NPR {{ '%.2f' | format(fee_paid_amount) }}</td>
-                                <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                            </tr>
+                        {% for fee in fees %}
+                        <tr>
+                            <td style="font-weight: 700; color: #0f172a;">{{ fee['title'] }}</td>
+                            <td style="color: #475569;">
+                                📅 {{ fee['due_date'] if fee['due_date'] else 'Flexible' }}
+                            </td>
+                            <td style="color: #475569; font-size: 0.85rem; vertical-align: middle; padding-right: 25px;">
+                                {% if fee['transactions'] %}
+                                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for tx in fee['transactions'] %}
+                                        <div class="tx-row {% if loop.last %}tx-last{% endif %}">
+                                            <span style="color: #16a34a; font-weight: 700;">+NPR {{ '%.2f'|format(tx['amount_paid']) }}</span>
+                                            <span style="color: #64748b; font-size: 0.8rem;">🕒 {{ tx['payment_date'] }}</span>
+                                        </div>
+                                    {% endfor %}
+                                    </div>
+                                {% elif fee['paid_amount'] > 0 %}
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: #16a34a; font-weight: 700;">+NPR {{ '%.2f'|format(fee['paid_amount']) }}</span>
+                                        <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">🕒 {{ fee['updated_at'] if fee['updated_at'] else 'Legacy Payment' }}</span>
+                                    </div>
+                                {% else %}
+                                    <span style="color: #94a3b8; font-style: italic;">No payments yet</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if fee['status'] == 'paid' %}badge-success{% else %}badge-unpaid{% endif %}" style="position: static; padding: 4px 10px; font-size: 11px;">
+                                    {{ fee['status'] | upper }}
+                                </span>
+                            </td>
+                            <td style="font-weight: 700; text-align: right;">
+                                <span style="color: #64748b; font-weight: normal; font-size: 0.85rem;">Billed:</span> {{ '%.2f'|format(fee['amount']) }} 
+                                <br>
+                                <span style="color: #16a34a; font-weight: normal; font-size: 0.85rem;">Paid:</span> {{ '%.2f'|format(fee['paid_amount']) }}
+                            </td>
+                        </tr>
                         {% else %}
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: #888; padding: 20px 10px;">
-                                    No payments recorded yet.
-                                </td>
-                            </tr>
-                        {% endif %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #888; padding: 40px; font-style: italic;">
+                                🎉 Wonderful! No active balance statement dues or open billing profiles found on record.
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

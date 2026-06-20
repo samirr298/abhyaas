@@ -9,22 +9,54 @@ class FeeController(BaseController):
     @login_required
     @role_required('admin')
     def fees_management(self):
-        """Display all students with their fee status, with optional filtering."""
+        """Display all students with their fee status, calculating the filter dynamically."""
         fee_filter = request.args.get('filter', default=None)
-        
-        # Validate filter
         if fee_filter and fee_filter not in ['paid', 'unpaid']:
             fee_filter = None
         
-        # Fetch students based on filter
-        students = Users.get_all_students(fee_filter=fee_filter)
+        # Pull all student accounts to evaluate individual active invoices
+        all_students = Users.get_all_students(fee_filter=None)
+        filtered_students = []
         
+        for student in all_students:
+            individual_fees = Users.get_fees_by_student_id(student['id'])
+            student['individual_fees'] = individual_fees
+            
+            if individual_fees:
+                # Accumulate live ledger values
+                student['fee_amount'] = sum(float(f['amount'] or 0) for f in individual_fees)
+                student['fee_paid_amount'] = sum(float(f['paid_amount'] or 0) for f in individual_fees)
+                
+                # If any single ledger line is unpaid, the whole account standing is unpaid
+                has_unpaid = any(f['status'] != 'paid' for f in individual_fees)
+                calculated_status = 'unpaid' if has_unpaid else 'paid'
+                student['fee_status'] = calculated_status
+                
+                # Fetch closest processing timeline due date
+                unpaid_deadlines = [f['due_date'] for f in individual_fees if f['status'] != 'paid' and f['due_date']]
+                if unpaid_deadlines:
+                    student['fee_due_date'] = min(unpaid_deadlines)
+                else:
+                    all_deadlines = [f['due_date'] for f in individual_fees if f['due_date']]
+                    student['fee_due_date'] = max(all_deadlines) if all_deadlines else None
+            else:
+                # Safe fallbacks if no dues are currently registered
+                student['fee_amount'] = 0.0
+                student['fee_paid_amount'] = 0.0
+                student['fee_status'] = 'paid'
+                student['fee_due_date'] = None
+                calculated_status = 'paid'
+            
+            # Append only if it satisfies your sidebar pipeline selection parameters
+            if not fee_filter or calculated_status == fee_filter:
+                filtered_students.append(student)
+            
         return self.render(
             'users/fees_management.html',
             username=self.session.get('username'),
             email=self.session.get('email'),
             role=self.session.get('role'),
-            students=students,
+            students=filtered_students,
             current_filter=fee_filter
         )
     
@@ -37,6 +69,87 @@ class FeeController(BaseController):
             return redirect(url_for('auth.fees_management'))
 
         action = (request.form.get('action') or 'set_status').strip()
+
+        # -------------------------------------------------------------
+        # 1. Handle Bulk Actions First (These don't need a single student_id)
+        # -------------------------------------------------------------
+        if action == 'bulk_set_fee':
+            target_group = request.form.get('target_group', 'all')
+            title = request.form.get('fee_title', '').strip() or "General Semester Dues"
+            try:
+                fee_amount = float(request.form.get('fee_amount', 0))
+            except ValueError:
+                flash('Invalid fee amount numerical syntax.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            fee_due_date = request.form.get('fee_due_date', '').strip() or None
+
+            # Fetch everyone and dynamically calculate who fits the target group
+            all_students = Users.get_all_students(fee_filter=None)
+            target_ids = []
+
+            for student in all_students:
+                individual_fees = Users.get_fees_by_student_id(student['id'])
+                has_unpaid = any(f['status'] != 'paid' for f in individual_fees) if individual_fees else False
+                calc_status = 'unpaid' if has_unpaid else 'paid'
+
+                if target_group == 'all' or target_group == calc_status:
+                    target_ids.append(student['id'])
+
+            if not target_ids:
+                flash('No students currently match the selected pipeline group.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            # Issue the bills
+            success_count = 0
+            for sid in target_ids:
+                if Users.add_student_due(sid, title, fee_amount, fee_due_date):
+                    success_count += 1
+
+            flash(f"Successfully allocated '{title}' to {success_count} student accounts.", 'success')
+            return redirect(url_for('auth.fees_management'))
+        
+        if action == 'bulk_delete_fee':
+            target_group = request.form.get('target_group', 'all')
+            title = request.form.get('fee_title', '').strip()
+
+            if not title:
+                flash('Please provide the exact invoice title to delete.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            # Fetch all students and find who fits the target group
+            all_students = Users.get_all_students(fee_filter=None)
+            target_ids = []
+
+            for student in all_students:
+                individual_fees = Users.get_fees_by_student_id(student['id'])
+                has_unpaid = any(f['status'] != 'paid' for f in individual_fees) if individual_fees else False
+                calc_status = 'unpaid' if has_unpaid else 'paid'
+
+                if target_group == 'all' or target_group == calc_status:
+                    target_ids.append(student['id'])
+
+            if not target_ids:
+                flash('No students matched the selected group for deletion.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            # Hunt down the specific fee by title for each targeted student and delete it
+            delete_count = 0
+            for sid in target_ids:
+                individual_fees = Users.get_fees_by_student_id(sid)
+                for fee in individual_fees:
+                    if fee['title'].strip().lower() == title.lower():
+                        if Users.delete_fee(fee['id']):
+                            delete_count += 1
+
+            if delete_count > 0:
+                flash(f"Successfully retracted/deleted invoice '{title}' from {delete_count} student accounts.", 'success')
+            else:
+                flash(f"No invoices found matching the title '{title}' in the selected group.", 'error')
+                
+            return redirect(url_for('auth.fees_management'))
+
+        # 2. Handle Individual Student Actions (Require student_id)
         student_id = request.form.get('student_id')
         student_ids = request.form.getlist('student_ids') if hasattr(request.form, 'getlist') else []
 
@@ -62,76 +175,132 @@ class FeeController(BaseController):
 
         # set_fee_amount => add input to existing fee_amount (accumulate)
         if action == 'set_fee_amount':
+            target_group = request.form.get('target_group', 'all')
+            title = request.form.get('fee_title', '').strip() or "General Semester Dues"
             try:
-                fee_amount = float(request.form.get('fee_amount'))
-            except Exception:
-                flash('Invalid fee amount.', 'error')
+                fee_amount = float(request.form.get('fee_amount', 0))
+            except ValueError:
+                flash('Invalid fee amount numerical syntax.', 'error')
                 return redirect(url_for('auth.fees_management'))
 
-            if fee_amount < 0:
-                flash('Fee amount cannot be negative.', 'error')
+            fee_due_date = request.form.get('fee_due_date', '').strip() or None
+
+            # Fetch everyone and dynamically calculate who fits the target group
+            all_students = Users.get_all_students(fee_filter=None)
+            target_ids = []
+
+            for student in all_students:
+                individual_fees = Users.get_fees_by_student_id(student['id'])
+                has_unpaid = any(f['status'] != 'paid' for f in individual_fees) if individual_fees else False
+                calc_status = 'unpaid' if has_unpaid else 'paid'
+
+                if target_group == 'all' or target_group == calc_status:
+                    target_ids.append(student['id'])
+
+            if not target_ids:
+                flash('No students currently match the selected pipeline group.', 'error')
                 return redirect(url_for('auth.fees_management'))
 
-            fee_due_date = request.form.get('fee_due_date')
-            if fee_due_date is not None:
-                fee_due_date = fee_due_date.strip()
-                if fee_due_date == '':
-                    fee_due_date = None
+            # Issue the bills
+            success_count = 0
+            for sid in target_ids:
+                if Users.add_student_due(sid, title, fee_amount, fee_due_date):
+                    success_count += 1
 
-            ok = True
-            for sid in ids_to_update:
-                if not Users.add_fee_amount(sid, fee_amount=fee_amount, fee_due_date=fee_due_date):
-                    ok = False
-                    break
+            flash(f"Successfully allocated '{title}' to {success_count} student accounts.", 'success')
+            return redirect(url_for('auth.fees_management'))
+        
+        if action == 'bulk_delete_fee':
+            target_group = request.form.get('target_group', 'all')
+            title = request.form.get('fee_title', '').strip()
 
-            names = resolve_names(ids_to_update)
-            if ok:
-                flash(f"Fee amount added for {len(ids_to_update)} student(s).", 'success')
+            if not title:
+                flash('Please provide the exact invoice title to delete.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            # Fetch all students and find who fits the target group
+            all_students = Users.get_all_students(fee_filter=None)
+            target_ids = []
+
+            for student in all_students:
+                individual_fees = Users.get_fees_by_student_id(student['id'])
+                has_unpaid = any(f['status'] != 'paid' for f in individual_fees) if individual_fees else False
+                calc_status = 'unpaid' if has_unpaid else 'paid'
+
+                if target_group == 'all' or target_group == calc_status:
+                    target_ids.append(student['id'])
+
+            if not target_ids:
+                flash('No students matched the selected group for deletion.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            # Hunt down the specific fee by title for each targeted student and delete it
+            delete_count = 0
+            for sid in target_ids:
+                individual_fees = Users.get_fees_by_student_id(sid)
+                for fee in individual_fees:
+                    # Case-insensitive match to prevent typos leaving orphaned bills
+                    if fee['title'].strip().lower() == title.lower():
+                        if Users.delete_fee(fee['id']):
+                            delete_count += 1
+
+            if delete_count > 0:
+                flash(f"Successfully retracted/deleted invoice '{title}' from {delete_count} student accounts.", 'success')
             else:
-                flash(f"Failed to add fee amount for some students.", 'error')
+                flash(f"No invoices found matching the title '{title}' in the selected group.", 'error')
+                
+            return redirect(url_for('auth.fees_management'))
+        
 
+        if action == 'set_fee_amount':
+            title = request.form.get('fee_title', '').strip() or "General Semester Dues"
+            try:
+                fee_amount = float(request.form.get('fee_amount', 0))
+            except ValueError:
+                flash('Invalid fee amount numerical syntax.', 'error')
+                return redirect(url_for('auth.fees_management'))
+
+            fee_due_date = request.form.get('fee_due_date', '').strip() or None
+
+            if Users.add_student_due(student_id, title, fee_amount, fee_due_date):
+                flash(f"New charge profile '{title}' successfully assigned to {student['name']}.", 'success')
+            else:
+                flash('Database record assignment dropped. Try again.', 'error')
             return redirect(url_for('auth.fees_management'))
 
         # record_payment => add input to existing fee_paid_amount (accumulate)
         if action == 'record_payment':
+            fee_id = request.form.get('fee_id')
             try:
-                payment_amount = float(request.form.get('payment_amount'))
-            except Exception:
-                flash('Invalid payment amount.', 'error')
+                payment_amount = float(request.form.get('payment_amount', 0))
+            except ValueError:
+                flash('Invalid payment numeric data.', 'error')
                 return redirect(url_for('auth.fees_management'))
 
-            if payment_amount < 0:
-                flash('Payment amount cannot be negative.', 'error')
+            if not fee_id:
+                flash('Please pick an active invoice item allocation target first.', 'error')
                 return redirect(url_for('auth.fees_management'))
 
-            ok = True
-            for sid in ids_to_update:
-                if not Users.add_fee_payment(sid, payment_amount=payment_amount, payment_at=None):
-                    ok = False
-                    break
-
-            if ok:
-                flash(f"Payment recorded for {len(ids_to_update)} student(s).", 'success')
+            if Users.record_payment_on_fee(fee_id, payment_amount):
+                flash(f"Collection entry recorded successfully.", 'success')
             else:
-                flash('Failed to record payment for some students. Please try again.', 'error')
-
+                flash('Failed to post payment collection.', 'error')
             return redirect(url_for('auth.fees_management'))
 
         if action == 'reset_fee':
-            ok = True
-            for sid in ids_to_update:
-                if not Users.reset_fee(sid):
-                    ok = False
-                    break
-            if ok:
-                flash(f"Fee reset for {len(ids_to_update)} student(s).", 'success')
+            fee_id = request.form.get('fee_id')
+            if fee_id and Users.reset_single_fee(fee_id):
+                flash('Target invoice balance parameters reset.', 'success')
             else:
-                flash('Failed to reset fee for some students. Please try again.', 'error')
+                flash('Failed to clear balance row item.', 'error')
             return redirect(url_for('auth.fees_management'))
-
-        # Backward-compatible: set_status (paid/unpaid) for a single student only
-        if len(ids_to_update) != 1:
-            flash('Status update supports single student only.', 'error')
+        
+        if action == 'delete_fee':
+            fee_id = request.form.get('fee_id')
+            if fee_id and Users.delete_fee(fee_id):
+                flash('Due invoice completely deleted from records.', 'success')
+            else:
+                flash('Failed to delete due invoice.', 'error')
             return redirect(url_for('auth.fees_management'))
 
         fee_status = request.form.get('fee_status')
@@ -152,66 +321,36 @@ class FeeController(BaseController):
 
     @login_required
     def student_fees(self):
-        """Display the fee status and notices for the currently logged-in student."""
-        # 1. Double check that an admin didn't accidentally navigate here
+        """Display consolidated ledger invoices for the active student account."""
         if self.session.get('role') != 'student':
-            flash('Only students can view personal fee status.', 'error')
+            flash('Only students can view personal fee profiles.', 'error')
             return redirect(url_for('auth.profile'))
             
-        # 2. Get the current student's ID from the session
         student_id = self.session.get('user_id')
+        fees_list = Users.get_fees_by_student_id(student_id)
+
+        transactions = Users.get_transactions_by_student_id(student_id)
+        for fee in fees_list:
+            fee['transactions'] = [t for t in transactions if t['fee_id'] == fee['id']]
         
-        # 3. Fetch their exact details from the database
-        student_data = Users.get_student_by_id(student_id)
+        # Calculate dynamic matrix aggregates on the fly
+        total_billed = sum(float(f['amount'] or 0) for f in fees_list)
+        total_paid = sum(float(f['paid_amount'] or 0) for f in fees_list)
+        total_balance = max(0.0, total_billed - total_paid)
         
-        # Handle edge case if the database fails to find them
-        if not student_data:
-            flash('Could not retrieve fee data. Please contact admin.', 'error')
-            return redirect(url_for('auth.profile'))
-            
-        # 4. Extract the fee status & details
-        current_status = student_data.get('fee_status', 'unpaid').upper()
-        last_updated_time = student_data.get('fee_updated_at', 'Time not available')
+        global_status = "PAID" if (total_billed > 0 and total_paid >= total_billed) or (total_billed == 0) else "UNPAID"
+        notice_msg = "All clear! Excellent status standing." if global_status == "PAID" else f"Pending payment collection required. Current net balance: NPR {total_balance:.2f}"
 
-        fee_amount = student_data.get('fee_amount')
-        fee_due_date = student_data.get('fee_due_date')
-        fee_paid_amount = student_data.get('fee_paid_amount')
-        fee_last_payment_at = student_data.get('fee_last_payment_at')
-
-        # Normalize numeric display
-        try:
-            fee_amount = float(fee_amount) if fee_amount is not None else 0.0
-        except Exception:
-            fee_amount = 0.0
-
-        try:
-            fee_paid_amount = float(fee_paid_amount) if fee_paid_amount is not None else 0.0
-        except Exception:
-            fee_paid_amount = 0.0
-
-        remaining = max(0.0, fee_amount - fee_paid_amount)
-
-        # 5. Create a dynamic notice based on their status
-        if current_status == 'UNPAID':
-            if remaining > 0 and fee_amount > 0:
-                notice_msg = f"Your fees are pending. Remaining due: {remaining:.2f}. Please clear your dues." 
-            else:
-                notice_msg = "Your fees for the current semester are pending. Please clear your dues as soon as possible to avoid late penalties."
-        else:
-            notice_msg = "Thank you! Your fees for the current semester are fully paid. You have no pending dues."
-
-        # 6. Send all of this to the HTML page
         return self.render(
             'users/student_fees.html',
             username=self.session.get('username'),
             email=self.session.get('email'),
             role=self.session.get('role'),
-            fee_status=current_status,
+            fees=fees_list,
+            fee_status=global_status,
             notice=notice_msg,
-            last_updated=last_updated_time,
-            fee_amount=fee_amount,
-            fee_due_date=fee_due_date,
-            fee_paid_amount=fee_paid_amount,
-            fee_last_payment_at=fee_last_payment_at
+            fee_amount=total_billed,
+            fee_paid_amount=total_paid,
+            balance=total_balance
         )
 
