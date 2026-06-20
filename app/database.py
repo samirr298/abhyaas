@@ -130,9 +130,16 @@ class Database:
                                     id INT AUTO_INCREMENT PRIMARY KEY,
                                     user_id INT NOT NULL,
                                     task_id INT NOT NULL,
+                                    task_title VARCHAR(255) NULL,
+                                    task_description TEXT NULL,
+                                    task_subject VARCHAR(255) NULL,
+                                    task_due_date DATETIME NULL,
+                                    task_attached_filename VARCHAR(255) NULL,
+                                    task_created_by INT NULL,
+                                    task_created_at TIMESTAMP NULL,
+                                    task_deleted_at TIMESTAMP NULL,
                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     CONSTRAINT fk_bookmark_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                                    CONSTRAINT fk_bookmark_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
                                     UNIQUE KEY unique_task_bookmark (user_id, task_id)
                                 );''')
                                 connection.commit()
