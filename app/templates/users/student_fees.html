@@ -207,28 +207,50 @@
 
 <div class="fee-dashboard">
     
+    <div class="flash {% if fee_status == 'PAID' %}success{% else %}error{% endif %}" style="margin-bottom: 25px; border-radius: 12px;">
+        ⚠️ <strong>Status Update:</strong> {{ notice }}
+    </div>
+    
     <div class="top-cards">
         
         <div class="stat-card dark">
-            <div class="card-label">Total Paid This Year</div>
-            <h2 class="card-amount">NPR 1,45,000</h2>
+            <div class="card-label">Total Semester Billed</div>
+            <h2 class="card-amount" style="margin-bottom: 0;">NPR {{ '%.2f'|format(fee_amount) }}</h2>
+        </div>
+
+        <div class="stat-card">
+            {% set percent = ((fee_paid_amount / fee_amount * 100)|int) if fee_amount > 0 else 0 %}
+            <div class="badge {% if fee_status == 'PAID' %}badge-success{% else %}badge-unpaid{% endif %}" style="position: absolute; top: 25px; right: 25px; border-radius: 20px; font-weight: 700; padding: 4px 12px;">
+                {{ fee_status }}
+            </div>
             
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill"></div>
+            <div class="card-label">Total Amount Paid</div>
+            <h2 class="card-amount" style="color: #333;">NPR {{ '%.2f'|format(fee_paid_amount) }}</h2>
+            
+            <div class="progress-container" style="margin-top: 15px;">
+                <div class="progress-bar-bg" style="background: #e2e8f0;">
+                    <div class="progress-bar-fill" style="width: {{ percent }}%;"></div>
                 </div>
-                <div class="progress-text">85% Paid</div>
+                <div class="progress-text" style="color: #333;">{{ percent }}% Cleared</div>
             </div>
         </div>
 
         <div class="stat-card">
-            <div class="badge badge-success">Success</div>
-            <div style="background: #e8f0fe; color: #4285f4; width: 40px; height: 40px; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; font-size: 1.2rem;">
-                ↺
-            </div>
-            <div class="card-label" style="color: #888;">Last Transaction</div>
-            <h2 class="card-amount" style="color: #333;">NPR 45,000</h2>
-            <p style="margin: 0; font-size: 0.9rem; color: #888;">August 12, 2023 • E-Sewa</p>
+            <div class="card-label">Remaining Balance Owed</div>
+            {% set balance = fee_amount - fee_paid_amount %}
+            <h2 class="card-amount" style="color: {% if balance > 0 %}#be123c{% else %}#047857{% endif %};">
+                NPR {{ '%.2f'|format(balance if balance > 0 else 0.0) }}
+            </h2>
+            <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
+                {% set last_paid = namespace(title='No payments on record yet', found=false) %}
+                {% for fee in fees %}
+                    {% if fee['paid_amount'] > 0 and not last_paid.found %}
+                        {% set last_paid.title = fee['title'] %}
+                        {% set last_paid.found = true %}
+                    {% endif %}
+                {% endfor %}
+                Recent Payment Towards: <br><strong style="color: #334155;">{{ last_paid.title }}</strong>
+            </p>
         </div>
 
     </div>
@@ -236,51 +258,66 @@
     <div class="bottom-section">
         
         <div class="payment-history">
-            <div class="payment-history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #0a1f3d; font-size: 1.1rem;">Payment History</h3>
-                <span style="color: #003366; font-size: 0.9rem; cursor: pointer; font-weight: 600;">Filter by Year ⌄</span>
+            <div class="payment-history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #0a1f3d; font-size: 1.1rem;">Detailed Account Activity Statement</h3>
+                <small class="muted" style="font-size: 0.8rem; font-style: italic;">Live Sync Active</small>
             </div>
             
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Method</th>
-                            <th>Amount</th>
-                            <th style="text-align: center;">Action</th>
+                            <th>Description / Title</th>
+                            <th>Due Deadline</th>
+                            <th>Last Payment Activity</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Amount Details</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for fee in fees %}
                         <tr>
-                            <td style="font-weight: 600;">Aug 12, 2023</td>
-                            <td>Semester III Tuition</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 45,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
+                            <td style="font-weight: 700; color: #0f172a;">{{ fee['title'] }}</td>
+                            <td style="color: #475569;">
+                                📅 {{ fee['due_date'] if fee['due_date'] else 'Flexible' }}
+                            </td>
+                            <td style="color: #475569; font-size: 0.85rem; vertical-align: middle; padding-right: 25px;">
+                                {% if fee['transactions'] %}
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for tx in fee['transactions'] %}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: {% if not loop.last %}1px solid #f1f5f9{% else %}none{% endif %}; padding-bottom: {% if not loop.last %}6px{% else %}0{% endif %};">
+                                            <span style="color: #16a34a; font-weight: 700;">+NPR {{ '%.2f'|format(tx['amount_paid']) }}</span>
+                                            <span style="color: #64748b; font-size: 0.8rem;">🕒 {{ tx['payment_date'].strftime('%b %d, %Y') }}</span>
+                                        </div>
+                                    {% endfor %}
+                                    </div>
+                                {% elif fee['paid_amount'] > 0 %}
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: #16a34a; font-weight: 700;">+NPR {{ '%.2f'|format(fee['paid_amount']) }}</span>
+                                        <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">🕒 {{ fee['updated_at'].strftime('%b %d, %Y') if fee['updated_at'] else 'Legacy Payment' }}</span>
+                                    </div>
+                                {% else %}
+                                    <span style="color: #94a3b8; font-style: italic;">No payments yet</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if fee['status'] == 'paid' %}badge-success{% else %}badge-unpaid{% endif %}" style="position: static; padding: 4px 10px; font-size: 11px;">
+                                    {{ fee['status'] | upper }}
+                                </span>
+                            </td>
+                            <td style="font-weight: 700; text-align: right;">
+                                <span style="color: #64748b; font-weight: normal; font-size: 0.85rem;">Billed:</span> {{ '%.2f'|format(fee['amount']) }} 
+                                <br>
+                                <span style="color: #16a34a; font-weight: normal; font-size: 0.85rem;">Paid:</span> {{ '%.2f'|format(fee['paid_amount']) }}
+                            </td>
                         </tr>
+                        {% else %}
                         <tr>
-                            <td style="font-weight: 600;">Jul 05, 2023</td>
-                            <td>Exam Fee - Midterm</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 5,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
+                            <td colspan="5" style="text-align: center; color: #888; padding: 40px; font-style: italic;">
+                                🎉 Wonderful! No active balance statement dues or open billing profiles found on record.
+                            </td>
                         </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Mar 15, 2023</td>
-                            <td>Library Caution Deposit</td>
-                            <td><span class="method-dot dot-cash"></span>Cash</td>
-                            <td style="font-weight: 600;">NPR 10,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Feb 10, 2023</td>
-                            <td>Semester II Tuition</td>
-                            <td><span class="method-dot dot-online"></span>Online</td>
-                            <td style="font-weight: 600;">NPR 45,000</td>
-                            <td style="text-align: center; color: #a0aabf; cursor: pointer;">📄⬇</td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

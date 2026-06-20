@@ -261,3 +261,68 @@ class Users(BaseModel):
         """
         return Users.fetch_one(sql, [user_id])
 
+    # --- Multi-Invoice Fees Ledger Helpers ---
+    @staticmethod
+    def add_student_due(student_id, title, amount, due_date=None):
+        """Insert a brand new dynamic due invoice line for a student."""
+        sql = """
+            INSERT INTO fees (student_id, title, amount, due_date, status)
+            VALUES (%s, %s, %s, %s, 'unpaid')
+        """
+        return Users.execute_write(sql, [student_id, title, amount, due_date])
+
+    @staticmethod
+    def get_fees_by_student_id(student_id):
+        """Fetch all individual invoice due lines assigned to a specific student."""
+        sql = "SELECT id, title, amount, paid_amount, status, due_date, updated_at FROM fees WHERE student_id = %s ORDER BY created_at DESC"
+        return Users.fetch_all(sql, [student_id]) or []
+
+    @staticmethod
+    def record_payment_on_fee(fee_id, payment_amount):
+        """Record payment collection and log the specific transaction receipt."""
+        sql_fetch = "SELECT amount, paid_amount FROM fees WHERE id = %s"
+        fee = Users.fetch_one(sql_fetch, [fee_id])
+        if not fee:
+            return False
+            
+        new_paid = float(fee['paid_amount'] or 0) + float(payment_amount)
+        new_status = 'paid' if new_paid >= float(fee['amount'] or 0) else 'unpaid'
+        
+        sql_update = """
+            UPDATE fees 
+            SET paid_amount = %s, status = %s, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = %s
+        """
+        success = Users.execute_write(sql_update, [new_paid, new_status, fee_id])
+        
+        if success:
+            sql_log = "INSERT INTO fee_transactions (fee_id, amount_paid) VALUES (%s, %s)"
+            Users.execute_write(sql_log, [fee_id, payment_amount])
+            
+        return success
+
+    @staticmethod
+    def reset_single_fee(fee_id):
+        """Flush transaction history for a single invoice row line item back to 0."""
+        Users.execute_write("DELETE FROM fee_transactions WHERE fee_id = %s", [fee_id])
+        
+        sql = "UPDATE fees SET paid_amount = 0.00, status = 'unpaid' WHERE id = %s"
+        return Users.execute_write(sql, [fee_id])
+    
+    @staticmethod
+    def get_transactions_by_student_id(student_id):
+        """Fetch every individual partial payment receipt for a student."""
+        sql = """
+            SELECT t.fee_id, t.amount_paid, t.payment_date 
+            FROM fee_transactions t
+            JOIN fees f ON t.fee_id = f.id
+            WHERE f.student_id = %s
+            ORDER BY t.payment_date DESC
+        """
+        return Users.fetch_all(sql, [student_id]) or []
+    
+    @staticmethod
+    def delete_fee(fee_id):
+        """Permanently delete an invoice and all cascaded payment receipts."""
+        sql = "DELETE FROM fees WHERE id = %s"
+        return Users.execute_write(sql, [fee_id])
